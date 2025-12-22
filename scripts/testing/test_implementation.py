@@ -86,17 +86,17 @@ def test_deployment_script():
     print("=" * 40)
     
     # Check if deployment script exists
-    if not os.path.exists("scripts/deploy/deploy_testnet.sh"):
+    if not os.path.exists("scripts/deploy_testnet.sh"):
         print("[FAILED] Deployment script not found")
         return False
     
     # Check if script is executable
-    if not os.access("scripts/deploy/deploy_testnet.sh", os.X_OK):
+    if not os.access("scripts/deploy_testnet.sh", os.X_OK):
         print("[FAILED] Deployment script is not executable")
         return False
     
     # Test script help
-    if not run_command("./scripts/deploy/deploy_testnet.sh help", "Testing deployment script help"):
+    if not run_command("./scripts/deploy_testnet.sh help", "Testing deployment script help"):
         return False
     
     return True
@@ -117,7 +117,6 @@ def test_directory_structure():
         "tests/consensus",
         "tests/integration",
         "tests/e2e",
-        "scripts/deploy",
         "scripts/testing",
         "scripts/monitoring",
         "config/testnet",
