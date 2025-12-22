@@ -2,7 +2,7 @@
 
 A novel consensus mechanism designed to mitigate MEV (Maximal Extractable Value) attacks through a two-step block proposal process with hidden transaction details.
 
-## 🎯 Overview
+## Overview
 
 P2S implements a **two-step block proposal mechanism** where:
 1. **B1 Block**: Contains PHTs (Partially Hidden Transactions) with concealed sensitive fields
