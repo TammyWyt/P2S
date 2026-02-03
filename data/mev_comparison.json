@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-02-03T00:00:00",
+  "comparison": {
+    "ethereum": {
+      "total_blocks": 50,
+      "total_mev": 12.5,
+      "avg_mev_per_block": 0.25,
+      "avg_mev_per_tx": 0.018,
+      "miner_payments": 50,
+      "swaps": 120,
+      "arbitrages": 35,
+      "sandwich_attacks": 18
+    },
+    "p2s": {
+      "total_blocks": 50,
+      "total_mev": 4.2,
+      "avg_mev_per_block": 0.084,
+      "avg_mev_per_tx": 0.006,
+      "miner_payments": 50,
+      "swaps": 45,
+      "arbitrages": 8,
+      "sandwich_attacks": 2
+    },
+    "differences": {
+      "total_mev": { "ethereum": 12.5, "p2s": 4.2, "reduction": 66.4, "reduction_abs": 8.3 },
+      "avg_mev_per_block": { "ethereum": 0.25, "p2s": 0.084, "reduction": 66.4, "reduction_abs": 0.166 },
+      "swaps": { "ethereum": 120, "p2s": 45, "reduction": 62.5, "reduction_abs": 75 },
+      "arbitrages": { "ethereum": 35, "p2s": 8, "reduction": 77.1, "reduction_abs": 27 },
+      "sandwich_attacks": { "ethereum": 18, "p2s": 2, "reduction": 88.9, "reduction_abs": 16 }
+    }
+  },
+  "mev_by_type": {
+    "miner_payments": {
+      "ethereum": { "count": 50, "total": 2.1, "avg": 0.042, "median": 0.04 },
+      "p2s": { "count": 50, "total": 2.0, "avg": 0.04, "median": 0.038 },
+      "reduction": { "count": 0, "count_pct": 0, "total": 0.1, "total_pct": 4.8 }
+    },
+    "swaps": {
+      "ethereum": { "count": 120, "total": 5.2, "avg": 0.043, "median": 0.04 },
+      "p2s": { "count": 45, "total": 1.4, "avg": 0.031, "median": 0.028 },
+      "reduction": { "count": 75, "count_pct": 62.5, "total": 3.8, "total_pct": 73.1 }
+    },
+    "arbitrages": {
+      "ethereum": { "count": 35, "total": 3.8, "avg": 0.109, "median": 0.09 },
+      "p2s": { "count": 8, "total": 0.6, "avg": 0.075, "median": 0.07 },
+      "reduction": { "count": 27, "count_pct": 77.1, "total": 3.2, "total_pct": 84.2 }
+    },
+    "sandwich_attacks": {
+      "ethereum": { "count": 18, "total": 1.4, "avg": 0.078, "median": 0.07 },
+      "p2s": { "count": 2, "total": 0.2, "avg": 0.1, "median": 0.1 },
+      "reduction": { "count": 16, "count_pct": 88.9, "total": 1.2, "total_pct": 85.7 }
+    }
+  }
+}
