@@ -16,11 +16,10 @@ import seaborn as sns
 DATA_DIR = "data"
 FIGURES_DIR = "figures"
 
-# Pastel palette: Ethereum = soft blue, P2S = soft green
-PASTEL_ETH = "#9ECAE1"
-PASTEL_P2S = "#A1D99B"
-PASTEL_REDUCTION = "#C7E9C0"
-PASTEL_NEUTRAL = "#D9D9D9"
+# Colors from seaborn vlag palette (diverging blue to red)
+VLAG_PALETTE = sns.color_palette("vlag", n_colors=10)
+COLOR_BLUE = VLAG_PALETTE[1]   # Ethereum (blue end)
+COLOR_RED = VLAG_PALETTE[-2]   # P2S (red end)
 
 # Default paths: use one comparison file (generated once from inspect + compare)
 def _find_latest(path_pattern: str):
@@ -43,44 +42,59 @@ def load_comparison(data_dir: str = DATA_DIR):
     return None
 
 
-def plot_mev_summary(comparison_data: dict, out_path: str) -> None:
-    """Single figure: Total MEV by type (Eth vs P2S) and reduction %."""
+def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
+    """Bar chart: Total MEV by type (Eth vs P2S)."""
     mev_by_type = comparison_data.get("mev_by_type", {})
     if not mev_by_type:
         return
 
-    sns.set_theme(style="whitegrid", palette="pastel")
+    sns.set_theme(style="ticks")
     types = []
     eth_totals = []
     p2s_totals = []
-    reductions = []
     for mev_type, stats in mev_by_type.items():
         types.append(mev_type.replace("_", " ").title())
         eth_totals.append(stats["ethereum"]["total"])
         p2s_totals.append(stats["p2s"]["total"])
-        reductions.append(stats["reduction"]["total_pct"])
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
-
+    fig, ax = plt.subplots(figsize=(8, 5))
     x = np.arange(len(types))
     w = 0.35
-    ax1.bar(x - w / 2, eth_totals, w, label="Ethereum", color=PASTEL_ETH, edgecolor="white", linewidth=1.2)
-    ax1.bar(x + w / 2, p2s_totals, w, label="P2S", color=PASTEL_P2S, edgecolor="white", linewidth=1.2)
-    ax1.set_ylabel("Total MEV (ETH)")
-    ax1.set_title("MEV by type")
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(types, rotation=25, ha="right")
-    ax1.legend()
-    sns.despine(ax=ax1, left=False, bottom=False)
+    ax.bar(x - w / 2, eth_totals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
+    ax.bar(x + w / 2, p2s_totals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
+    ax.set_ylabel("Total MEV (ETH)", fontsize=14)
+    ax.set_xticks(x)
+    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=13)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.legend(fontsize=12)
+    sns.despine(ax=ax)
+    plt.tight_layout()
+    os.makedirs(FIGURES_DIR, exist_ok=True)
+    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {out_path}")
 
-    reduction_colors = [PASTEL_REDUCTION if r > 0 else PASTEL_NEUTRAL for r in reductions]
-    ax2.barh(types, reductions, color=reduction_colors, edgecolor="white", linewidth=1.2)
-    ax2.set_xlabel("Reduction (%)")
-    ax2.set_title("P2S MEV reduction vs Ethereum")
-    ax2.axvline(0, color="gray", linewidth=0.8, linestyle="--")
-    sns.despine(ax=ax2, left=False, bottom=False)
 
-    fig.suptitle("MEV comparison: Ethereum vs P2S", fontsize=14, fontweight="bold", y=1.02)
+def plot_mev_reduction(comparison_data: dict, out_path: str) -> None:
+    """Horizontal bar chart: P2S MEV reduction % vs Ethereum by type."""
+    mev_by_type = comparison_data.get("mev_by_type", {})
+    if not mev_by_type:
+        return
+
+    sns.set_theme(style="ticks")
+    types = []
+    reductions = []
+    for mev_type, stats in mev_by_type.items():
+        types.append(mev_type.replace("_", " ").title())
+        reductions.append(stats["reduction"]["total_pct"])
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    colors = [COLOR_RED if r > 0 else COLOR_BLUE for r in reductions]
+    ax.barh(types, reductions, color=colors, edgecolor="white", linewidth=1.2)
+    ax.set_xlabel("Reduction (%)", fontsize=14)
+    ax.axvline(0, color="gray", linewidth=0.8, linestyle="--")
+    ax.tick_params(axis='both', labelsize=12)
+    sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
@@ -90,7 +104,7 @@ def plot_mev_summary(comparison_data: dict, out_path: str) -> None:
 
 def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     """Bar chart: activity counts (miner payments, swaps, arbitrages, sandwich) Eth vs P2S."""
-    sns.set_theme(style="whitegrid", palette="pastel")
+    sns.set_theme(style="ticks")
     comp = comparison_data.get("comparison", {})
     eth = comp.get("ethereum", {})
     p2s = comp.get("p2s", {})
@@ -103,14 +117,14 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.arange(len(labels))
     w = 0.35
-    ax.bar(x - w / 2, eth_vals, w, label="Ethereum", color=PASTEL_ETH, edgecolor="white", linewidth=1.2)
-    ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=PASTEL_P2S, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Count")
-    ax.set_title("MEV activity counts: Ethereum vs P2S")
+    ax.bar(x - w / 2, eth_vals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
+    ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
+    ax.set_ylabel("Count", fontsize=14)
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=25, ha="right")
-    ax.legend()
-    sns.despine(ax=ax, left=False, bottom=False)
+    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=13)
+    ax.tick_params(axis='y', labelsize=12)
+    ax.legend(fontsize=12)
+    sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
@@ -129,7 +143,8 @@ def main():
         print("No MEV comparison data found. Put data/mev_comparison.json (or mev_comparison_*.json) in project root.", file=sys.stderr)
         sys.exit(1)
 
-    plot_mev_summary(data, os.path.join(figures_dir, "mev_by_type.png"))
+    plot_mev_totals(data, os.path.join(figures_dir, "mev_totals_by_type.png"))
+    plot_mev_reduction(data, os.path.join(figures_dir, "mev_by_type.png"))
     plot_activities_count(data, os.path.join(figures_dir, "mev_activities_count.png"))
     print("Done. Figures in", figures_dir)
 
