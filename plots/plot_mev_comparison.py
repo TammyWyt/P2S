@@ -143,9 +143,9 @@ def main():
         print("No MEV comparison data found. Put data/mev_comparison.json (or mev_comparison_*.json) in project root.", file=sys.stderr)
         sys.exit(1)
 
-    plot_mev_totals(data, os.path.join(figures_dir, "mev_totals_by_type.png"))
-    plot_mev_reduction(data, os.path.join(figures_dir, "mev_by_type.png"))
-    plot_activities_count(data, os.path.join(figures_dir, "mev_activities_count.png"))
+    plot_mev_totals(data, os.path.join(figures_dir, "mev_totals_by_type.pdf"))
+    plot_mev_reduction(data, os.path.join(figures_dir, "mev_by_type.pdf"))
+    plot_activities_count(data, os.path.join(figures_dir, "mev_activities_count.pdf"))
     print("Done. Figures in", figures_dir)
 
 
