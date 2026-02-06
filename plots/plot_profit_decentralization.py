@@ -13,7 +13,7 @@ import glob
 
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['font.size'] = 14
+plt.rcParams['font.size'] = 20
 plt.rcParams['font.family'] = 'sans-serif'
 
 def load_latest_research_data(data_dir="data"):
@@ -62,9 +62,10 @@ def plot_profit_decentralization(data: Dict):
         print("⚠ No profit distribution data found")
         return
     
-    ax.set_xlabel('Cumulative Fraction of Validators', fontsize=16, fontweight='bold')
-    ax.set_ylabel('Cumulative Fraction of Profits', fontsize=16, fontweight='bold')
-    ax.legend(loc='lower right', fontsize=14, frameon=True, fancybox=True, shadow=True)
+    ax.set_xlabel('Cumulative Fraction of Validators', fontsize=26, fontweight='bold')
+    ax.set_ylabel('Cumulative Fraction of Profits', fontsize=26, fontweight='bold')
+    ax.tick_params(axis='both', labelsize=22)
+    ax.legend(loc='lower right', fontsize=22, frameon=True, fancybox=True, shadow=True)
     ax.grid(True, alpha=0.2, linestyle='--', linewidth=0.8)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
@@ -76,7 +77,7 @@ def plot_profit_decentralization(data: Dict):
     
     plt.tight_layout()
     os.makedirs('figures', exist_ok=True)
-    plt.savefig('figures/profit_decentralization.png', dpi=300, bbox_inches='tight', facecolor='white')
+    plt.savefig('figures/profit_decentralization.pdf', dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
 
 def main():

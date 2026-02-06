@@ -11,13 +11,16 @@ import seaborn as sns
 import numpy as np
 import statistics
 
-# Set style with coherent colors
-sns.set_theme(style="white")
-P2S_COLOR = '#2ecc71'  # Green
-ETH_COLOR = '#3498db'  # Blue
+# Set style with coherent colors (matching MEV plots)
+sns.set_theme(style="ticks")
+# Colors from seaborn vlag palette (diverging blue to red)
+VLAG_PALETTE = sns.color_palette("vlag", n_colors=10)
+ETH_COLOR = VLAG_PALETTE[1]   # Ethereum (blue end)
+P2S_COLOR = VLAG_PALETTE[-2]  # P2S (red end)
 
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
+plt.rcParams['font.size'] = 18
 
 def load_latest_simulation_data(data_dir="data"):
     """Load the latest simulation data"""
@@ -69,10 +72,10 @@ def plot_block_time_distribution(data):
     fig, ax = plt.subplots(figsize=(10, 7))
     
     # Block processing overhead distribution histogram
-    ax.hist(pos_blk_total_time, bins=40, alpha=0.6, label='Current Ethereum', 
-            color=ETH_COLOR, edgecolor='black', linewidth=1)
+    ax.hist(pos_blk_total_time, bins=40, alpha=0.6, label='Ethereum', 
+            color=ETH_COLOR, edgecolor='white', linewidth=1.2)
     ax.hist(p2s_blk_total_time, bins=40, alpha=0.6, label='P2S', 
-            color=P2S_COLOR, edgecolor='black', linewidth=1)
+            color=P2S_COLOR, edgecolor='white', linewidth=1.2)
     
     # Add mean lines
     ax.axvline(pos_total_mean, color=ETH_COLOR, linestyle='--', linewidth=2, 
@@ -80,32 +83,18 @@ def plot_block_time_distribution(data):
     ax.axvline(p2s_total_mean, color=P2S_COLOR, linestyle='--', linewidth=2,
                label=f'P2S Mean: {p2s_total_mean:.3f}s')
     
-    # Add statistics text with clarification
-    overhead = ((p2s_total_mean - pos_total_mean) / pos_total_mean) * 100
-    stats_text = f'Block Processing Overhead:\n'
-    stats_text += f'(within 12s slot)\n\n'
-    stats_text += f'Ethereum: {pos_total_mean:.3f}s\n'
-    stats_text += f'  ({pos_proc_mean:.3f}s proc + {pos_net_mean:.3f}s net)\n'
-    stats_text += f'P2S: {p2s_total_mean:.3f}s\n'
-    stats_text += f'  ({p2s_proc_mean:.3f}s proc + {p2s_net_mean:.3f}s net)\n'
-    stats_text += f'Overhead: {overhead:.1f}%'
-    
-    ax.text(0.98, 0.02, stats_text, transform=ax.transAxes, fontsize=10,
-            verticalalignment='bottom', horizontalalignment='right',
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
-    
     ax.set_xlabel('Block Processing Overhead (seconds)\n(processing + network latency within 12s slot)', 
-                   fontsize=13, fontweight='bold')
-    ax.set_ylabel('Frequency', fontsize=13, fontweight='bold')
-    ax.set_title('Block Processing Overhead Distribution', fontsize=15, fontweight='bold', pad=15)
-    ax.legend(fontsize=11, framealpha=0.9)
-    ax.grid(True, alpha=0.3, linestyle='--')
+                   fontsize=24, fontweight='bold')
+    ax.set_ylabel('Frequency', fontsize=24, fontweight='bold')
+    ax.tick_params(axis='both', labelsize=20)
+    ax.legend(fontsize=18, framealpha=0.9)
+    sns.despine(ax=ax)
     
     plt.tight_layout()
     os.makedirs('figures', exist_ok=True)
-    plt.savefig('figures/overhead_block_time.png', dpi=300, bbox_inches='tight')
+    plt.savefig('figures/overhead_block_time.pdf', dpi=300, bbox_inches='tight')
     plt.close()
-    print("  ✓ Saved: figures/overhead_block_time.png")
+    print("  ✓ Saved: figures/overhead_block_time.pdf")
 
 def print_overhead_ratios(data):
     """Print overhead ratios instead of plotting"""

@@ -37,11 +37,13 @@ def load_reordering_data(data_dir: str):
 
 def plot_mev_reordering(data: dict, out_path: str) -> None:
     """Single bar chart: mean MEV opportunity per block."""
-    sns.set_theme(style="whitegrid", palette="pastel")
+    sns.set_theme(style="ticks")
     reorder = data.get("mev_reordering", {})
     protocols = ["p2s", "ethereum_pos"]
     labels = ["P2S", "Ethereum PoS"]
-    colors = [PASTEL_P2S, PASTEL_ETH]
+    # Use vlag palette colors
+    vlag = sns.color_palette("vlag", n_colors=10)
+    colors = [vlag[-2], vlag[1]]  # P2S red, Ethereum blue
 
     means = []
     stds = []
@@ -50,12 +52,12 @@ def plot_mev_reordering(data: dict, out_path: str) -> None:
         means.append(float(np.mean(opps)) if opps else 0)
         stds.append(float(np.std(opps)) if len(opps) > 1 else 0)
 
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.bar(labels, means, color=colors, yerr=stds, capsize=8, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Mean MEV opportunity per block (ETH)")
-    ax.set_title("MEV reordering opportunity: P2S vs Ethereum PoS", fontweight="bold")
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.bar(labels, means, color=colors, yerr=stds, capsize=10, edgecolor="white", linewidth=1.2)
+    ax.set_ylabel("Mean MEV opportunity per block (ETH)", fontsize=24, fontweight='bold')
+    ax.tick_params(axis='both', labelsize=20)
     ax.set_ylim(0, max(means) * 1.2 if means else 1)
-    sns.despine(ax=ax, left=False, bottom=False)
+    sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
@@ -73,7 +75,7 @@ def main():
         print("No data. Add data/mev_reordering.json or data/simulation_*.json", file=sys.stderr)
         sys.exit(1)
 
-    plot_mev_reordering(data, os.path.join(figures_dir, "mev_reordering.png"))
+    plot_mev_reordering(data, os.path.join(figures_dir, "mev_reordering.pdf"))
     print("Done. Figures in", figures_dir)
 
 
