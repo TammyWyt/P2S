@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 P2S Simulation
-Main simulation comparing P2S vs Ethereum PoS using real Ethereum block data
+Main simulation comparing P2S vs Ethereum PoS using real Ethereum block data.
+Aligned with Ethereum mainnet: 1000 blocks, no stake (one node = one node),
+gas fees and benign transactions from mainnet data. Includes multiple MEV
+attack strategies with cost/gain evaluation.
 """
 
 import json
@@ -9,46 +12,189 @@ import time
 import random
 import statistics
 from datetime import datetime
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
+from dataclasses import dataclass
 import os
 from collections import defaultdict
 import glob
 
+# Ethereum mainnet parameters (for alignment)
+ETH_MAINNET_BLOCK_GAS_LIMIT = 30_000_000
+ETH_MAINNET_BLOCK_TIME_SEC = 12
+WEI_PER_ETH = 1e18
+GWEI_PER_ETH = 1e9
+DEFAULT_NUM_BLOCKS = 1000
+
+
+@dataclass
+class AttackStrategyResult:
+    """Cost and gain for one attack strategy over the simulation."""
+    name: str
+    description: str
+    total_cost_eth: float = 0.0
+    total_gain_eth: float = 0.0
+    attempts: int = 0
+    successes: int = 0
+    net_profit_eth: float = 0.0
+    cost_per_attempt_eth: float = 0.0
+    gain_per_success_eth: float = 0.0
+
+
+class MEVAttackStrategies:
+    """
+    Simulate MEV attack strategies and evaluate cost vs gain.
+
+    In P2S, B1 contains only PHTs (commitments). Visible in B1: sender, gas price,
+    nonce, timestamp, commitment. Hidden until B2: recipient, value, calldata.
+    So you cannot target a specific tx for front-run/sandwich from B1. We evaluate
+    with target_visibility=False for P2S and True for Ethereum PoS.
+    """
+    GAS_BLIND_INSERT = 150_000
+    GAS_FRONT_RUN = 200_000
+    GAS_SANDWICH_FRONT = 200_000
+    GAS_SANDWICH_BACK = 150_000
+    GAS_ARBITRAGE = 300_000
+    GAS_LIQUIDATION = 250_000
+
+    def __init__(self, block_gas_prices_gwei: List[float]):
+        self.block_gas_prices = block_gas_prices_gwei
+
+    @staticmethod
+    def gas_cost_eth(gas_price_gwei: float, gas_units: int) -> float:
+        """Ethereum mainnet gas cost in ETH: (gas_price_wei * gas_used) / 1e18."""
+        return (gas_price_gwei * GWEI_PER_ETH * gas_units) / WEI_PER_ETH
+
+    def run_blind_insert(self, block_idx: int) -> Tuple[float, float, bool]:
+        """Blindly insert attack tx without mempool visibility. Returns (cost_eth, gain_eth, success)."""
+        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
+        cost = self.gas_cost_eth(gas_price, self.GAS_BLIND_INSERT)
+        success = random.random() < 0.05
+        gain = (random.uniform(0.01, 0.5) if success else 0.0)
+        return (cost, gain, success)
+
+    def run_front_run(self, block_idx: int, block_has_mev_target: bool) -> Tuple[float, float, bool]:
+        """Requires seeing target tx (Ethereum mempool). In P2S B1=PHT only → no target."""
+        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
+        cost = self.gas_cost_eth(gas_price * 1.2, self.GAS_FRONT_RUN)
+        if not block_has_mev_target:
+            return (cost, 0.0, False)
+        success = random.random() < 0.7
+        gain = (random.uniform(0.05, 0.8) if success else 0.0)
+        return (cost, gain, success)
+
+    def run_sandwich(self, block_idx: int, block_has_mev_target: bool) -> Tuple[float, float, bool]:
+        """Requires seeing target tx (Ethereum mempool). In P2S B1=PHT only → no target."""
+        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
+        cost = self.gas_cost_eth(gas_price * 1.3, self.GAS_SANDWICH_FRONT) + \
+               self.gas_cost_eth(gas_price * 1.1, self.GAS_SANDWICH_BACK)
+        if not block_has_mev_target:
+            return (cost, 0.0, False)
+        success = random.random() < 0.5
+        gain = (random.uniform(0.02, 1.0) if success else 0.0)
+        return (cost, gain, success)
+
+    def run_arbitrage(self, block_idx: int) -> Tuple[float, float, bool]:
+        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
+        cost = self.gas_cost_eth(gas_price, self.GAS_ARBITRAGE)
+        success = random.random() < 0.09  # ~15% opportunity * 60% success
+        gain = (random.uniform(0.01, 0.4) if success else 0.0)
+        return (cost, gain, success)
+
+    def run_liquidation(self, block_idx: int) -> Tuple[float, float, bool]:
+        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
+        cost = self.gas_cost_eth(gas_price, self.GAS_LIQUIDATION)
+        success = random.random() < 0.064  # ~8% * 80%
+        gain = (random.uniform(0.05, 0.5) if success else 0.0)
+        return (cost, gain, success)
+
+    def evaluate_all_strategies(
+        self,
+        num_blocks: int,
+        block_has_mev_target_fn: Optional[Any] = None,
+        target_visibility: bool = True,
+    ) -> Dict[str, AttackStrategyResult]:
+        """
+        Evaluate cost and gain for each strategy.
+        target_visibility=False (P2S): B1 has only PHTs → front_run/sandwich have no target, gain=0.
+        target_visibility=True (Ethereum PoS): mempool visible → targets can exist.
+        """
+        if target_visibility and block_has_mev_target_fn is None:
+            def default_has_target(_i: int) -> bool:
+                return random.random() < 0.2
+            has_target = default_has_target
+        elif not target_visibility:
+            has_target = lambda _i: False  # P2S: cannot target from B1
+        else:
+            has_target = block_has_mev_target_fn
+
+        results = {}
+        for name, desc, run_fn in [
+            ("blind_insert", "Blindly insert MEV txs without mempool visibility",
+             lambda i: self.run_blind_insert(i)),
+            ("front_run", "Front-run visible target tx",
+             lambda i: self.run_front_run(i, has_target(i))),
+            ("sandwich", "Sandwich attack (front + back run)",
+             lambda i: self.run_sandwich(i, has_target(i))),
+            ("arbitrage", "Cross-DEX arbitrage",
+             lambda i: self.run_arbitrage(i)),
+            ("liquidation", "Liquidation of undercollateralized positions",
+             lambda i: self.run_liquidation(i)),
+        ]:
+            total_cost = 0.0
+            total_gain = 0.0
+            attempts = num_blocks
+            successes = 0
+            for i in range(num_blocks):
+                cost, gain, success = run_fn(i)
+                total_cost += cost
+                total_gain += gain
+                if success:
+                    successes += 1
+            net = total_gain - total_cost
+            results[name] = AttackStrategyResult(
+                name=name,
+                description=desc,
+                total_cost_eth=total_cost,
+                total_gain_eth=total_gain,
+                attempts=attempts,
+                successes=successes,
+                net_profit_eth=net,
+                cost_per_attempt_eth=total_cost / attempts if attempts else 0,
+                gain_per_success_eth=total_gain / successes if successes else 0,
+            )
+        return results
+
+
 class P2SSimulator:
-    """Enhanced simulator that collects research metrics using real Ethereum data"""
-    
+    """Simulator: 1000 blocks, no stake (one node = one node), Ethereum mainnet gas and benign tx."""
+
     def __init__(self):
         self.network_latency_base = 0.1
         self.network_jitter = 0.05
-        self.base_gas_price = 20  # gwei
-        self.gas_cost_per_unit = 0.000001  # ETH per gas unit
-        
-        # Metrics storage
+        self.base_gas_price_gwei = 20  # fallback gwei (Ethereum mainnet typical range)
+
         self.results = {
             'p2s_data': [],
-            'ethereum_pos_data': [],  # Standard Ethereum PoS (baseline)
-            'profit_distribution': {
-                'p2s': {},
-                'ethereum_pos': {}
-            },
-            'mev_reordering': {
-                'p2s': [],
-                'ethereum_pos': []
-            },
-            'overhead_metrics': {
-                'p2s': {},
-                'ethereum_pos': {}
-            },
+            'ethereum_pos_data': [],
+            'profit_distribution': {'p2s': {}, 'ethereum_pos': {}},
+            'mev_reordering': {'p2s': [], 'ethereum_pos': []},
+            'overhead_metrics': {'p2s': {}, 'ethereum_pos': {}},
+            'attack_strategies': {},
             'metadata': {
                 'timestamp': datetime.now().strftime("%Y%m%d_%H%M%S"),
-                'description': "P2S simulation: P2S vs Ethereum PoS (using real Ethereum blocks)"
+                'description': "P2S simulation: 1000 blocks, no stake, Ethereum mainnet gas, MEV attack strategies",
+                'num_blocks': DEFAULT_NUM_BLOCKS,
+                'ethereum_mainnet_alignment': {
+                    'block_gas_limit': ETH_MAINNET_BLOCK_GAS_LIMIT,
+                    'block_time_sec': ETH_MAINNET_BLOCK_TIME_SEC,
+                }
             }
         }
-        
-        # Validators/participants
         self.validators = {}
         self.transactions = {}
         self.block_rewards = defaultdict(float)
+        self._p2s_proposer_index = 0
+        self._eth_proposer_index = 0
         
     def load_ethereum_blocks(self, data_dir="data") -> List[Dict]:
         """Load real Ethereum block data from cache"""
@@ -66,12 +212,32 @@ class P2SSimulator:
             blocks = list(cached_data.values())
             print(f"✅ Loaded {len(blocks)} blocks from cache")
             return blocks
-    
-    def create_validator(self, validator_id: str, stake: float, protocol: str):
-        """Create a validator with stake"""
+
+    def _synthetic_ethereum_block(self, block_number: int) -> Dict:
+        """Generate a synthetic Ethereum-style block when cache has fewer than num_blocks."""
+        tx_count = random.randint(50, 200)
+        transactions = []
+        for i in range(tx_count):
+            transactions.append({
+                'hash': f"0x{random.getrandbits(256):064x}",
+                'from': f"0x{random.getrandbits(160):040x}",
+                'to': f"0x{random.getrandbits(160):040x}",
+                'value': random.randint(10**15, 10**19),
+                'gas': random.randint(21000, 500000),
+                'gasPrice': random.randint(20 * 10**9, 100 * 10**9),
+                'nonce': i,
+            })
+        return {
+            'block_number': block_number,
+            'timestamp': int(time.time()),
+            'transaction_count': tx_count,
+            'transactions': transactions,
+        }
+
+    def create_validator(self, validator_id: str, protocol: str):
+        """Create a validator (one node = one node; no stake used for selection)."""
         self.validators[validator_id] = {
             'id': validator_id,
-            'stake': stake,
             'protocol': protocol,
             'blocks_proposed': 0,
             'total_rewards': 0.0,
@@ -80,6 +246,10 @@ class P2SSimulator:
             'mev_extracted': 0.0
         }
     
+    def gas_cost_eth(self, gas_price_gwei: float, gas_units: int) -> float:
+        """Ethereum mainnet: cost in ETH = (gas_price_wei * gas_used) / 1e18."""
+        return (gas_price_gwei * GWEI_PER_ETH * gas_units) / WEI_PER_ETH
+
     def simulate_network_delay(self, congestion_level=0.0):
         """Simulate network delay"""
         base_delay = self.network_latency_base
@@ -96,23 +266,21 @@ class P2SSimulator:
         # Higher value transactions with lower gas prices = reordering opportunity
         mev_opportunity = 0.0
         for tx in transactions:
-            # Convert gasPrice from wei to gwei if needed
-            gas_price = tx.get('gasPrice', 0)
+            # Convert gasPrice from wei to gwei if needed; support both raw and converted tx format
+            gas_price = tx.get('gas_price') or tx.get('gasPrice', 0)
             if gas_price > 1e15:  # Likely in wei, convert to gwei
                 gas_price = gas_price / 1e9
-            
             value = tx.get('value', 0)
             if isinstance(value, str):
                 try:
                     value = int(value, 16) if value.startswith('0x') else int(value)
-                except:
+                except Exception:
                     value = 0
-            
+
             # If high value but low gas price, there's reordering potential
             if value > 1e18 and gas_price < 50:  # > 1 ETH value, < 50 gwei
-                # Potential profit from front-running
                 mev_opportunity += (value / 1e18) * 0.05  # 5% of value in ETH as potential MEV
-        
+
         return mev_opportunity
     
     def convert_ethereum_tx(self, eth_tx: Dict) -> Dict:
@@ -159,26 +327,31 @@ class P2SSimulator:
         time.sleep(min(b2_time, 0.2))
         
         total_time = time.time() - start_time
-        
-        # Calculate costs (using real gas prices from transactions)
-        gas_cost = sum(tx.get('gas_price', 20) * tx.get('gas_limit', 21000) * self.gas_cost_per_unit 
-                      for tx in transactions)
-        
-        # Block reward (fixed + transaction fees)
-        block_reward = 2.0 + sum(tx.get('gas_price', 20) * tx.get('gas_limit', 21000) * self.gas_cost_per_unit * 0.1 
-                                for tx in transactions)
-        
-        # MEV reordering opportunity (should be low in P2S due to hidden details)
-        mev_opportunity = self.calculate_reordering_opportunity(transactions) * 0.1  # Reduced by 90% in P2S
-        
+
+        # Ethereum mainnet gas cost: (gas_price_gwei * 1e9 * gas_limit) / 1e18 ETH per tx
+        gas_cost = sum(
+            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000))
+            for tx in transactions
+        )
+        # Block reward: fixed issuance + fraction of tx fees (benign, mainnet-like)
+        block_reward = 2.0 + sum(
+            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000)) * 0.1
+            for tx in transactions
+        )
+
+        # MEV reordering opportunity (reduced in P2S due to hidden details)
+        mev_opportunity = self.calculate_reordering_opportunity(transactions) * 0.1
+
         # Update validator metrics
         if proposer_id in self.validators:
             self.validators[proposer_id]['blocks_proposed'] += 1
             self.validators[proposer_id]['total_rewards'] += block_reward
             self.validators[proposer_id]['total_gas_costs'] += gas_cost
-            self.validators[proposer_id]['net_profit'] = (self.validators[proposer_id]['total_rewards'] - 
-                                                          self.validators[proposer_id]['total_gas_costs'])
-        
+            self.validators[proposer_id]['net_profit'] = (
+                self.validators[proposer_id]['total_rewards'] -
+                self.validators[proposer_id]['total_gas_costs']
+            )
+
         return {
             'block_number': ethereum_block.get('block_number', block_num),
             'proposer': proposer_id,
@@ -216,27 +389,30 @@ class P2SSimulator:
         time.sleep(min(confirmation_time, 0.1))
         
         total_time = time.time() - start_time
-        
-        # Calculate costs (using real gas prices from transactions)
-        gas_cost = sum(tx.get('gas_price', 20) * tx.get('gas_limit', 21000) * self.gas_cost_per_unit 
-                      for tx in transactions)
-        
-        # Block reward
-        block_reward = 2.0 + sum(tx.get('gas_price', 20) * tx.get('gas_limit', 21000) * self.gas_cost_per_unit * 0.1 
-                                for tx in transactions)
-        
-        # MEV reordering opportunity (full visibility - can see all transaction details)
-        mev_opportunity = self.calculate_reordering_opportunity(transactions) * 1.0  # 100% of potential
-        
-        # Update validator metrics
+
+        # Ethereum mainnet gas cost per tx
+        gas_cost = sum(
+            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000))
+            for tx in transactions
+        )
+        block_reward = 2.0 + sum(
+            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000)) * 0.1
+            for tx in transactions
+        )
+
+        # MEV reordering (full visibility in PoS)
+        mev_opportunity = self.calculate_reordering_opportunity(transactions) * 1.0
+
         if proposer_id in self.validators:
             self.validators[proposer_id]['blocks_proposed'] += 1
             self.validators[proposer_id]['total_rewards'] += block_reward
             self.validators[proposer_id]['total_gas_costs'] += gas_cost
-            self.validators[proposer_id]['net_profit'] = (self.validators[proposer_id]['total_rewards'] - 
-                                                          self.validators[proposer_id]['total_gas_costs'])
-            self.validators[proposer_id]['mev_extracted'] += mev_opportunity * 0.6  # Assume 60% extraction rate
-        
+            self.validators[proposer_id]['net_profit'] = (
+                self.validators[proposer_id]['total_rewards'] -
+                self.validators[proposer_id]['total_gas_costs']
+            )
+            self.validators[proposer_id]['mev_extracted'] += mev_opportunity * 0.6
+
         return {
             'block_number': ethereum_block.get('block_number', block_num),
             'proposer': proposer_id,
@@ -266,78 +442,110 @@ class P2SSimulator:
         
         return cumsum / (n * sum(sorted_values)) if sum(sorted_values) > 0 else 0.0
     
-    def run_simulation(self, num_blocks: int = 1000):
-        """Run comprehensive simulation using real Ethereum block data"""
+    def run_simulation(self, num_blocks: int = DEFAULT_NUM_BLOCKS):
+        """Run simulation: exactly num_blocks (default 1000), no stake, Ethereum mainnet gas, benign tx + attack strategies."""
         print("=" * 80)
-        print("P2S SIMULATION")
+        print("P2S SIMULATION (Ethereum mainnet aligned)")
         print("=" * 80)
         print(f"Simulating {num_blocks} blocks per protocol")
-        print("Using real Ethereum block data")
+        print("No stake: one node = one node (equal proposer rotation)")
+        print("Gas fees and benign tx from Ethereum mainnet data")
         print("=" * 80)
-        
-        # Load real Ethereum blocks
+
         ethereum_blocks = self.load_ethereum_blocks()
         if not ethereum_blocks:
-            print("❌ No Ethereum block data available. Please run extract_ethereum_blocks.py first.")
+            print("❌ No Ethereum block data. Run: python scripts/extract_ethereum_blocks.py 1000 1")
             return None
-        
-        # Use first N blocks
+
+        # Use exactly num_blocks (pad with synthetic if cache has fewer)
+        if len(ethereum_blocks) < num_blocks:
+            print(f"⚠️  Cache has {len(ethereum_blocks)} blocks; padding to {num_blocks} with synthetic blocks")
+            for i in range(len(ethereum_blocks), num_blocks):
+                ethereum_blocks.append(self._synthetic_ethereum_block(i))
         ethereum_blocks = ethereum_blocks[:num_blocks]
-        
-        # Create validators for each protocol
+
+        # Create validators: no stake, equal nodes
         num_validators = 10
         for i in range(num_validators):
-            stake = random.uniform(1000, 10000)
-            self.create_validator(f"p2s_validator_{i}", stake, "P2S")
-            self.create_validator(f"ethereum_pos_validator_{i}", stake, "Ethereum PoS")
-        
-        # Run simulations
+            self.create_validator(f"p2s_validator_{i}", "P2S")
+            self.create_validator(f"ethereum_pos_validator_{i}", "Ethereum PoS")
+
+        self._p2s_proposer_index = 0
+        self._eth_proposer_index = 0
         congestion_levels = [0.0, 0.1, 0.3, 0.5, 0.7]
-        
+
         for i, ethereum_block in enumerate(ethereum_blocks):
             congestion = random.choice(congestion_levels)
-            
-            # Select proposers (weighted by stake)
             p2s_proposer = self.select_proposer("P2S")
             ethereum_pos_proposer = self.select_proposer("Ethereum PoS")
-            
-            # Simulate blocks using the SAME Ethereum block data
             p2s_block = self.simulate_p2s_block(i, p2s_proposer, ethereum_block, congestion)
             ethereum_pos_block = self.simulate_ethereum_pos_block(i, ethereum_pos_proposer, ethereum_block, congestion)
-            
             self.results['p2s_data'].append(p2s_block)
             self.results['ethereum_pos_data'].append(ethereum_pos_block)
-            
             if (i + 1) % 100 == 0 or (i + 1) == len(ethereum_blocks):
                 print(f"Processed {i + 1}/{len(ethereum_blocks)} blocks...")
-        
-        # Calculate aggregate metrics
+
+        # Attack strategy cost/gain evaluation (using block gas prices from benign tx)
+        block_gas_prices = []
+        for b in ethereum_blocks:
+            txs = b.get('transactions', [])
+            if txs:
+                gp = txs[0].get('gasPrice', self.base_gas_price_gwei * GWEI_PER_ETH)
+                if isinstance(gp, int) and gp > 1e9:
+                    gp = gp / 1e9
+                block_gas_prices.append(float(gp) if gp > 0 else self.base_gas_price_gwei)
+            else:
+                block_gas_prices.append(self.base_gas_price_gwei)
+        attack_eval = MEVAttackStrategies(block_gas_prices)
+        strategy_results = attack_eval.evaluate_all_strategies(num_blocks)
+        self.results['attack_strategies'] = {
+            name: {
+                'description': r.description,
+                'total_cost_eth': r.total_cost_eth,
+                'total_gain_eth': r.total_gain_eth,
+                'attempts': r.attempts,
+                'successes': r.successes,
+                'net_profit_eth': r.net_profit_eth,
+                'cost_per_attempt_eth': r.cost_per_attempt_eth,
+                'gain_per_success_eth': r.gain_per_success_eth,
+            }
+            for name, r in strategy_results.items()
+        }
+        # P2S: B1 = PHT only → no target visibility → front_run/sandwich cannot target
+        strategy_results_p2s = attack_eval.evaluate_all_strategies(num_blocks, target_visibility=False)
+        self.results['attack_strategies_p2s'] = {
+            name: {
+                'description': r.description,
+                'total_cost_eth': r.total_cost_eth,
+                'total_gain_eth': r.total_gain_eth,
+                'attempts': r.attempts,
+                'successes': r.successes,
+                'net_profit_eth': r.net_profit_eth,
+                'cost_per_attempt_eth': r.cost_per_attempt_eth,
+                'gain_per_success_eth': r.gain_per_success_eth,
+            }
+            for name, r in strategy_results_p2s.items()
+        }
+
         self.calculate_metrics()
-        
-        # Save results
         self.save_results()
-        
-        # Print summary
         self.print_summary()
-        
+        self.print_attack_strategies_summary()
         return self.results
-    
+
     def select_proposer(self, protocol: str) -> str:
-        """Select proposer weighted by stake"""
-        protocol_validators = [(v_id, v) for v_id, v in self.validators.items() 
-                              if v['protocol'] == protocol]
+        """Select proposer by round-robin (one node = one node, no stake)."""
+        protocol_validators = sorted([v_id for v_id, v in self.validators.items() if v['protocol'] == protocol])
         if not protocol_validators:
             return list(self.validators.keys())[0]
-        
-        # Weighted random selection
-        total_stake = sum(v['stake'] for _, v in protocol_validators)
-        r = random.uniform(0, total_stake)
-        cumsum = 0
-        for v_id, v in protocol_validators:
-            cumsum += v['stake']
-            if r <= cumsum:
-                return v_id
-        return protocol_validators[-1][0]
+        if protocol == "P2S":
+            idx = self._p2s_proposer_index % len(protocol_validators)
+            self._p2s_proposer_index += 1
+            return protocol_validators[idx]
+        else:
+            idx = self._eth_proposer_index % len(protocol_validators)
+            self._eth_proposer_index += 1
+            return protocol_validators[idx]
     
     def print_summary(self):
         """Print simulation summary"""
@@ -363,7 +571,27 @@ class P2SSimulator:
             mean_latency = self.results['overhead_metrics'][protocol_key]['mean_latency']
             mean_cost = self.results['overhead_metrics'][protocol_key]['mean_cost']
             print(f"  {protocol_label}: {mean_latency:.3f}s latency, ${mean_cost:.4f} cost per block")
-    
+
+    def print_attack_strategies_summary(self):
+        """Print cost and gain for each MEV attack strategy (Ethereum PoS vs P2S)."""
+        # Ethereum PoS: full mempool visibility → can target for front_run/sandwich
+        strategies = self.results.get('attack_strategies', {})
+        if strategies:
+            print("\n📌 MEV ATTACK STRATEGIES — Ethereum PoS (target visibility: yes):")
+            for name, s in strategies.items():
+                net = s['net_profit_eth']
+                print(f"  • {name}: cost={s['total_cost_eth']:.6f} ETH, gain={s['total_gain_eth']:.6f} ETH, "
+                      f"net={net:.6f} ETH | attempts={s['attempts']}, successes={s['successes']}")
+        # P2S: B1 = PHT only → cannot target; front_run/sandwich pay cost but have no gain
+        strategies_p2s = self.results.get('attack_strategies_p2s', {})
+        if strategies_p2s:
+            print("\n📌 MEV ATTACK STRATEGIES — P2S (B1 = PHT only, no target visibility):")
+            print("  (Front-run and sandwich cannot target a victim from B1; they incur cost, gain=0.)")
+            for name, s in strategies_p2s.items():
+                net = s['net_profit_eth']
+                print(f"  • {name}: cost={s['total_cost_eth']:.6f} ETH, gain={s['total_gain_eth']:.6f} ETH, "
+                      f"net={net:.6f} ETH | attempts={s['attempts']}, successes={s['successes']}")
+
     def calculate_metrics(self):
         """Calculate aggregate research metrics"""
         # Profit distribution metrics

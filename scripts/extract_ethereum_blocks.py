@@ -188,22 +188,22 @@ class EthereumBlockExtractor:
         return blocks
 
 def main():
-    """Main function"""
+    """Main function. For P2S simulation (1000 blocks), run with: python extract_ethereum_blocks.py 1000 1"""
     import sys
-    
-    num_blocks = 20
-    block_interval = 100
-    
+
+    num_blocks = 1000
+    block_interval = 1
+
     if len(sys.argv) > 1:
         num_blocks = int(sys.argv[1])
     if len(sys.argv) > 2:
         block_interval = int(sys.argv[2])
-    
+
     extractor = EthereumBlockExtractor()
     blocks = extractor.extract_blocks(num_blocks=num_blocks, block_interval=block_interval)
-    
+
     print(f"\n✅ Extracted {len(blocks)} blocks")
-    print(f"   Latest block data saved to: data/ethereum_blocks_*.json")
+    print(f"   Cache: data/ethereum_blocks_cache.json (use for simulation with 1000 blocks)")
 
 if __name__ == "__main__":
     main()
