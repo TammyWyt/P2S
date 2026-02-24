@@ -13,7 +13,7 @@ import glob
 
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['font.size'] = 14
+plt.rcParams['font.size'] = 20
 plt.rcParams['font.family'] = 'sans-serif'
 
 def load_latest_research_data(data_dir="data"):
@@ -33,7 +33,7 @@ def plot_system_overhead(data: Dict):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     
     protocols = ['p2s', 'ethereum_pos']
-    protocol_labels = ['P2S', 'Ethereum PoS']
+    protocol_labels = ['P2S', 'PoS']
     colors = [P2S_COLOR, ETH_COLOR]
     
     # Extract overhead data
@@ -49,17 +49,23 @@ def plot_system_overhead(data: Dict):
             mean_costs.append(0)
     
     # Plot 1: Network Latency
-    bars1 = ax1.bar(protocol_labels, mean_latencies, color=colors, alpha=0.85, 
+    x_pos = np.arange(len(protocol_labels))
+    bars1 = ax1.bar(x_pos, mean_latencies, width=0.5, color=colors, alpha=0.85, 
                    edgecolor='black', linewidth=2)
-    ax1.set_ylabel('Mean Network Latency (seconds)', fontsize=16, fontweight='bold')
+    ax1.set_xticks(x_pos)
+    ax1.set_xticklabels(protocol_labels)
+    ax1.set_ylabel('Mean Network Latency (seconds)', fontsize=20, fontweight='bold')
+    ax1.tick_params(axis='both', labelsize=20)
     ax1.grid(True, alpha=0.2, axis='y', linestyle='--', linewidth=0.8)
     ax1.set_ylim(0, max(mean_latencies) * 1.2 if mean_latencies else 1)
     
     # Plot 2: Gas Cost
-    bars2 = ax2.bar(protocol_labels, mean_costs, color=colors, alpha=0.85, 
+    bars2 = ax2.bar(x_pos, mean_costs, width=0.5, color=colors, alpha=0.85, 
                    edgecolor='black', linewidth=2)
-    ax2.set_ylabel('Mean Gas Cost per Block (ETH)', fontsize=16, fontweight='bold')
-    ax2.grid(True, alpha=0.2, axis='y', linestyle='--', linewidth=0.8)
+    ax2.set_xticks(x_pos)
+    ax2.set_xticklabels(protocol_labels)
+    ax2.set_ylabel('Mean Gas Cost per Block (ETH)', fontsize=20, fontweight='bold')
+    ax2.tick_params(axis='both', labelsize=20)
     ax2.set_ylim(0, max(mean_costs) * 1.2 if mean_costs else 1)
     
     # Clean up spines
@@ -69,7 +75,7 @@ def plot_system_overhead(data: Dict):
     
     plt.tight_layout()
     os.makedirs('figures', exist_ok=True)
-    plt.savefig('figures/system_overhead.png', dpi=300, bbox_inches='tight', facecolor='white')
+    plt.savefig('figures/system_overhead.pdf', dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
 
 def main():

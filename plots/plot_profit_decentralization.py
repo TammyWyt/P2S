@@ -36,7 +36,7 @@ def plot_profit_decentralization(data: Dict):
     ax.plot([0, 1], [0, 1], 'k--', linewidth=2, alpha=0.4)
     
     protocols = ['p2s', 'ethereum_pos']
-    protocol_labels = ['P2S', 'Ethereum PoS']
+    protocol_labels = ['P2S', 'PoS']
     colors = [P2S_COLOR, ETH_COLOR]
     
     has_data = False
@@ -62,10 +62,10 @@ def plot_profit_decentralization(data: Dict):
         print("⚠ No profit distribution data found")
         return
     
-    ax.set_xlabel('Cumulative Fraction of Validators', fontsize=26, fontweight='bold')
-    ax.set_ylabel('Cumulative Fraction of Profits', fontsize=26, fontweight='bold')
-    ax.tick_params(axis='both', labelsize=22)
-    ax.legend(loc='lower right', fontsize=22, frameon=True, fancybox=True, shadow=True)
+    ax.set_xlabel('Cumulative Fraction of Validators', fontsize=20, fontweight='bold')
+    ax.set_ylabel('Cumulative Fraction of Profits', fontsize=20, fontweight='bold')
+    ax.tick_params(axis='both', labelsize=20)
+    ax.legend(loc='lower right', fontsize=20, frameon=True, fancybox=True, shadow=True)
     ax.grid(True, alpha=0.2, linestyle='--', linewidth=0.8)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)

@@ -38,16 +38,26 @@ class AttackStrategyResult:
     net_profit_eth: float = 0.0
     cost_per_attempt_eth: float = 0.0
     gain_per_success_eth: float = 0.0
+    cost_per_success_eth: float = 0.0  # total_cost / successes; high when success rate is low
 
 
 class MEVAttackStrategies:
     """
     Simulate MEV attack strategies and evaluate cost vs gain.
 
-    In P2S, B1 contains only PHTs (commitments). Visible in B1: sender, gas price,
-    nonce, timestamp, commitment. Hidden until B2: recipient, value, calldata.
-    So you cannot target a specific tx for front-run/sandwich from B1. We evaluate
-    with target_visibility=False for P2S and True for Ethereum PoS.
+    In P2S, B1 contains only PHTs (commitments). You cannot target a specific tx for
+    front-run/sandwich — those strategies are NOT applicable in P2S. The only
+    applicable strategy is blind insert, with optional no-reveal after B1:
+
+    - Attacker submits a PHT (blind attack) without knowing other txs' content.
+    - After B1 is confirmed, they see revealed content (e.g. when building B2 or
+      when MTs are revealed) and can tell if their attack would be profitable.
+    - If not the right attack: they choose NOT to reveal → tx is not processed,
+      but they still pay the gas fee (one gas fee for PHT inclusion in B1).
+    - Protocol note: This can work as a single gas-fee transaction if the
+      protocol charges gas at B1 for PHT inclusion; then no-reveal still pays
+      that one fee. If gas were only charged at B2 on reveal, the protocol would
+      need another mechanism (e.g. commitment fee at B1) to ensure cost on no-reveal.
     """
     GAS_BLIND_INSERT = 150_000
     GAS_FRONT_RUN = 200_000
@@ -69,6 +79,24 @@ class MEVAttackStrategies:
         gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
         cost = self.gas_cost_eth(gas_price, self.GAS_BLIND_INSERT)
         success = random.random() < 0.05
+        gain = (random.uniform(0.01, 0.5) if success else 0.0)
+        return (cost, gain, success)
+
+    def run_blind_insert_p2s_no_reveal(self, block_idx: int) -> Tuple[float, float, bool]:
+        """
+        P2S-only: Blind insert with optional no-reveal after B1.
+        Cost: one gas fee per attempt (PHT inclusion in B1), paid whether or not
+        the attacker reveals in B2. If they don't reveal (attack doesn't fit),
+        tx is not processed but gas is still paid (single gas-fee transaction).
+        Gain: only when they reveal and the attack succeeds.
+        """
+        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
+        cost = self.gas_cost_eth(gas_price, self.GAS_BLIND_INSERT)  # always pay for PHT inclusion
+        # After B1, attacker sees whether their attack fits; if not, they don't reveal (gain=0)
+        attack_fits = random.random() < 0.15  # probability blind attack matches opportunity
+        if not attack_fits:
+            return (cost, 0.0, False)  # don't reveal → not processed, still paid gas
+        success = random.random() < 0.4  # given fit, probability reveal and succeed
         gain = (random.uniform(0.01, 0.5) if success else 0.0)
         return (cost, gain, success)
 
@@ -128,9 +156,9 @@ class MEVAttackStrategies:
             has_target = block_has_mev_target_fn
 
         results = {}
+        # Ethereum PoS: only targeted strategies (front_run, sandwich, arbitrage, liquidation).
+        # Blind insert is NOT rational on Ethereum — mempool is visible, so you target instead.
         for name, desc, run_fn in [
-            ("blind_insert", "Blindly insert MEV txs without mempool visibility",
-             lambda i: self.run_blind_insert(i)),
             ("front_run", "Front-run visible target tx",
              lambda i: self.run_front_run(i, has_target(i))),
             ("sandwich", "Sandwich attack (front + back run)",
@@ -151,6 +179,7 @@ class MEVAttackStrategies:
                 if success:
                     successes += 1
             net = total_gain - total_cost
+            cost_per_success = total_cost / successes if successes > 0 else total_cost
             results[name] = AttackStrategyResult(
                 name=name,
                 description=desc,
@@ -161,8 +190,41 @@ class MEVAttackStrategies:
                 net_profit_eth=net,
                 cost_per_attempt_eth=total_cost / attempts if attempts else 0,
                 gain_per_success_eth=total_gain / successes if successes else 0,
+                cost_per_success_eth=cost_per_success,
             )
         return results
+
+    def evaluate_p2s_strategies(self, num_blocks: int) -> Dict[str, AttackStrategyResult]:
+        """
+        P2S only: the only applicable strategy is blind insert (with no-reveal after B1).
+        Front-run, sandwich, arbitrage, liquidation are NOT applicable — you cannot
+        target from B1 (PHT only). Results contain only 'blind_insert_p2s'.
+        """
+        total_cost = 0.0
+        total_gain = 0.0
+        successes = 0
+        for i in range(num_blocks):
+            cost, gain, success = self.run_blind_insert_p2s_no_reveal(i)
+            total_cost += cost
+            total_gain += gain
+            if success:
+                successes += 1
+        net = total_gain - total_cost
+        cost_per_success = total_cost / successes if successes > 0 else total_cost
+        return {
+            "blind_insert_p2s": AttackStrategyResult(
+                name="blind_insert_p2s",
+                description="Blind insert; after B1 can choose not to reveal (tx not processed, gas still paid)",
+                total_cost_eth=total_cost,
+                total_gain_eth=total_gain,
+                attempts=num_blocks,
+                successes=successes,
+                net_profit_eth=net,
+                cost_per_attempt_eth=total_cost / num_blocks if num_blocks else 0,
+                gain_per_success_eth=total_gain / successes if successes else 0,
+                cost_per_success_eth=cost_per_success,
+            )
+        }
 
 
 class P2SSimulator:
@@ -497,7 +559,8 @@ class P2SSimulator:
             else:
                 block_gas_prices.append(self.base_gas_price_gwei)
         attack_eval = MEVAttackStrategies(block_gas_prices)
-        strategy_results = attack_eval.evaluate_all_strategies(num_blocks)
+        # Ethereum PoS: full mempool visibility → all strategies (front_run, sandwich, etc.) apply
+        strategy_results = attack_eval.evaluate_all_strategies(num_blocks, target_visibility=True)
         self.results['attack_strategies'] = {
             name: {
                 'description': r.description,
@@ -508,11 +571,12 @@ class P2SSimulator:
                 'net_profit_eth': r.net_profit_eth,
                 'cost_per_attempt_eth': r.cost_per_attempt_eth,
                 'gain_per_success_eth': r.gain_per_success_eth,
+                'cost_per_success_eth': r.cost_per_success_eth,
             }
             for name, r in strategy_results.items()
         }
-        # P2S: B1 = PHT only → no target visibility → front_run/sandwich cannot target
-        strategy_results_p2s = attack_eval.evaluate_all_strategies(num_blocks, target_visibility=False)
+        # P2S: B1 = PHT only → cannot target → only blind insert (with no-reveal) is applicable
+        strategy_results_p2s = attack_eval.evaluate_p2s_strategies(num_blocks)
         self.results['attack_strategies_p2s'] = {
             name: {
                 'description': r.description,
@@ -523,9 +587,16 @@ class P2SSimulator:
                 'net_profit_eth': r.net_profit_eth,
                 'cost_per_attempt_eth': r.cost_per_attempt_eth,
                 'gain_per_success_eth': r.gain_per_success_eth,
+                'cost_per_success_eth': r.cost_per_success_eth,
             }
             for name, r in strategy_results_p2s.items()
         }
+        self.results['attack_strategies_p2s_note'] = (
+            "In P2S only blind insert is applicable. Front-run, sandwich, arbitrage, "
+            "liquidation are not applicable (B1 has only PHTs; cannot target). "
+            "Blind insert: gas paid for PHT inclusion; if attacker does not reveal after B1, "
+            "tx is not processed but gas is still paid (single gas fee)."
+        )
 
         self.calculate_metrics()
         self.save_results()
@@ -573,20 +644,20 @@ class P2SSimulator:
             print(f"  {protocol_label}: {mean_latency:.3f}s latency, ${mean_cost:.4f} cost per block")
 
     def print_attack_strategies_summary(self):
-        """Print cost and gain for each MEV attack strategy (Ethereum PoS vs P2S)."""
-        # Ethereum PoS: full mempool visibility → can target for front_run/sandwich
+        """Print cost and gain: Ethereum PoS (all strategies) vs P2S (blind insert only)."""
         strategies = self.results.get('attack_strategies', {})
         if strategies:
-            print("\n📌 MEV ATTACK STRATEGIES — Ethereum PoS (target visibility: yes):")
+            print("\n📌 MEV ATTACK STRATEGIES — Ethereum PoS (targeted only; no blind insert):")
+            print("  (On Ethereum the mempool is visible, so rational attackers use front_run/sandwich, not blind insert.)")
             for name, s in strategies.items():
                 net = s['net_profit_eth']
                 print(f"  • {name}: cost={s['total_cost_eth']:.6f} ETH, gain={s['total_gain_eth']:.6f} ETH, "
                       f"net={net:.6f} ETH | attempts={s['attempts']}, successes={s['successes']}")
-        # P2S: B1 = PHT only → cannot target; front_run/sandwich pay cost but have no gain
         strategies_p2s = self.results.get('attack_strategies_p2s', {})
+        note = self.results.get('attack_strategies_p2s_note', '')
         if strategies_p2s:
-            print("\n📌 MEV ATTACK STRATEGIES — P2S (B1 = PHT only, no target visibility):")
-            print("  (Front-run and sandwich cannot target a victim from B1; they incur cost, gain=0.)")
+            print("\n📌 MEV ATTACK STRATEGIES — P2S (only blind insert; no target from B1):")
+            print(f"  {note}")
             for name, s in strategies_p2s.items():
                 net = s['net_profit_eth']
                 print(f"  • {name}: cost={s['total_cost_eth']:.6f} ETH, gain={s['total_gain_eth']:.6f} ETH, "

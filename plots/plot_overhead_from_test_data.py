@@ -20,7 +20,7 @@ P2S_COLOR = VLAG_PALETTE[-2]  # P2S (red end)
 
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['font.size'] = 18
+plt.rcParams['font.size'] = 20
 
 def load_latest_simulation_data(data_dir="data"):
     """Load the latest simulation data"""
@@ -72,22 +72,22 @@ def plot_block_time_distribution(data):
     fig, ax = plt.subplots(figsize=(10, 7))
     
     # Block processing overhead distribution histogram
-    ax.hist(pos_blk_total_time, bins=40, alpha=0.6, label='Ethereum', 
+    ax.hist(pos_blk_total_time, bins=40, alpha=0.6, label='PoS', 
             color=ETH_COLOR, edgecolor='white', linewidth=1.2)
     ax.hist(p2s_blk_total_time, bins=40, alpha=0.6, label='P2S', 
             color=P2S_COLOR, edgecolor='white', linewidth=1.2)
     
     # Add mean lines
     ax.axvline(pos_total_mean, color=ETH_COLOR, linestyle='--', linewidth=2, 
-               label=f'Ethereum Mean: {pos_total_mean:.3f}s')
+               label=f'PoS Mean: {pos_total_mean:.3f}s')
     ax.axvline(p2s_total_mean, color=P2S_COLOR, linestyle='--', linewidth=2,
                label=f'P2S Mean: {p2s_total_mean:.3f}s')
     
     ax.set_xlabel('Block Processing Overhead (seconds)\n(processing + network latency within 12s slot)', 
-                   fontsize=24, fontweight='bold')
-    ax.set_ylabel('Frequency', fontsize=24, fontweight='bold')
+                   fontsize=20, fontweight='bold')
+    ax.set_ylabel('Frequency', fontsize=20, fontweight='bold')
     ax.tick_params(axis='both', labelsize=20)
-    ax.legend(fontsize=18, framealpha=0.9)
+    ax.legend(fontsize=20, framealpha=0.9)
     sns.despine(ax=ax)
     
     plt.tight_layout()

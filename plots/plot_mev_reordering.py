@@ -40,10 +40,10 @@ def plot_mev_reordering(data: dict, out_path: str) -> None:
     sns.set_theme(style="ticks")
     reorder = data.get("mev_reordering", {})
     protocols = ["p2s", "ethereum_pos"]
-    labels = ["P2S", "Ethereum PoS"]
+    labels = ["P2S", "PoS"]
     # Use vlag palette colors
     vlag = sns.color_palette("vlag", n_colors=10)
-    colors = [vlag[-2], vlag[1]]  # P2S red, Ethereum blue
+    colors = [vlag[-2], vlag[1]]  # P2S red, PoS blue
 
     means = []
     stds = []
@@ -53,8 +53,11 @@ def plot_mev_reordering(data: dict, out_path: str) -> None:
         stds.append(float(np.std(opps)) if len(opps) > 1 else 0)
 
     fig, ax = plt.subplots(figsize=(10, 7))
-    ax.bar(labels, means, color=colors, yerr=stds, capsize=10, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Mean MEV opportunity per block (ETH)", fontsize=24, fontweight='bold')
+    x_pos = np.arange(len(labels))
+    ax.bar(x_pos, means, width=0.5, color=colors, yerr=stds, capsize=10, edgecolor="white", linewidth=1.2)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(labels)
+    ax.set_ylabel("Mean MEV opportunity per block (ETH)", fontsize=20, fontweight='bold')
     ax.tick_params(axis='both', labelsize=20)
     ax.set_ylim(0, max(means) * 1.2 if means else 1)
     sns.despine(ax=ax)
