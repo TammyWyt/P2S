@@ -64,7 +64,6 @@ class MEVAttackStrategies:
     GAS_SANDWICH_FRONT = 200_000
     GAS_SANDWICH_BACK = 150_000
     GAS_ARBITRAGE = 300_000
-    GAS_LIQUIDATION = 250_000
 
     def __init__(self, block_gas_prices_gwei: List[float]):
         self.block_gas_prices = block_gas_prices_gwei
@@ -128,13 +127,6 @@ class MEVAttackStrategies:
         gain = (random.uniform(0.01, 0.4) if success else 0.0)
         return (cost, gain, success)
 
-    def run_liquidation(self, block_idx: int) -> Tuple[float, float, bool]:
-        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
-        cost = self.gas_cost_eth(gas_price, self.GAS_LIQUIDATION)
-        success = random.random() < 0.064  # ~8% * 80%
-        gain = (random.uniform(0.05, 0.5) if success else 0.0)
-        return (cost, gain, success)
-
     def evaluate_all_strategies(
         self,
         num_blocks: int,
@@ -156,7 +148,7 @@ class MEVAttackStrategies:
             has_target = block_has_mev_target_fn
 
         results = {}
-        # Ethereum PoS: only targeted strategies (front_run, sandwich, arbitrage, liquidation).
+        # Ethereum PoS: only targeted strategies (front_run, sandwich, arbitrage).
         # Blind insert is NOT rational on Ethereum — mempool is visible, so you target instead.
         for name, desc, run_fn in [
             ("front_run", "Front-run visible target tx",
@@ -165,8 +157,6 @@ class MEVAttackStrategies:
              lambda i: self.run_sandwich(i, has_target(i))),
             ("arbitrage", "Cross-DEX arbitrage",
              lambda i: self.run_arbitrage(i)),
-            ("liquidation", "Liquidation of undercollateralized positions",
-             lambda i: self.run_liquidation(i)),
         ]:
             total_cost = 0.0
             total_gain = 0.0
@@ -197,7 +187,7 @@ class MEVAttackStrategies:
     def evaluate_p2s_strategies(self, num_blocks: int) -> Dict[str, AttackStrategyResult]:
         """
         P2S only: the only applicable strategy is blind insert (with no-reveal after B1).
-        Front-run, sandwich, arbitrage, liquidation are NOT applicable — you cannot
+        Front-run, sandwich, arbitrage are NOT applicable — you cannot
         target from B1 (PHT only). Results contain only 'blind_insert_p2s'.
         """
         total_cost = 0.0
@@ -592,8 +582,8 @@ class P2SSimulator:
             for name, r in strategy_results_p2s.items()
         }
         self.results['attack_strategies_p2s_note'] = (
-            "In P2S only blind insert is applicable. Front-run, sandwich, arbitrage, "
-            "liquidation are not applicable (B1 has only PHTs; cannot target). "
+            "In P2S only blind insert is applicable. Front-run, sandwich, arbitrage "
+            "are not applicable (B1 has only PHTs; cannot target). "
             "Blind insert: gas paid for PHT inclusion; if attacker does not reveal after B1, "
             "tx is not processed but gas is still paid (single gas fee)."
         )

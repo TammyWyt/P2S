@@ -72,14 +72,14 @@ def plot_block_time_distribution(data):
     fig, ax = plt.subplots(figsize=(10, 7))
     
     # Block processing overhead distribution histogram
-    ax.hist(pos_blk_total_time, bins=40, alpha=0.6, label='PoS', 
+    ax.hist(pos_blk_total_time, bins=40, alpha=0.6, label='Ethereum', 
             color=ETH_COLOR, edgecolor='white', linewidth=1.2)
     ax.hist(p2s_blk_total_time, bins=40, alpha=0.6, label='P2S', 
             color=P2S_COLOR, edgecolor='white', linewidth=1.2)
     
     # Add mean lines
     ax.axvline(pos_total_mean, color=ETH_COLOR, linestyle='--', linewidth=2, 
-               label=f'PoS Mean: {pos_total_mean:.3f}s')
+               label=f'Ethereum Mean: {pos_total_mean:.3f}s')
     ax.axvline(p2s_total_mean, color=P2S_COLOR, linestyle='--', linewidth=2,
                label=f'P2S Mean: {p2s_total_mean:.3f}s')
     

@@ -4,60 +4,55 @@
   "eth_price_usd": 2000.0,
   "ethereum_pos": [
     {
-      "strategy": "blind_insert",
-      "total_cost_eth": 0.4308564076626001,
-      "cost_per_attempt_eth": 0.008617128153252001,
-      "attempts": 50,
-      "total_gain_eth": 1.3853203316115679,
-      "net_profit_eth": 0.9544639239489678,
-      "total_cost_usd": 861.7128153252002,
-      "cost_per_attempt_usd": 17.234256306504
-    },
-    {
       "strategy": "front_run",
-      "total_cost_eth": 0.6893702522601599,
-      "cost_per_attempt_eth": 0.013787405045203198,
-      "attempts": 50,
-      "total_gain_eth": 2.092666550011269,
-      "net_profit_eth": 1.403296297751109,
-      "total_cost_usd": 1378.7405045203197,
-      "cost_per_attempt_usd": 27.574810090406395
+      "total_cost_eth": 1.3903910631163192,
+      "cost_per_attempt_eth": 0.013903910631163191,
+      "cost_per_success_eth": 0.07724394795090662,
+      "attempts": 100,
+      "total_gain_eth": 6.742131051613805,
+      "net_profit_eth": 5.351739988497486,
+      "total_cost_usd": 2780.7821262326383,
+      "cost_per_attempt_usd": 27.80782126232638
     },
     {
       "strategy": "sandwich",
-      "total_cost_eth": 1.2207598217107,
-      "cost_per_attempt_eth": 0.024415196434214,
-      "attempts": 50,
-      "total_gain_eth": 2.3698952775487605,
-      "net_profit_eth": 1.1491354558380604,
-      "total_cost_usd": 2441.5196434214004,
-      "cost_per_attempt_usd": 48.83039286842801
+      "total_cost_eth": 2.4621508409351507,
+      "cost_per_attempt_eth": 0.024621508409351508,
+      "cost_per_success_eth": 0.24621508409351506,
+      "attempts": 100,
+      "total_gain_eth": 3.940926413326671,
+      "net_profit_eth": 1.4787755723915201,
+      "total_cost_usd": 4924.301681870302,
+      "cost_per_attempt_usd": 49.24301681870302
     },
     {
       "strategy": "arbitrage",
-      "total_cost_eth": 0.8617128153252002,
-      "cost_per_attempt_eth": 0.017234256306504003,
-      "attempts": 50,
-      "total_gain_eth": 0.3523332382975914,
-      "net_profit_eth": -0.5093795770276088,
-      "total_cost_usd": 1723.4256306504003,
-      "cost_per_attempt_usd": 34.468512613008
-    },
-    {
-      "strategy": "liquidation",
-      "total_cost_eth": 0.7180940127709999,
-      "cost_per_attempt_eth": 0.014361880255419998,
-      "attempts": 50,
-      "total_gain_eth": 1.8845858873645889,
-      "net_profit_eth": 1.1664918745935888,
-      "total_cost_usd": 1436.1880255419999,
-      "cost_per_attempt_usd": 28.723760510839995
+      "total_cost_eth": 1.7379888288954004,
+      "cost_per_attempt_eth": 0.017379888288954003,
+      "cost_per_success_eth": 0.1579989844450364,
+      "attempts": 100,
+      "total_gain_eth": 2.6010463097335053,
+      "net_profit_eth": 0.8630574808381049,
+      "total_cost_usd": 3475.977657790801,
+      "cost_per_attempt_usd": 34.759776577908006
     }
   ],
-  "p2s": [],
+  "p2s": [
+    {
+      "strategy": "blind_insert_p2s",
+      "total_cost_eth": 0.8689944144477002,
+      "cost_per_attempt_eth": 0.008689944144477001,
+      "cost_per_success_eth": 0.17379888288954004,
+      "attempts": 100,
+      "total_gain_eth": 1.2744403789743648,
+      "net_profit_eth": 0.4054459645266646,
+      "total_cost_usd": 1737.9888288954005,
+      "cost_per_attempt_usd": 17.379888288954003
+    }
+  ],
   "totals": {
-    "ethereum_pos_cost_eth": 3.9207933097296603,
-    "p2s_cost_eth": 0.0
+    "ethereum_pos_cost_eth": 5.5905307329468705,
+    "p2s_cost_eth": 0.8689944144477002
   },
-  "source_file": "simulation_20260224_114417.json"
+  "source_file": "simulation_20260224_171122.json"
 }

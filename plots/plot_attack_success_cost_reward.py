@@ -99,9 +99,7 @@ def plot_attack_success_cost_reward(sim_data: dict, figures_dir: str) -> None:
     ax.set_xticklabels(names, rotation=30, ha="right", fontsize=FONTSIZE_XTICK)
     ax.set_ylim(0, ymax)
     ax.tick_params(axis="y", labelsize=FONTSIZE_YTICK)
-    legend_handles = [Patch(facecolor=COLOR_ETH, label="PoS")]
-    if COLOR_P2S in colors:
-        legend_handles.append(Patch(facecolor=COLOR_P2S, label="P2S"))
+    legend_handles = [Patch(facecolor=COLOR_ETH, label="Ethereum"), Patch(facecolor=COLOR_P2S, label="P2S")]
     ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND)
     sns.despine(ax=ax)
     plt.tight_layout()

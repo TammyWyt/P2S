@@ -60,7 +60,7 @@ def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
     x = np.arange(len(types))
     w = 0.25
-    ax.bar(x - w / 2, eth_totals, w, label="PoS", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
+    ax.bar(x - w / 2, eth_totals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
     ax.bar(x + w / 2, p2s_totals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
     ax.set_ylabel("Total MEV (ETH)", fontsize=20, fontweight='bold')
     ax.set_xticks(x)
@@ -117,7 +117,7 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
     x = np.arange(len(labels))
     w = 0.25
-    ax.bar(x - w / 2, eth_vals, w, label="PoS", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
+    ax.bar(x - w / 2, eth_vals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
     ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
     ax.set_ylabel("Count", fontsize=20, fontweight='bold')
     ax.set_xticks(x)

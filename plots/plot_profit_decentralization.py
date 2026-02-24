@@ -36,7 +36,7 @@ def plot_profit_decentralization(data: Dict):
     ax.plot([0, 1], [0, 1], 'k--', linewidth=2, alpha=0.4)
     
     protocols = ['p2s', 'ethereum_pos']
-    protocol_labels = ['P2S', 'PoS']
+    protocol_labels = ['P2S', 'Ethereum']
     colors = [P2S_COLOR, ETH_COLOR]
     
     has_data = False

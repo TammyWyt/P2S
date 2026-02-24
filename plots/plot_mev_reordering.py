@@ -40,10 +40,10 @@ def plot_mev_reordering(data: dict, out_path: str) -> None:
     sns.set_theme(style="ticks")
     reorder = data.get("mev_reordering", {})
     protocols = ["p2s", "ethereum_pos"]
-    labels = ["P2S", "PoS"]
+    labels = ["P2S", "Ethereum"]
     # Use vlag palette colors
     vlag = sns.color_palette("vlag", n_colors=10)
-    colors = [vlag[-2], vlag[1]]  # P2S red, PoS blue
+    colors = [vlag[-2], vlag[1]]  # P2S red, Ethereum blue
 
     means = []
     stds = []

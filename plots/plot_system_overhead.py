@@ -33,7 +33,7 @@ def plot_system_overhead(data: Dict):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     
     protocols = ['p2s', 'ethereum_pos']
-    protocol_labels = ['P2S', 'PoS']
+    protocol_labels = ['P2S', 'Ethereum']
     colors = [P2S_COLOR, ETH_COLOR]
     
     # Extract overhead data
