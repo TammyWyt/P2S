@@ -20,7 +20,7 @@ P2S_COLOR = VLAG_PALETTE[-2]  # P2S (red end)
 
 plt.rcParams['figure.dpi'] = 300
 plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['font.size'] = 20
+plt.rcParams['font.size'] = 22
 
 def load_latest_simulation_data(data_dir="data"):
     """Load the latest simulation data"""
@@ -84,15 +84,16 @@ def plot_block_time_distribution(data):
                label=f'P2S Mean: {p2s_total_mean:.3f}s')
     
     ax.set_xlabel('Block Processing Overhead (seconds)\n(processing + network latency within 12s slot)', 
-                   fontsize=20, fontweight='bold')
-    ax.set_ylabel('Frequency', fontsize=20, fontweight='bold')
-    ax.tick_params(axis='both', labelsize=20)
-    ax.legend(fontsize=20, framealpha=0.9)
+                   fontsize=22, fontweight='bold')
+    ax.set_ylabel('Frequency', fontsize=22, fontweight='bold')
+    ax.tick_params(axis='both', labelsize=22)
+    ax.legend(fontsize=22, framealpha=0.9, loc='upper right')
     sns.despine(ax=ax)
     
     plt.tight_layout()
     os.makedirs('figures', exist_ok=True)
     plt.savefig('figures/overhead_block_time.pdf', dpi=300, bbox_inches='tight')
+    plt.show()
     plt.close()
     print("  ✓ Saved: figures/overhead_block_time.pdf")
 

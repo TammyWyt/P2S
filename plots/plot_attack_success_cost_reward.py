@@ -18,10 +18,10 @@ DATA_DIR = "data"
 FIGURES_DIR = "figures"
 
 # Font sizes
-FONTSIZE_YLABEL = 20
-FONTSIZE_XTICK = 20
-FONTSIZE_YTICK = 20
-FONTSIZE_LEGEND = 20
+FONTSIZE_YLABEL = 22
+FONTSIZE_XTICK = 22
+FONTSIZE_YTICK = 22
+FONTSIZE_LEGEND = 22
 
 VLAG_PALETTE = sns.color_palette("vlag", n_colors=10)
 COLOR_ETH = VLAG_PALETTE[1]
@@ -93,46 +93,49 @@ def plot_attack_success_cost_reward(sim_data: dict, figures_dir: str) -> None:
     # 1. Success rate (%)
     fig, ax = plt.subplots(figsize=(8, 5))
     x = np.arange(len(names))
-    ax.bar(x, success_rates, color=colors, edgecolor="white", linewidth=1.2, width=0.5)
+    ax.bar(x, success_rates, color=colors, edgecolor="white", linewidth=1.2, width=0.72)
     ax.set_ylabel("Success rate (%)", fontsize=FONTSIZE_YLABEL, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=30, ha="right", fontsize=FONTSIZE_XTICK)
     ax.set_ylim(0, ymax)
     ax.tick_params(axis="y", labelsize=FONTSIZE_YTICK)
     legend_handles = [Patch(facecolor=COLOR_ETH, label="Ethereum"), Patch(facecolor=COLOR_P2S, label="P2S")]
-    ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND)
+    ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(figures_dir, exist_ok=True)
     plt.savefig(os.path.join(figures_dir, "attack_success_rate.pdf"), dpi=300, bbox_inches="tight")
+    plt.show()
     plt.close()
     print(f"Saved {os.path.join(figures_dir, 'attack_success_rate.pdf')}")
 
     # 2. Cost per success (ETH)
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(x, cost_per_success_eth, color=colors, edgecolor="white", linewidth=1.2, width=0.5)
+    ax.bar(x, cost_per_success_eth, color=colors, edgecolor="white", linewidth=1.2, width=0.72)
     ax.set_ylabel("Cost per success (ETH)", fontsize=FONTSIZE_YLABEL, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=30, ha="right", fontsize=FONTSIZE_XTICK)
     ax.tick_params(axis="y", labelsize=FONTSIZE_YTICK)
-    ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND)
+    ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     plt.savefig(os.path.join(figures_dir, "attack_cost_per_success.pdf"), dpi=300, bbox_inches="tight")
+    plt.show()
     plt.close()
     print(f"Saved {os.path.join(figures_dir, 'attack_cost_per_success.pdf')}")
 
     # 3. Reward (ETH)
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(x, reward_eth, color=colors, edgecolor="white", linewidth=1.2, width=0.5)
+    ax.bar(x, reward_eth, color=colors, edgecolor="white", linewidth=1.2, width=0.72)
     ax.set_ylabel("Total reward (ETH)", fontsize=FONTSIZE_YLABEL, fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(names, rotation=30, ha="right", fontsize=FONTSIZE_XTICK)
     ax.tick_params(axis="y", labelsize=FONTSIZE_YTICK)
-    ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND)
+    ax.legend(handles=legend_handles, fontsize=FONTSIZE_LEGEND, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     plt.savefig(os.path.join(figures_dir, "attack_reward.pdf"), dpi=300, bbox_inches="tight")
+    plt.show()
     plt.close()
     print(f"Saved {os.path.join(figures_dir, 'attack_reward.pdf')}")
 

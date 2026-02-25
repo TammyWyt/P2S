@@ -59,18 +59,19 @@ def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 7))
     x = np.arange(len(types))
-    w = 0.25
+    w = 0.38
     ax.bar(x - w / 2, eth_totals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
     ax.bar(x + w / 2, p2s_totals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Total MEV (ETH)", fontsize=20, fontweight='bold')
+    ax.set_ylabel("Total MEV (ETH)", fontsize=22, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=20)
-    ax.tick_params(axis='y', labelsize=20)
-    ax.legend(fontsize=20)
+    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=22)
+    ax.tick_params(axis='y', labelsize=22)
+    ax.legend(fontsize=22, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.show()
     plt.close()
     print(f"Saved {out_path}")
 
@@ -90,14 +91,15 @@ def plot_mev_reduction(comparison_data: dict, out_path: str) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 7))
     colors = [COLOR_RED if r > 0 else COLOR_BLUE for r in reductions]
-    ax.barh(types, reductions, height=0.5, color=colors, edgecolor="white", linewidth=1.2)
-    ax.set_xlabel("Reduction (%)", fontsize=20, fontweight='bold')
+    ax.barh(types, reductions, height=0.68, color=colors, edgecolor="white", linewidth=1.2)
+    ax.set_xlabel("Reduction (%)", fontsize=22, fontweight='bold')
     ax.axvline(0, color="gray", linewidth=0.8, linestyle="--")
-    ax.tick_params(axis='both', labelsize=20)
+    ax.tick_params(axis='both', labelsize=22)
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.show()
     plt.close()
     print(f"Saved {out_path}")
 
@@ -116,18 +118,19 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
 
     fig, ax = plt.subplots(figsize=(10, 7))
     x = np.arange(len(labels))
-    w = 0.25
+    w = 0.38
     ax.bar(x - w / 2, eth_vals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
     ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Count", fontsize=20, fontweight='bold')
+    ax.set_ylabel("Count", fontsize=22, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=20)
-    ax.tick_params(axis='y', labelsize=20)
-    ax.legend(fontsize=20)
+    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=22)
+    ax.tick_params(axis='y', labelsize=22)
+    ax.legend(fontsize=22, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.show()
     plt.close()
     print(f"Saved {out_path}")
 
