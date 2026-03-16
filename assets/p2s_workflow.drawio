@@ -131,7 +131,7 @@
           <mxGeometry height="30" width="19.5" x="345" y="170" as="geometry" />
         </mxCell>
         <mxCell id="WG_ju4HaZGRQZR121C4s-31" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=#fff2cc;" value="Build by&amp;nbsp;&lt;span style=&quot;color: rgba(0, 0, 0, 0); font-family: monospace; font-size: 0px; text-align: start; text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; text-align: center; text-wrap-mode: wrap;&quot;&gt;\(P_1\)&lt;/span&gt;%3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20value%3D%22Yes%22%20style%3D%22rounded%3D0%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3BstrokeColor%3Dnone%3BfillColor%3D%23fff2cc%3B%22%20vertex%3D%221%22%20parent%3D%221%22%3E%3CmxGeometry%20x%3D%22265%22%20y%3D%22216%22%20width%3D%2240%22%20height%3D%2212%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E&lt;/span&gt;" vertex="1">
-          <mxGeometry height="22" width="70" x="250" y="228" as="geometry" />
+          <mxGeometry height="18" width="70" x="250" y="228" as="geometry" />
         </mxCell>
         <mxCell id="WG_ju4HaZGRQZR121C4s-32" parent="1" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;fillColor=#fff2cc;" value="Build by&amp;nbsp;&lt;span style=&quot;color: rgba(0, 0, 0, 0); font-family: monospace; font-size: 0px; text-align: start; text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; text-align: center; text-wrap-mode: wrap;&quot;&gt;\(P_1\)&lt;/span&gt;%3CmxGraphModel%3E%3Croot%3E%3CmxCell%20id%3D%220%22%2F%3E%3CmxCell%20id%3D%221%22%20parent%3D%220%22%2F%3E%3CmxCell%20id%3D%222%22%20value%3D%22Yes%22%20style%3D%22rounded%3D0%3BwhiteSpace%3Dwrap%3Bhtml%3D1%3BstrokeColor%3Dnone%3BfillColor%3D%23fff2cc%3B%22%20vertex%3D%221%22%20parent%3D%221%22%3E%3CmxGeometry%20x%3D%22265%22%20y%3D%22216%22%20width%3D%2240%22%20height%3D%2212%22%20as%3D%22geometry%22%2F%3E%3C%2FmxCell%3E%3C%2Froot%3E%3C%2FmxGraphModel%3E&lt;/span&gt;" vertex="1">
           <mxGeometry height="22" width="70" x="250" y="54" as="geometry" />
@@ -150,13 +150,13 @@
           <mxGeometry height="22" width="70" x="395" y="217" as="geometry" />
         </mxCell>
         <mxCell id="XgqkKxucdegzCCmD4Zpy-4" parent="1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" value="Mempool" vertex="1">
-          <mxGeometry height="30" width="70" x="92.5" y="294" as="geometry" />
+          <mxGeometry height="30" width="70" x="92.5" y="290" as="geometry" />
         </mxCell>
         <mxCell id="XgqkKxucdegzCCmD4Zpy-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" value="Delete PHT" vertex="1">
           <mxGeometry height="24" width="80" x="111.26" y="246" as="geometry" />
         </mxCell>
         <mxCell id="tUoE5aK1OSj-NF8_GTAM-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;" value="Pack \(B_2\) with MTs" vertex="1">
-          <mxGeometry height="40" width="80" x="245" y="340" as="geometry" />
+          <mxGeometry height="40" width="80" x="245" y="320" as="geometry" />
         </mxCell>
         <mxCell id="tUoE5aK1OSj-NF8_GTAM-5" edge="1" parent="1" source="tUoE5aK1OSj-NF8_GTAM-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" target="XgqkKxucdegzCCmD4Zpy-5">
           <mxGeometry relative="1" as="geometry" />
