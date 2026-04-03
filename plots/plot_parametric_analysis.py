@@ -2,18 +2,18 @@
 """
 P2S Parametric Analysis — MEV-Mitigation Research Plots
 ========================================================
-Generates 2 publication-quality PDF figures:
+Generates 2 publication-quality PDF figures saved to figures/:
 
-  1.  block_latency_vs_congestion.pdf  — P2S two-phase latency overhead vs PoS
-  2.  gas_squat_vs_phi.pdf             — Gas-squat deterrence via F_res vs phi
+  1.  mev_profit_comparison.pdf        — Rational attacker profit per strategy:
+                                         PoS vs P2S at phi=0 and phi=0.10
+  2.  block_latency_vs_congestion.pdf  — P2S two-phase latency overhead vs PoS
 
-Rational attacker model: an attacker only executes a strategy when E[profit] > 0.
-All profit values are clamped to max(0, E[net]).  Negative expected value → attacker
-does not attempt the attack → profit = 0 (not negative).
+Rational attacker model: profit = max(0, E[net]).
+Negative expected value → attacker does not attempt → profit = 0, never negative.
 
-All profit figures use analytical expected values (not simulated averages) to avoid
-noise from the heavy-tailed gain distribution (sigma=1.5 gives CoV~140%).
-Simulation is retained for the latency plot (latency is low-variance).
+All profit figures use analytical expected values to avoid noise from the
+heavy-tailed log-normal gain distribution (sigma=1.5, CoV~140%).
+Simulation is retained for the latency plot (low-variance).
 
 Parameter choices documented in RESEARCH_SOURCES.md.
 Run from project root:  python plots/plot_parametric_analysis.py
@@ -38,7 +38,6 @@ sys.path.insert(0, os.path.join(_ROOT, "scripts", "testing"))
 from simulation import (  # noqa: E402
     P2SSimulator,
     MEVAttackStrategies,
-    ETH_MAINNET_BLOCK_GAS_LIMIT,
     GWEI_PER_ETH,
     WEI_PER_ETH,
 )
@@ -47,8 +46,9 @@ from simulation import (  # noqa: E402
 # Style — matches plot_attack_success_cost_reward.py
 # ─────────────────────────────────────────────────────────────────────────────
 VLAG = sns.color_palette("vlag", n_colors=10)
-COLOR_ETH = VLAG[1]   # blue  — Ethereum PoS
-COLOR_P2S = VLAG[-2]  # red   — P2S
+COLOR_ETH = VLAG[1]    # blue — Ethereum PoS
+COLOR_P2S = VLAG[-2]   # red  — P2S
+COLOR_B2  = VLAG[-4]   # dark — P2S B2 proposer
 
 FONTSIZE_LABEL  = 18
 FONTSIZE_TICK   = 16
@@ -56,15 +56,14 @@ FONTSIZE_LEGEND = 14
 
 sns.set_theme(style="ticks", font_scale=1.0)
 
-FIGURES_DIR = _HERE
+FIGURES_DIR = os.path.join(_ROOT, "figures")
 DATA_DIR    = os.path.join(_ROOT, "data")
 CACHE_PATH  = os.path.join(DATA_DIR, "ethereum_blocks_cache.json")
 
-RANDOM_SEED = 42
-
+RANDOM_SEED     = 42
 PHI_VALUES      = [0.00, 0.05, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50]
 CONGESTION_VALS = [0.0, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
-N_BLOCKS = 1000   # simulation blocks (latency plot only)
+N_BLOCKS        = 1000   # simulation blocks (latency plot only)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -104,10 +103,11 @@ def _load_ethereum_blocks(n: int) -> list:
 
 
 def _save(fig, name: str) -> None:
+    os.makedirs(FIGURES_DIR, exist_ok=True)
     path = os.path.join(FIGURES_DIR, name)
     fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
-    print(f"  Saved {name}")
+    print(f"  Saved {path}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -115,27 +115,18 @@ def _save(fig, name: str) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 def analytical_profits(mean_gas_gwei: float) -> dict:
     """
-    Compute rational attacker expected net profit per block for every strategy.
-    A rational attacker only executes when E[net] > 0: profit = max(0, E[net]).
-
-    All costs assume the attacker only submits a transaction when an opportunity
-    exists (zero cost otherwise).  Gas costs scale with mean_gas_gwei.
-
-    Strategies:
-      PoS front-run   — profitable when target visible (20% of blocks)
-      PoS sandwich    — two-legged; higher gas cost per attempt
-      PoS arbitrage   — cross-DEX; own opportunity detection (15% of blocks)
-      P2S external    — blind PHT; low success rate; usually not profitable
-
-    Returns per-phi vectors; PoS values are phi-independent (no F_res).
+    Rational attacker expected net profit per block for each strategy.
+    profit = max(0, E[gain] - E[cost]): attacker only acts when profitable.
+    PoS values are phi-independent (no F_res in base Ethereum).
+    P2S values depend on phi via F_res = phi * g^limit * g^base.
     """
-    C = MEVAttackStrategies   # alias
+    C = MEVAttackStrategies
 
-    # Expected gains (log-normal means)
     e_mev   = min(math.exp(C.MEV_GAIN_MU   + C.MEV_GAIN_SIGMA**2   / 2), C.MEV_GAIN_MAX)
     e_blind = min(math.exp(C.BLIND_GAIN_MU + C.BLIND_GAIN_SIGMA**2 / 2), C.MEV_GAIN_MAX)
 
-    def gas_eth(units): return (mean_gas_gwei * GWEI_PER_ETH * units) / WEI_PER_ETH
+    def gas_eth(units):
+        return (mean_gas_gwei * GWEI_PER_ETH * units) / WEI_PER_ETH
 
     exec_pht  = gas_eth(C.GAS_BLIND_INSERT)
     exec_fr   = gas_eth(C.GAS_FRONT_RUN)
@@ -143,38 +134,41 @@ def analytical_profits(mean_gas_gwei: float) -> dict:
     exec_sw_b = gas_eth(C.GAS_SANDWICH_BACK)
     exec_arb  = gas_eth(C.GAS_ARBITRAGE)
 
-    HAS_TARGET = 0.20   # fraction of blocks with a sandwich/front-run target
+    HAS_TARGET = 0.20   # fraction of blocks with a visible front-run/sandwich target
 
-    # PoS: phi-independent
-    fr_gain_pb  = HAS_TARGET * C.FRONT_RUN_SUCCESS_RATE * e_mev
-    fr_cost_pb  = HAS_TARGET * 1.2 * exec_fr
-    sw_gain_pb  = HAS_TARGET * C.SANDWICH_SUCCESS_RATE  * e_mev
-    sw_cost_pb  = HAS_TARGET * (1.3 * exec_sw_f + 1.1 * exec_sw_b)
-    arb_gain_pb = C.ARBITRAGE_OPPORTUNITY_RATE * C.ARBITRAGE_EXEC_RATE * e_mev
-    arb_cost_pb = C.ARBITRAGE_OPPORTUNITY_RATE * exec_arb
+    # PoS (phi-independent)
+    pos_fr_net  = max(0.0, HAS_TARGET * C.FRONT_RUN_SUCCESS_RATE * e_mev
+                          - HAS_TARGET * 1.2 * exec_fr)
+    pos_sw_net  = max(0.0, HAS_TARGET * C.SANDWICH_SUCCESS_RATE  * e_mev
+                          - HAS_TARGET * (1.3 * exec_sw_f + 1.1 * exec_sw_b))
+    pos_arb_net = max(0.0, C.ARBITRAGE_OPPORTUNITY_RATE * C.ARBITRAGE_EXEC_RATE * e_mev
+                          - C.ARBITRAGE_OPPORTUNITY_RATE * exec_arb)
 
-    pos_fr_net  = max(0.0, fr_gain_pb  - fr_cost_pb)
-    pos_sw_net  = max(0.0, sw_gain_pb  - sw_cost_pb)
-    pos_arb_net = max(0.0, arb_gain_pb - arb_cost_pb)
-
-    # P2S: phi-dependent via F_res
-    ext_nets = []
+    # P2S (phi-dependent via F_res)
+    ext_nets, b2_nets = [], []
     for phi in PHI_VALUES:
         cost_pht = (1.0 + phi) * exec_pht
 
-        # External blind insert
         ext_gain = C.P2S_ATTACK_FITS_RATE * C.P2S_ATTACK_SUCCESS_RATE * e_blind
         ext_nets.append(max(0.0, ext_gain - cost_pht))
 
+        n_phts   = C.B2_ATTACK_PHTS_PER_BLOCK
+        b2_gain  = n_phts * C.B2_PROPOSER_MATCH_PROB * e_mev
+        b2_nets.append(max(0.0, b2_gain - n_phts * cost_pht))
+
+    phi_star_b2 = (C.B2_PROPOSER_MATCH_PROB * e_mev / exec_pht) - 1.0
+
     return {
-        "phi":          PHI_VALUES,
-        "pos_fr":       pos_fr_net,   # scalar (phi-independent)
-        "pos_sw":       pos_sw_net,
-        "pos_arb":      pos_arb_net,
-        "ext_net":      ext_nets,
-        "e_mev":        e_mev,
-        "e_blind":      e_blind,
-        "exec_pht":     exec_pht,
+        "phi":           PHI_VALUES,
+        "pos_fr":        pos_fr_net,
+        "pos_sw":        pos_sw_net,
+        "pos_arb":       pos_arb_net,
+        "ext_net":       ext_nets,
+        "b2_net":        b2_nets,
+        "phi_star_b2":   phi_star_b2,
+        "e_mev":         e_mev,
+        "e_blind":       e_blind,
+        "exec_pht":      exec_pht,
         "mean_gas_gwei": mean_gas_gwei,
     }
 
@@ -214,11 +208,57 @@ def sweep_congestion(eth_blocks: list) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Plot functions
+# Plot 1: Rational attacker profit comparison
 # ─────────────────────────────────────────────────────────────────────────────
+def plot1_mev_profit_comparison(ap: dict) -> None:
+    phi0_idx  = PHI_VALUES.index(0.00)
+    phi10_idx = PHI_VALUES.index(0.10)
 
+    strategies = [
+        ("PoS front-run",   COLOR_ETH, ap["pos_fr"],            ap["pos_fr"]),
+        ("PoS sandwich",    COLOR_ETH, ap["pos_sw"],            ap["pos_sw"]),
+        ("PoS arbitrage",   COLOR_ETH, ap["pos_arb"],           ap["pos_arb"]),
+        ("P2S external",    COLOR_P2S, ap["ext_net"][phi0_idx], ap["ext_net"][phi10_idx]),
+        ("P2S B2 proposer", COLOR_B2,  ap["b2_net"][phi0_idx],  ap["b2_net"][phi10_idx]),
+    ]
+
+    labels     = [s[0] for s in strategies]
+    colors     = [s[1] for s in strategies]
+    vals_phi0  = [max(0.0, s[2]) for s in strategies]
+    vals_phi10 = [max(0.0, s[3]) for s in strategies]
+
+    x    = np.arange(len(labels))
+    w    = 0.35
+    ymax = max(vals_phi0 + vals_phi10) if max(vals_phi0 + vals_phi10) > 0 else 1e-4
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.bar(x - w/2, vals_phi0,  w, color=colors, alpha=0.95,
+           label=r"$\varphi = 0.00$")
+    ax.bar(x + w/2, vals_phi10, w, color=colors, alpha=0.50, hatch="//",
+           label=r"$\varphi = 0.10$")
+
+    ax.axvline(2.5, color="grey", lw=0.8, ls="--")
+    ax.text(1.0,  ymax * 1.10, "Ethereum PoS", ha="center",
+            fontsize=12, color=COLOR_ETH)
+    ax.text(3.75, ymax * 1.10, "P2S",          ha="center",
+            fontsize=12, color=COLOR_P2S)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=20, ha="right", fontsize=FONTSIZE_TICK)
+    ax.set_ylabel("Rational profit per block (ETH)",
+                  fontsize=FONTSIZE_LABEL, fontweight="bold")
+    ax.tick_params(axis="y", labelsize=FONTSIZE_TICK)
+    ax.legend(fontsize=FONTSIZE_LEGEND)
+    ax.set_ylim(0, ymax * 1.30)
+    sns.despine(ax=ax)
+    plt.tight_layout()
+    _save(fig, "mev_profit_comparison.pdf")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Plot 2: Block latency vs congestion
+# ─────────────────────────────────────────────────────────────────────────────
 def plot2_latency(cong: dict) -> None:
-    """Plot 2: Block finality latency vs congestion."""
     fig, ax = plt.subplots(figsize=(8, 5))
     x = cong["congestion"]
     ax.plot(x, cong["eth_latency"], color=COLOR_ETH, marker="s", lw=2.0,
@@ -226,59 +266,20 @@ def plot2_latency(cong: dict) -> None:
     ax.plot(x, cong["p2s_latency"], color=COLOR_P2S, marker="o", lw=2.0,
             label="P2S total")
     ax.plot(x, cong["p2s_b1_time"], color=COLOR_P2S, marker="^", lw=1.5, ls="--",
-            label="P2S B1 phase")
+            label=r"P2S $B_1$ phase")
     ax.plot(x, cong["p2s_b2_time"], color=COLOR_P2S, marker="v", lw=1.5, ls=":",
-            label="P2S B2 phase")
+            label=r"P2S $B_2$ phase")
     ax.fill_between(x, cong["eth_latency"], cong["p2s_latency"],
                     alpha=0.10, color=COLOR_P2S, label="P2S overhead")
-    ax.set_xlabel("Network congestion level", fontsize=FONTSIZE_LABEL, fontweight="bold")
-    ax.set_ylabel("Network latency per block (s)", fontsize=FONTSIZE_LABEL, fontweight="bold")
+    ax.set_xlabel("Network congestion level",
+                  fontsize=FONTSIZE_LABEL, fontweight="bold")
+    ax.set_ylabel("Network latency per block (s)",
+                  fontsize=FONTSIZE_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FONTSIZE_TICK)
     ax.legend(fontsize=FONTSIZE_LEGEND - 1, loc="upper left")
     sns.despine(ax=ax)
     plt.tight_layout()
     _save(fig, "block_latency_vs_congestion.pdf")
-
-
-SQUAT_MULTIPLIERS = [1, 2, 3, 5, 10, 20, 50]
-GAS_SQUAT_GMAX_RATIOS = [1.5, 2.0, 3.0]
-
-
-def plot3_gas_squat_vs_phi() -> None:
-    """
-    Deterrence threshold for gas-squat attacks.
-
-    An attacker inflates g^limit = k × g^used.  With F_res the effective cost
-    per unit of g^used becomes g^base × (1 + φ·k).  The attacker is constrained
-    by g^max (maxFeePerGas): deterred when g^base × (1 + φ·k) > g^max, i.e.
-
-        φ*(k) = (g^max / g^base − 1) / k
-
-    Each curve shows φ*(k) for a different g^max / g^base ratio.
-    """
-    x   = SQUAT_MULTIPLIERS
-    grn = ["#1b7837", "#4d9221", "#b8e186"]
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-
-    for bi, (ratio, col) in enumerate(zip(GAS_SQUAT_GMAX_RATIOS, grn)):
-        y = [(ratio - 1.0) / k for k in x]
-        ax.plot(x, y, color=col, lw=2.0, marker="o", ms=5,
-                label=r"$g^{\mathsf{max}} = %.1f \times g^{\mathsf{base}}$" % ratio)
-        ax.fill_between(x, y, 0.60, alpha=0.07, color=col)
-
-    ax.axhline(0.10, color=COLOR_P2S, lw=1.5, ls="--",
-               label=r"$\varphi = 0.10$ (default)")
-    ax.set_xlabel("Gas-limit inflation multiplier k",
-                  fontsize=FONTSIZE_LABEL - 2, fontweight="bold")
-    ax.set_ylabel(r"Minimum $\varphi$ to deter squatting",
-                  fontsize=FONTSIZE_LABEL - 2, fontweight="bold")
-    ax.set_ylim(0, 0.60)
-    ax.tick_params(labelsize=FONTSIZE_TICK - 1)
-    ax.legend(fontsize=FONTSIZE_LEGEND - 1)
-    sns.despine(ax=ax)
-    plt.tight_layout()
-    _save(fig, "gas_squat_vs_phi.pdf")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -307,19 +308,19 @@ def main() -> None:
 
     print(f"\n  Gas price: {mean_gp:.1f} gwei  |  "
           f"E[mev_gain] = {ap['e_mev']:.4f} ETH  |  "
-          f"exec_pht = {ap['exec_pht']:.5f} ETH\n")
+          f"exec_pht = {ap['exec_pht']:.5f} ETH")
+    print(f"  B2 phi* = {ap['phi_star_b2']:.3f}\n")
 
-    hdrs = ["phi", "PoS FR", "PoS SW", "PoS Arb", "P2S Ext"]
+    hdrs = ["phi", "PoS FR", "PoS SW", "PoS Arb", "P2S Ext", "P2S B2"]
     print("  " + "  ".join(f"{h:>9}" for h in hdrs))
     for i, phi in enumerate(ap["phi"]):
         row = [phi, ap["pos_fr"], ap["pos_sw"], ap["pos_arb"],
-               ap["ext_net"][i]]
+               ap["ext_net"][i], ap["b2_net"][i]]
         print("  " + "  ".join(f"{v:+9.5f}" for v in row))
 
     print("\nGenerating plots…")
+    plot1_mev_profit_comparison(ap)
     plot2_latency(cong_data)
-    plot3_gas_squat_vs_phi()
-
     print(f"\n  All 2 PDFs saved to {FIGURES_DIR}/")
 
 
