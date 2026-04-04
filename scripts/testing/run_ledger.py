@@ -23,7 +23,7 @@ Money flow per block
   users pay     gas_cost + victim_welfare_loss  (debit)
   proposer earns block_reward                   (credit; includes new ETH issuance)
   base fee      gas_cost - tip_revenue          (burned / destroyed — not tracked)
-  P2S only      reservation_fees_burned         (also burned — anti-squat mechanism)
+  P2S only      reservation_fees_burned         (also burned — F_res penalises g_limit over-declaration)
   attacker      gain_eth − cost_eth             (net; funded by victim slippage)
 """
 

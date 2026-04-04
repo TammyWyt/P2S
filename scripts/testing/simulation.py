@@ -125,8 +125,8 @@ class MEVAttackStrategies:
 
     # Gas reservation parameter (P2S B1 step).
     # F_res = PHT_RESERVATION_PHI * g_limit * g_base (burned at B1 inclusion).
-    # Scales linearly with g_limit, so inflating the reserved gas limit to squat
-    # on block space costs proportionally more — regardless of MT reveal.
+    # Scales linearly with g_limit, so over-declaring g_limit costs proportionally
+    # more in burned fees — regardless of MT reveal.
     PHT_RESERVATION_PHI = 0.10  # 10 % of the equivalent full-execution gas cost
 
     # ── B2 proposer ordering attack ──────────────────────────────────────────
@@ -178,7 +178,7 @@ class MEVAttackStrategies:
         """
         gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
         execution_cost = self.gas_cost_eth(gas_price, self.GAS_BLIND_INSERT)
-        # F_res = φ · g_limit · g_base (burned at B1, anti-squat mechanism)
+        # F_res = φ · g_limit · g_base (burned at B1)
         f_res = self.PHT_RESERVATION_PHI * execution_cost
         cost = execution_cost + f_res  # total B1 cost always paid
         # After B1 commits, attacker learns enough to decide whether to reveal.
@@ -221,41 +221,39 @@ class MEVAttackStrategies:
                 n_successes += 1
         return (total_cost, total_gain, n_successes)
 
-    def run_gas_squat_pht(self, block_idx: int, squat_multiplier: float = 5.0) -> Tuple[float, float, bool]:
+    def run_glimit_overdecl_pht(self, block_idx: int, inflation_factor: float = 5.0) -> Tuple[float, float, bool]:
         """
-        Gas-squatting attack in P2S: attacker submits a PHT with an inflated
-        g_limit = squat_multiplier × actual_gas, intending to occupy block space
-        cheaply and prevent other transactions from being included.
+        g_limit over-declaration attack in P2S: attacker submits a PHT with
+        g_limit = inflation_factor × actual_gas to occupy block space without
+        proportional execution.
 
-        Without F_res: cost ≈ normal gas, attacker can squat for free.
-        With F_res = φ · g_limit · g_base: cost scales with squat_multiplier,
-        making squatting proportionally more expensive.
+        Without F_res: cost ≈ normal gas, over-declaration is free.
+        With F_res = φ · g_limit · g_base: cost scales with inflation_factor,
+        making over-declaration proportionally more expensive.
 
-        Returns (cost_eth, gain_eth=0, success=False) — squatting has no monetary
-        gain; it is a denial-of-service on block space.  The point is to show the
-        cost is prohibitively high with F_res.
+        Returns (cost_eth, gain_eth=0, success=False) — no monetary gain;
+        this is a block space denial-of-service. F_res makes it costly.
         """
         gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
-        inflated_gas = int(self.GAS_BLIND_INSERT * squat_multiplier)
+        inflated_gas = int(self.GAS_BLIND_INSERT * inflation_factor)
         execution_cost = self.gas_cost_eth(gas_price, inflated_gas)
         f_res = self.PHT_RESERVATION_PHI * execution_cost  # φ · g_limit · g_base
         cost = execution_cost + f_res
-        # No gain: squatter does not extract value, only disrupts the block
+        # No gain: attacker does not extract value, only consumes block space
         return (cost, 0.0, False)
 
-    def _gas_squat_result(self, num_blocks: int, squat_multiplier: float) -> Dict[str, AttackStrategyResult]:
-        """Return a single AttackStrategyResult for a gas-squat attempt over num_blocks."""
+    def _glimit_overdecl_result(self, num_blocks: int, inflation_factor: float) -> Dict[str, AttackStrategyResult]:
+        """Return a single AttackStrategyResult for a g_limit over-declaration attempt over num_blocks."""
         total_cost = sum(
-            self.run_gas_squat_pht(i, squat_multiplier)[0] for i in range(num_blocks)
+            self.run_glimit_overdecl_pht(i, inflation_factor)[0] for i in range(num_blocks)
         )
         return {
-            f"gas_squat_{int(squat_multiplier)}x_pht": AttackStrategyResult(
-                name=f"gas_squat_{int(squat_multiplier)}x_pht",
+            f"glimit_overdecl_{int(inflation_factor)}x_pht": AttackStrategyResult(
+                name=f"glimit_overdecl_{int(inflation_factor)}x_pht",
                 description=(
-                    f"Gas-squat PHT: g_limit inflated {squat_multiplier:.0f}× to occupy block "
-                    f"space. F_res = φ·g_limit·g_base scales linearly — "
-                    f"{squat_multiplier:.0f}× limit burns {squat_multiplier:.0f}× reservation "
-                    f"fee, deterring empty-block attacks."
+                    f"g_limit over-declaration PHT: g_limit inflated {inflation_factor:.0f}× "
+                    f"to occupy block space. F_res = φ·g_limit·g_base scales linearly — "
+                    f"{inflation_factor:.0f}× g_limit burns {inflation_factor:.0f}× F_res."
                 ),
                 total_cost_eth=total_cost,
                 total_gain_eth=0.0,
@@ -454,11 +452,11 @@ class MEVAttackStrategies:
                 total_victim_welfare_loss_eth=total_victim_loss,
                 total_victim_base_valuation_eth=total_victim_valuation,
             ),
-            # Gas-squat comparison: cost of squatting with 5× inflated g_limit.
+            # g_limit over-declaration: cost of inflating g_limit by 5×.
             # With F_res = φ · g_limit · g_base, cost scales linearly with g_limit:
             # inflating by 5× costs 5× more in burned reservation fees regardless of
-            # whether the MT is ever revealed.  No gain: squatting is pure DoS.
-            **self._gas_squat_result(num_blocks, squat_multiplier=5.0),
+            # whether the MT is ever revealed.  No gain: pure block space consumption.
+            **self._glimit_overdecl_result(num_blocks, inflation_factor=5.0),
         }
 
 
@@ -703,9 +701,8 @@ class P2SSimulator:
 
         # P2S gas reservation fees (B1 step).
         # Each PHT burns F_res = φ · g_limit · g_base at B1 inclusion, regardless of
-        # whether the matching MT is later revealed.  This prevents gas-squatting:
-        # overstating g_limit inflates F_res proportionally, so the attacker pays
-        # proportionally more for the unused block space they reserved.
+        # whether the matching MT is later revealed.  Over-declaring g_limit inflates
+        # F_res proportionally, so the cost of over-reservation scales with g_limit.
         # F_res is burned (not paid to the proposer), consistent with EIP-1559 base fee.
         phi = MEVAttackStrategies.PHT_RESERVATION_PHI
         reservation_fees_burned = sum(
@@ -925,7 +922,7 @@ class P2SSimulator:
             }
             for name, r in strategy_results.items()
         }
-        # P2S: only blind insert (+ gas-squat cost comparison) applicable
+        # P2S: only blind insert (+ g_limit over-declaration cost comparison) applicable
         strategy_results_p2s = attack_eval.evaluate_p2s_strategies(num_blocks)
         self.results['attack_strategies_p2s'] = {
             name: {
@@ -944,12 +941,11 @@ class P2SSimulator:
             for name, r in strategy_results_p2s.items()
         }
         self.results['attack_strategies_p2s_note'] = (
-            "In P2S only blind insert (and gas-squat) are applicable. "
+            "In P2S only blind insert (and g_limit over-declaration) are applicable. "
             "Front-run, sandwich, arbitrage are not applicable (B1 has only PHTs; cannot target). "
             "Blind insert: execution gas + F_res = φ·g_limit·g_base burned at B1; "
             "if attacker does not reveal, only B1 costs apply. "
-            "Gas-squat: inflating g_limit multiplies F_res proportionally, "
-            "deterring empty-block reservation attacks."
+            "g_limit over-declaration: inflating g_limit multiplies F_res proportionally."
         )
 
         self.calculate_metrics()
@@ -993,7 +989,7 @@ class P2SSimulator:
             res_fees = mev_data.get('total_reservation_fees_burned', 0.0)
             line = f"  {protocol_label}: {mean_mev:.4f} ETH/block MEV, {total_vwl:.4f} ETH total victim loss"
             if res_fees > 0:
-                line += f", {res_fees:.4f} ETH reservation fees burned (anti-squat)"
+                line += f", {res_fees:.4f} ETH reservation fees burned"
             print(line)
         
         print("\n⏱️ SYSTEM OVERHEAD:")
@@ -1008,7 +1004,7 @@ class P2SSimulator:
             )
 
     def print_attack_strategies_summary(self):
-        """Print cost/gain for Ethereum PoS (all strategies) and P2S (blind insert + gas-squat)."""
+        """Print cost/gain for Ethereum PoS (all strategies) and P2S (blind insert + g_limit over-declaration)."""
         strategies = self.results.get('attack_strategies', {})
         if strategies:
             print("\n📌 MEV ATTACK STRATEGIES — Ethereum PoS:")
@@ -1075,7 +1071,7 @@ class P2SSimulator:
                 # utility v_j - s_j - g_j > 0 because v_j > s_j + g_j.
                 'total_victim_welfare_loss': sum(victim_losses),
                 'mean_victim_welfare_loss': statistics.mean(victim_losses) if victim_losses else 0,
-                # P2S only: burned reservation fees (anti-squat mechanism)
+                # P2S only: burned reservation fees (F_res)
                 'total_reservation_fees_burned': sum(res_fees),
             }
         

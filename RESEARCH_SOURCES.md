@@ -161,11 +161,11 @@ The critical correction from PBS reviewer feedback:
 
 | Value | Interpretation |
 |-------|---------------|
-| φ = 0.00 | No reservation fee — baseline (gas squatting is free) |
-| φ = 0.05 | 5 % of execution cost burned at B1 — low deterrence |
-| φ = 0.10 | **Default in simulation** — balances user cost and squat deterrence |
-| φ = 0.20 | Moderate deterrence; 5× inflation costs 100 % of normal execution |
-| φ = 0.50 | High deterrence; makes blind attacks uneconomical |
+| φ = 0.00 | No reservation fee — baseline ($g^{\mathsf{limit}}$ over-declaration is free) |
+| φ = 0.05 | 5 % of execution cost burned at B1 — weak penalty for over-declaration |
+| φ = 0.10 | **Default in simulation** — balances user overhead and over-declaration penalty |
+| φ = 0.20 | Moderate penalty; 5× $g^{\mathsf{limit}}$ inflation costs 100 % of normal execution |
+| φ = 0.50 | High penalty; makes blind attacks uneconomical |
 
 **Rationale for φ = 0.10 as default:**
 - EIP-1559 already burns 80 % of the gas price; adding φ = 0.10 burns an additional 10 % of the equivalent execution cost at B1.
@@ -273,12 +273,8 @@ The critical correction from PBS reviewer feedback:
 
 | File | What it shows | Key claim supported |
 |------|--------------|---------------------|
-| `attacker_profit_vs_phi.pdf` | Attacker net profit/block vs φ | F_res makes P2S attacks consistently unprofitable; PoS attacks unaffected (flat) |
-| `gas_squat_deterrence.pdf` | F_res cost vs gas-limit inflation multiplier k | Linear cost scaling deters gas squatting — k× gas limit = k× F_res |
-| `mev_vs_congestion.pdf` | MEV opportunity/block vs network congestion | P2S maintains lower MEV across all congestion levels |
-| `attack_profit_margin_vs_phi.pdf` | P2S success rate (flat) vs profit margin (declining) vs φ | φ erodes profitability without changing attack frequency — key design property |
-| `victim_welfare_breakdown.pdf` | Mean gas fees + victim slippage: P2S vs PoS | P2S victims have lower s_j; v_j − s_j − g_j > 0 (rational participation) |
-| `block_latency_vs_congestion.pdf` | Block finality latency vs congestion | P2S two-phase overhead is bounded; B1+B2 latency quantified |
+| `mev_profit_comparison.pdf` | Rational attacker profit per block by strategy: PoS vs P2S at φ=0 and φ=0.10 | F_res eliminates P2S attack profitability at φ=0.10; PoS attacks remain unaffected |
+| `block_latency_vs_congestion.pdf` | Block finality latency vs congestion | P2S two-phase overhead is bounded; $B_1$+$B_2$ latency quantified |
 
 **Removed plots (not informative):**
 - `proposer_gini_vs_validators.pdf` — Gini trivially converges for both protocols with equal-weight proposers; no mechanism difference to show.
