@@ -4,8 +4,8 @@ P2S Parametric Analysis — MEV-Mitigation Research Plots
 ========================================================
 Generates 2 publication-quality PDF figures saved to figures/:
 
-  1.  mev_profit_comparison.pdf        — Rational attacker profit per strategy:
-                                         PoS vs P2S at phi=0 and phi=0.10
+  1.  phi_sweep.pdf                    — Attacker profit vs phi across full range
+                                         [0, 0.5]; annotates phi* breakeven point
   2.  block_latency_vs_congestion.pdf  — P2S two-phase latency overhead vs PoS
 
 Rational attacker model: profit = max(0, E[net]).
@@ -34,8 +34,8 @@ _time_module.sleep = lambda _: None
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
-sys.path.insert(0, os.path.join(_ROOT, "scripts", "testing"))
-from simulation import (  # noqa: E402
+sys.path.insert(0, _ROOT)
+from scripts.simulation.simulator import (  # noqa: E402
     P2SSimulator,
     MEVAttackStrategies,
     GWEI_PER_ETH,
@@ -208,51 +208,72 @@ def sweep_congestion(eth_blocks: list) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Plot 1: Rational attacker profit comparison
+# Plot 1: φ sweep — rational attacker profit vs reservation-fee parameter
 # ─────────────────────────────────────────────────────────────────────────────
-def plot1_mev_profit_comparison(ap: dict) -> None:
-    phi0_idx  = PHI_VALUES.index(0.00)
-    phi10_idx = PHI_VALUES.index(0.10)
+def plot_phi_sweep(ap: dict) -> None:
+    """
+    Line plot: x = φ ∈ PHI_VALUES, y = rational attacker profit per block (ETH).
+    Shows PoS baselines as flat lines and P2S B2 proposer profit decreasing to 0.
+    Annotates φ* (the minimum deterrent threshold) and shades the deterrence zone.
+    Saved to figures/phi_sweep.pdf.
+    """
+    phis    = ap["phi"]
+    phi_arr = np.array(phis)
 
-    strategies = [
-        ("PoS front-run",   COLOR_ETH, ap["pos_fr"],            ap["pos_fr"]),
-        ("PoS sandwich",    COLOR_ETH, ap["pos_sw"],            ap["pos_sw"]),
-        ("PoS arbitrage",   COLOR_ETH, ap["pos_arb"],           ap["pos_arb"]),
-        ("P2S external",    COLOR_P2S, ap["ext_net"][phi0_idx], ap["ext_net"][phi10_idx]),
-        ("P2S B2 proposer", COLOR_B2,  ap["b2_net"][phi0_idx],  ap["b2_net"][phi10_idx]),
-    ]
+    # PoS strategies are φ-independent
+    pos_fr  = np.full_like(phi_arr, ap["pos_fr"])
+    pos_arb = np.full_like(phi_arr, ap["pos_arb"])
 
-    labels     = [s[0] for s in strategies]
-    colors     = [s[1] for s in strategies]
-    vals_phi0  = [max(0.0, s[2]) for s in strategies]
-    vals_phi10 = [max(0.0, s[3]) for s in strategies]
+    # P2S strategies vary with φ
+    b2_net  = np.array(ap["b2_net"])
+    ext_net = np.array(ap["ext_net"])  # ≡ 0 at all φ
 
-    x    = np.arange(len(labels))
-    w    = 0.35
-    ymax = max(vals_phi0 + vals_phi10) if max(vals_phi0 + vals_phi10) > 0 else 1e-4
+    phi_star = ap["phi_star_b2"]
 
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.bar(x - w/2, vals_phi0,  w, color=colors, alpha=0.95,
-           label=r"$\varphi = 0.00$")
-    ax.bar(x + w/2, vals_phi10, w, color=colors, alpha=0.50, hatch="//",
-           label=r"$\varphi = 0.10$")
+    fig, ax = plt.subplots(figsize=(9, 5))
 
-    ax.axvline(2.5, color="grey", lw=0.8, ls="--")
-    ax.text(1.0,  ymax * 1.10, "Ethereum PoS", ha="center",
-            fontsize=12, color=COLOR_ETH)
-    ax.text(3.75, ymax * 1.10, "P2S",          ha="center",
-            fontsize=12, color=COLOR_P2S)
+    # PoS flat baselines
+    ax.plot(phis, pos_fr,  color=COLOR_ETH, lw=2.0, ls="--",  marker="s",
+            markersize=5, label="PoS front-run (φ-independent)")
+    ax.plot(phis, pos_arb, color=COLOR_ETH, lw=2.0, ls=":",   marker="^",
+            markersize=5, label="PoS arbitrage (φ-independent)")
 
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=20, ha="right", fontsize=FONTSIZE_TICK)
+    # P2S B2 proposer (decreasing)
+    ax.plot(phis, b2_net, color=COLOR_B2, lw=2.5, marker="o",
+            markersize=6, label=r"P2S $B_2$ proposer")
+
+    # P2S external blind (≡ 0)
+    ax.axhline(0.0, color=COLOR_P2S, lw=1.2, ls="-.", alpha=0.7,
+               label="P2S external blind (≡ 0)")
+
+    # φ* vertical line and annotation
+    ax.axvline(phi_star, color="black", lw=1.4, ls="--", alpha=0.75)
+    ax.text(phi_star + 0.005, ax.get_ylim()[1] if ax.get_ylim()[1] > 0 else 0.003,
+            fr"$\varphi^*\!\approx\!{phi_star:.2f}$",
+            fontsize=FONTSIZE_LEGEND, va="top", ha="left", color="black")
+
+    # Shade deterrence zone (φ ≥ φ*)
+    ymax_val = max(float(pos_fr.max()), float(b2_net.max()), 1e-5) * 1.35
+    ax.axvspan(phi_star, max(phis), alpha=0.07, color=COLOR_P2S,
+               label=fr"Deterrence zone ($\varphi \geq \varphi^*$)")
+
+    # Recommended operating point φ = 0.10
+    ax.axvline(0.10, color="dimgray", lw=1.0, ls=":", alpha=0.6)
+    ax.text(0.10 + 0.005, ymax_val * 0.55,
+            r"$\varphi=0.10$" + "\n(recommended)",
+            fontsize=10, color="dimgray", ha="left")
+
+    ax.set_xlabel(r"Reservation-fee parameter $\varphi$",
+                  fontsize=FONTSIZE_LABEL, fontweight="bold")
     ax.set_ylabel("Rational profit per block (ETH)",
                   fontsize=FONTSIZE_LABEL, fontweight="bold")
-    ax.tick_params(axis="y", labelsize=FONTSIZE_TICK)
-    ax.legend(fontsize=FONTSIZE_LEGEND)
-    ax.set_ylim(0, ymax * 1.30)
+    ax.set_xlim(0, max(phis))
+    ax.set_ylim(bottom=-0.00005, top=ymax_val)
+    ax.tick_params(labelsize=FONTSIZE_TICK)
+    ax.legend(fontsize=FONTSIZE_LEGEND - 1, loc="upper right")
     sns.despine(ax=ax)
     plt.tight_layout()
-    _save(fig, "mev_profit_comparison.pdf")
+    _save(fig, "phi_sweep.pdf")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -319,7 +340,7 @@ def main() -> None:
         print("  " + "  ".join(f"{v:+9.5f}" for v in row))
 
     print("\nGenerating plots…")
-    plot1_mev_profit_comparison(ap)
+    plot_phi_sweep(ap)
     plot2_latency(cong_data)
     print(f"\n  All 2 PDFs saved to {FIGURES_DIR}/")
 

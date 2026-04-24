@@ -20,11 +20,6 @@ Core model
 4. Greedy B2 proposer scheduler (Flashbots-style)
    Proposer sorts revealed MTs by sandwich profit, fires in 1/n_validators blocks.
 
-Experiments
------------
-  EXP-1  Baseline 1000-block run at default parameters
-  EXP-4  Pool-liquidity sweep  [100, 300, 500, 1000, 3000, 5000] ETH
-
 Attack taxonomy
 ---------------
 PoS (full mempool visibility):
@@ -36,10 +31,9 @@ P2S (only g_limit visible from PHT in B1):
   P2S-B2   B2 proposer greedy MEV scheduler (1/n_validators blocks)
   P2S-ARB  Cross-block CFMM arb (post-B2 reveal)
 
-Outputs (figures/)
+Outputs (data/)
 ------------------
-  mev_cdf.pdf               EXP-1: per-block MEV CDF (PoS vs P2S)
-  mev_vs_pool_liquidity.pdf EXP-4: MEV vs AMM pool depth
+  p2s_mev_attacks.json   EXP-1: baseline simulation results
 
 Run:  python plots/plot_p2s_mev_attacks.py
 """
@@ -52,37 +46,24 @@ import sys
 from dataclasses import dataclass
 from typing import List, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
-sys.path.insert(0, os.path.join(_ROOT, "scripts", "testing"))
-from simulation import GWEI_PER_ETH, WEI_PER_ETH  # noqa: E402
+sys.path.insert(0, _ROOT)
+from scripts.simulation.constants import GWEI_PER_ETH, WEI_PER_ETH  # noqa: E402
 
-FIGURES_DIR = os.path.join(_ROOT, "figures")
 DATA_DIR    = os.path.join(_ROOT, "data")
 CACHE_PATH  = os.path.join(DATA_DIR, "ethereum_blocks_cache.json")
 
-# ── Style ─────────────────────────────────────────────────────────────────────
-VLAG  = sns.color_palette("vlag", n_colors=10)
-C_ETH = VLAG[1]    # blue — PoS
-C_P2S = VLAG[-2]   # red  — P2S
-sns.set_theme(style="ticks", font_scale=1.0)
-FS_L, FS_T, FS_G = 18, 16, 14
-
 # ── Simulation constants ───────────────────────────────────────────────────────
 RANDOM_SEED        = 42
-N_BLOCKS           = 1000   # baseline run
-N_SWEEP_BLOCKS     = 400    # blocks per pool-sweep point
+N_BLOCKS           = 1000
 
 DEFAULT_PHI          = 0.10
 DEFAULT_N_VALIDATORS = 5
 DEFAULT_POOL_ETH     = 1_000.0
-
-POOL_SWEEP_ETH = [100, 300, 500, 1_000, 3_000, 5_000]
 
 # Gas constants
 GAS_SW_FRONT = 200_000
@@ -91,7 +72,6 @@ GAS_ARB      = 300_000
 GAS_PHT      = 200_000
 GAS_B2_PHT   = 150_000
 
-# Gain calibration: median sandwich ≈ 0.015 ETH at r=1000 ETH (Torres 2024)
 GAIN_CAP  = 2.0
 
 # PGA bidding premiums (Daian 2020)
@@ -165,9 +145,9 @@ TX_PRIORS = {ETH_TX: 0.30, ERC20: 0.20, DEX: 0.35, COMPLEX: 0.15}
 # Overlapping gas ranges create genuine Bayesian ambiguity (EIP-2028; Uniswap docs; Qin 2021)
 GAS_RANGES = {
     ETH_TX:  (21_000,   25_000),
-    ERC20:   (45_000,  130_000),   # overlaps DEX at 80–130k
+    ERC20:   (45_000,  130_000),
     DEX:     (80_000,  260_000),
-    COMPLEX: (180_000, 600_000),   # overlaps DEX at 180–260k
+    COMPLEX: (180_000, 600_000),
 }
 
 
@@ -437,89 +417,7 @@ def simulate(
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 8. Pool-liquidity sweep (EXP-4)
-# ═════════════════════════════════════════════════════════════════════════════
-
-def sweep_pool_liquidity(n_blocks: int = N_SWEEP_BLOCKS) -> dict:
-    print(f"  EXP-4 pool sweep ({len(POOL_SWEEP_ETH)} points × {n_blocks} blocks)…")
-    rows = []
-    for pool_eth in POOL_SWEEP_ETH:
-        r = simulate(n_blocks, phi=DEFAULT_PHI,
-                     n_validators=DEFAULT_N_VALIDATORS,
-                     pool_eth=pool_eth, seed_offset=300)
-        rows.append({
-            "pool_eth":  pool_eth,
-            "pos_mev":   r["pos_summary"]["total_mev"],
-            "p2s_mev":   r["p2s_summary"]["total_mev"],
-            "pos_victim":r["pos_summary"]["victim_loss"],
-            "p2s_victim":r["p2s_summary"]["victim_loss"],
-        })
-        print(f"    pool={pool_eth:6.0f} ETH  PoS={rows[-1]['pos_mev']:.5f}  "
-              f"P2S={rows[-1]['p2s_mev']:.5f}")
-    return {"pool_sweep": rows}
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# 9. Plots
-# ═════════════════════════════════════════════════════════════════════════════
-
-def _save(fig, name: str) -> None:
-    os.makedirs(FIGURES_DIR, exist_ok=True)
-    path = os.path.join(FIGURES_DIR, name)
-    fig.savefig(path, dpi=300, bbox_inches="tight")
-    plt.close(fig)
-    print(f"  Saved {path}")
-
-
-def plot_cdf(baseline: dict) -> None:
-    """EXP-1: per-block MEV CDF for PoS vs P2S."""
-    pos_mev = np.array(baseline["pos_raw"]["total_mev"])
-    p2s_mev = np.array(baseline["p2s_raw"]["total_mev"])
-
-    fig, ax = plt.subplots(figsize=(9, 6))
-    for arr, color, lbl in [
-        (pos_mev, C_ETH, "Ethereum PoS"),
-        (p2s_mev, C_P2S, fr"P2S ($\varphi={DEFAULT_PHI}$)"),
-    ]:
-        srt = np.sort(arr)
-        cdf = np.arange(1, len(srt) + 1) / len(srt)
-        ax.plot(srt, cdf, color=color, lw=2.5, label=lbl)
-        ax.axvline(float(np.mean(arr)), color=color, lw=1.2, ls="--", alpha=0.6,
-                   label=f"mean = {np.mean(arr):.4f} ETH")
-
-    ax.set_xlabel("MEV extracted per block (ETH)", fontsize=FS_L, fontweight="bold")
-    ax.set_ylabel("CDF", fontsize=FS_L, fontweight="bold")
-    ax.tick_params(labelsize=FS_T)
-    ax.legend(fontsize=FS_G - 1)
-    sns.despine(ax=ax)
-    plt.tight_layout()
-    _save(fig, "mev_cdf.pdf")
-
-
-def plot_pool_sweep(data: dict) -> None:
-    """EXP-4: MEV vs AMM pool depth."""
-    rows = data["pool_sweep"]
-    pool = [r["pool_eth"] for r in rows]
-    pos  = [r["pos_mev"]  for r in rows]
-    p2s  = [r["p2s_mev"]  for r in rows]
-
-    fig, ax = plt.subplots(figsize=(9, 6))
-    ax.plot(pool, pos, color=C_ETH, marker="s", lw=2.5, label="Ethereum PoS")
-    ax.plot(pool, p2s, color=C_P2S, marker="o", lw=2.5, label="P2S")
-    ax.fill_between(pool, p2s, pos, alpha=0.12, color=C_P2S, label="MEV reduction gap")
-    ax.set_xlabel("AMM pool liquidity (ETH)", fontsize=FS_L, fontweight="bold")
-    ax.set_ylabel("Mean MEV per block (ETH)", fontsize=FS_L, fontweight="bold")
-    ax.tick_params(labelsize=FS_T)
-    ax.set_xlim(0, max(pool))
-    ax.set_ylim(bottom=0)
-    ax.legend(fontsize=FS_G)
-    sns.despine(ax=ax)
-    plt.tight_layout()
-    _save(fig, "mev_vs_pool_liquidity.pdf")
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# 10. Main
+# 8. Main
 # ═════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
@@ -529,7 +427,6 @@ def main() -> None:
           f"pool={DEFAULT_POOL_ETH:.0f} ETH")
     print("=" * 65)
 
-    # EXP-1: Baseline
     print(f"\nEXP-1  Baseline ({N_BLOCKS} blocks)…")
     baseline = simulate(N_BLOCKS)
     ps  = baseline["pos_summary"]
@@ -551,27 +448,16 @@ def main() -> None:
     mev_red = (1 - p2s["total_mev"] / ps["total_mev"]) * 100 if ps["total_mev"] > 0 else 0
     print(f"\n  MEV reduction: {mev_red:.1f}%")
 
-    # EXP-4: Pool sweep
-    print()
-    pool_data = sweep_pool_liquidity()
-
-    # Save data
     os.makedirs(DATA_DIR, exist_ok=True)
     all_data = {
         "baseline_pos_mev": baseline["pos_raw"]["total_mev"],
         "baseline_p2s_mev": baseline["p2s_raw"]["total_mev"],
         "baseline":         {k: v for k, v in baseline.items()
                              if k not in ("pos_raw", "p2s_raw")},
-        **pool_data,
     }
     with open(os.path.join(DATA_DIR, "p2s_mev_attacks.json"), "w") as fh:
         json.dump(all_data, fh, indent=2, default=float)
-
-    # Generate plots
-    print("\nGenerating plots…")
-    plot_cdf(baseline)
-    plot_pool_sweep(pool_data)
-    print(f"\n  2 PDFs saved to {FIGURES_DIR}/")
+    print(f"\n  Data saved to {DATA_DIR}/p2s_mev_attacks.json")
 
 
 if __name__ == "__main__":

@@ -37,9 +37,11 @@ import time as _time_module
 _real_sleep = _time_module.sleep
 _time_module.sleep = lambda _: None
 
-# ── import from same directory ───────────────────────────────────────────────
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from simulation import (  # noqa: E402
+# ── imports ──────────────────────────────────────────────────────────────────
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.abspath(os.path.join(_HERE, "..", ".."))
+sys.path.insert(0, _ROOT)
+from scripts.simulation.simulator import (  # noqa: E402
     P2SSimulator,
     MEVAttackStrategies,
     ETH_MAINNET_BLOCK_GAS_LIMIT,
@@ -47,7 +49,7 @@ from simulation import (  # noqa: E402
 
 # ── constants ────────────────────────────────────────────────────────────────
 NUM_BLOCKS = 100
-DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data')
+DATA_DIR = os.path.join(_ROOT, "data")
 OUTPUT_PATH = os.path.join(DATA_DIR, 'block_ledger_100.json')
 
 CONGESTION_LEVELS = [0.0, 0.1, 0.3, 0.5, 0.7]
