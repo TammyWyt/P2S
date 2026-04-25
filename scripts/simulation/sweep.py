@@ -16,12 +16,13 @@ from .environment import AMMPool, build_txpool
 def run_sweep(
     phi_values: List[float] = PHI_SWEEP,
     n_blocks:   int          = N_BLOCKS,
+    gas_gwei:   float        = MEAN_GAS_GWEI,
     verbose:    bool         = True,
 ) -> Tuple[Dict[str, List[float]], Dict[str, List[float]]]:
     """
     Sweep φ values, running n_blocks blocks per value with all agents.
 
-    Gas prices are fixed at the empirical mean (MEAN_GAS_GWEI) so that the
+    Gas prices are fixed at gas_gwei (default: empirical mean) so that the
     simulated deactivation threshold aligns exactly with the analytical φ*
     (which is derived at mean gas price).
 
@@ -30,7 +31,7 @@ def run_sweep(
         net       — agent_name → [mean_net_eth_per_block per φ]
     """
     agents   = [cls() for cls in ALL_AGENTS]
-    gas_prices = [MEAN_GAS_GWEI] * n_blocks
+    gas_prices = [gas_gwei] * n_blocks
 
     activity: Dict[str, List[float]] = {a.name: [] for a in agents}
     net:      Dict[str, List[float]] = {a.name: [] for a in agents}
