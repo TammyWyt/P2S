@@ -37,8 +37,8 @@ def run_sweep(
     net:      Dict[str, List[float]] = {a.name: [] for a in agents}
 
     for phi_idx, phi in enumerate(phi_values):
-        random.seed(RANDOM_SEED + phi_idx * 7)
-        np.random.seed(RANDOM_SEED + phi_idx * 7)
+        random.seed(RANDOM_SEED + phi_idx * 1000)
+        np.random.seed(RANDOM_SEED + phi_idx * 1000)
         pool = AMMPool(1_000.0)
 
         for a in agents:

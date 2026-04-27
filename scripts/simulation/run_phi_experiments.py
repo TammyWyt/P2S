@@ -121,7 +121,7 @@ def exp1_phi_sweep(n_blocks: int = N_BLOCKS) -> dict:
 # EXP-2: Gas price sensitivity
 # ─────────────────────────────────────────────────────────────────────────────
 
-GAS_PRICES_GWEI = [20.0, 30.0, 58.577, 80.0, 100.0, 150.0, 200.0]
+GAS_PRICES_GWEI = [0.005, 0.010, 0.020, 0.074, 0.200, 0.500, 1.000]  # Base L2 range (gwei)
 
 def exp2_gas_sensitivity(n_blocks: int = 1_000) -> dict:
     """
@@ -220,18 +220,166 @@ def exp3_validator_count(n_blocks: int = 5_000) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# EXP-5: High-resolution profit sweep (200k blocks per φ)
+# ─────────────────────────────────────────────────────────────────────────────
+
+PHI_PROFIT = list(np.geomspace(0.01, 1200, 16))    # log-spaced around new φ*_b2 ≈ 831
+
+
+def exp5_profit_sweep(n_blocks: int = 200_000) -> dict:
+    """
+    Mean net profit and SE for B2ProposerBot across the active φ range.
+    Uses 200k blocks per φ so the signal (~0.00045 ETH) clears the noise (SE ~0.00014).
+    Per-block profits reconstructed from agent._costs / _gains lists.
+    """
+    print(f"\n{'='*65}")
+    print(f"EXP-5  Profit sweep  ({len(PHI_PROFIT)} φ values × {n_blocks:,} blocks each)")
+    print(f"{'='*65}")
+
+    means, ses = [], []
+
+    for phi_idx, phi in enumerate(PHI_PROFIT):
+        random.seed(RANDOM_SEED + phi_idx * 19)
+        np.random.seed(RANDOM_SEED + phi_idx * 19)
+
+        agent = B2ProposerBot()
+        pool  = AMMPool(1_000.0)
+        for _ in range(n_blocks):
+            txpool = build_txpool(random.randint(50, 200))
+            agent.step(phi, pool, txpool, MEAN_GAS_GWEI)
+            pool.step()
+
+        # Per-block net: (gain-cost) for active blocks, 0 for inactive
+        active_nets = [g - c for g, c in zip(agent._gains, agent._costs)]
+        per_block   = np.array(active_nets + [0.0] * (agent._total - agent._active))
+        mean_v = float(np.mean(per_block))
+        se_v   = float(np.std(per_block, ddof=1) / np.sqrt(agent._total))
+        means.append(round(mean_v, 9))
+        ses.append(round(se_v, 9))
+        print(f"  phi={phi:.4f}  mean={mean_v:.6f} ETH  se={se_v:.6f} ETH")
+
+    return {
+        "phi_values":  PHI_PROFIT,
+        "mean_net":    means,
+        "se_net":      ses,
+        "n_blocks":    n_blocks,
+        "gas_gwei":    MEAN_GAS_GWEI,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXP-6: Monte Carlo profit sweep (K independent short runs per φ)
+# ─────────────────────────────────────────────────────────────────────────────
+
+PHI_ACTIVE = list(np.geomspace(0.01, 1200, 14))    # log-spaced around new φ*_b2 ≈ 831
+
+
+def exp6_profit_mc(K: int = 1_000, n_blocks: int = 500) -> dict:
+    """
+    K independent runs of n_blocks blocks per φ value.
+    Each run gets its own seed → empirical distribution of mean_net.
+    CI is taken from the 2.5th–97.5th percentiles across K runs, so it
+    is valid for the fat-tailed lognormal MEV distribution without any
+    normality assumption.
+    """
+    print(f"\n{'='*65}")
+    print(f"EXP-6  Monte Carlo profit  "
+          f"(K={K} × {n_blocks} blocks × {len(PHI_ACTIVE)} φ values)")
+    print(f"{'='*65}")
+
+    all_means: dict[str, list[float]] = {}
+
+    for phi_idx, phi in enumerate(PHI_ACTIVE):
+        run_means = []
+        for k in range(K):
+            seed = RANDOM_SEED + phi_idx * 10_007 + k
+            random.seed(seed)
+            np.random.seed(seed)
+
+            agent = B2ProposerBot()
+            pool  = AMMPool(1_000.0)
+            for _ in range(n_blocks):
+                txpool = build_txpool(random.randint(50, 200))
+                agent.step(phi, pool, txpool, MEAN_GAS_GWEI)
+                pool.step()
+
+            active_nets = [g - c for g, c in zip(agent._gains, agent._costs)]
+            per_block   = np.array(active_nets + [0.0] * (agent._total - agent._active))
+            run_means.append(float(np.mean(per_block)))
+
+        arr = np.array(run_means)
+        mu  = float(np.mean(arr))
+        lo  = float(np.percentile(arr, 2.5))
+        hi  = float(np.percentile(arr, 97.5))
+        all_means[str(phi)] = [round(v, 9) for v in run_means]
+        print(f"  phi={phi:.4f}  mean={mu:.6f}  95%CI=[{lo:.6f}, {hi:.6f}] ETH")
+
+    return {
+        "phi_values":   PHI_ACTIVE,
+        "run_means":    all_means,   # K means per φ for full empirical distribution
+        "K":            K,
+        "n_blocks":     n_blocks,
+        "gas_gwei":     MEAN_GAS_GWEI,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXP-4: B2ProposerBot activity rate vs φ at multiple gas-price levels
+# ─────────────────────────────────────────────────────────────────────────────
+
+GAS_PRICES_SWEEP = [0.005, 0.020, MEAN_GAS_GWEI, 0.200]       # Base L2 range (gwei)
+PHI_FINE = list(np.geomspace(0.01, 15_000, 30))               # log-spaced; covers all φ* values
+
+
+def exp4_gas_activity(n_blocks: int = 2_000) -> dict:
+    """
+    B2ProposerBot activity rate across φ at four base-fee levels.
+    Activity rate is a Bernoulli estimate — reliable at n_blocks=2000.
+    """
+    print(f"\n{'='*65}")
+    print(f"EXP-4  Gas × φ activity  "
+          f"({len(GAS_PRICES_SWEEP)} gas levels × {len(PHI_FINE)} φ values × {n_blocks} blocks)")
+    print(f"{'='*65}")
+
+    b2_activity: dict[str, list[float]] = {}
+    for gp in GAS_PRICES_SWEEP:
+        activity, _ = run_sweep(PHI_FINE, n_blocks, gas_gwei=gp, verbose=False)
+        b2_activity[str(gp)] = [round(v, 6) for v in activity["B2ProposerBot"]]
+        phi_star_emp = next(
+            (PHI_FINE[i] for i, v in enumerate(activity["B2ProposerBot"])
+             if v < ACTIVITY_THRESH),
+            None,
+        )
+        emp_s = f"{phi_star_emp:.4f}" if phi_star_emp is not None else "never"
+        print(f"  gp={gp:>7.3f} gwei  φ*_emp={emp_s}")
+
+    return {
+        "gas_prices_gwei": GAS_PRICES_SWEEP,
+        "phi_values":      PHI_FINE,
+        "b2_activity":     b2_activity,
+        "n_blocks":        n_blocks,
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main():
+    random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+
     print("P2S φ Experiments")
-    print(f"  Analytical φ* (B2Proposer)   = {phi_star_b2():.5f}")
-    print(f"  Analytical φ* (BlockStuffer) = {phi_star_stuffer():.6f}")
+    print(f"  Analytical φ* (B2Proposer)   = {phi_star_b2():.3f}")
+    print(f"  Analytical φ* (BlockStuffer) = {phi_star_stuffer():.4f}")
 
     results = {}
     results["exp1_phi_sweep"]       = exp1_phi_sweep()
     results["exp2_gas_sensitivity"] = exp2_gas_sensitivity()
     results["exp3_validator_count"] = exp3_validator_count()
+    results["exp4_gas_activity"]    = exp4_gas_activity()
+    results["exp5_profit_sweep"]    = exp5_profit_sweep()
+    results["exp6_profit_mc"]       = exp6_profit_mc()
 
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(OUTPUT, "w") as fh:

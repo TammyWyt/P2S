@@ -16,7 +16,7 @@ class EthereumBlockExtractor:
     
     def __init__(self, cache_file="data/ethereum_blocks_cache.json"):
         self.cache_file = cache_file
-        self.base_url = "https://eth.blockscout.com/api/v2"  # Public API, no key needed
+        self.base_url = "https://base.blockscout.com/api/v2"  # Base L2 public API
         self.cached_blocks = self.load_cache()
         
     def load_cache(self) -> Dict:
@@ -127,7 +127,7 @@ class EthereumBlockExtractor:
             'timestamp': int(time.time()),
             'transaction_count': tx_count,
             'block_size': random.randint(50000, 150000),
-            'base_fee': random.randint(20000000000, 50000000000),
+            'base_fee': random.randint(5000000, 500000000),   # 0.005–0.5 gwei, Base L2 range
             'gas_used': random.randint(10000000, 25000000),
             'gas_limit': 30000000,
             'transactions': transactions

@@ -72,22 +72,19 @@ N_BLOCKS        = 1000   # simulation blocks (latency plot only)
 def _load_cache_gas_prices(n: int) -> list:
     random.seed(RANDOM_SEED)
     if not os.path.exists(CACHE_PATH):
-        return [random.uniform(15, 60) for _ in range(n)]
+        return [random.uniform(0.02, 0.20) for _ in range(n)]   # Base L2 range (gwei)
     with open(CACHE_PATH, "r", encoding="utf-8") as fh:
         cache = json.load(fh)
     blocks = list(cache.values())[:n]
     prices = []
     for b in blocks:
-        txs = b.get("transactions", [])
-        if txs:
-            gp = txs[0].get("gasPrice", 20e9)
-            if isinstance(gp, (int, float)) and gp > 1e9:
-                gp /= 1e9
-            prices.append(float(gp) if gp > 0 else 20.0)
-        else:
-            prices.append(20.0)
+        fee = b.get("base_fee", 0)                               # EIP-1559 block base fee
+        if isinstance(fee, str):
+            fee = int(fee, 16) if fee.startswith("0x") else int(fee)
+        fee_gwei = fee / 1e9 if fee > 1e6 else float(fee)       # convert Wei → gwei if needed
+        prices.append(fee_gwei if fee_gwei > 0 else 0.074)
     while len(prices) < n:
-        prices.append(random.uniform(15, 60))
+        prices.append(random.uniform(0.02, 0.20))
     return prices[:n]
 
 

@@ -35,10 +35,12 @@ STUFF_E_BENEFIT = 0.005 * E_MEV_GAIN   # marginal monopoly benefit ≈ 0.23% of 
 # Simulation defaults
 RANDOM_SEED   = 42
 N_BLOCKS      = 3_000
-MEAN_GAS_GWEI = 58.577   # empirical mean base fee, from data/parametric_results.json
+# Post-Dencun Base L2 mean base fee (BaseScan chart/gasprice CSV, 2024-03-13 to 2025-12-31)
+MEAN_GAS_GWEI = 0.074
 
+# φ sweep: log-spaced to cover both deactivation thresholds at 0.074 gwei
+#   φ*_stuffer ≈ 0.26,  φ*_b2 ≈ 831
 PHI_SWEEP = [
-    0.000, 0.005, 0.010, 0.020, 0.030, 0.040,
-    0.050, 0.060, 0.070, 0.080, 0.090,
-    0.100, 0.120, 0.150, 0.200, 0.300, 0.400, 0.500,
+    0.001, 0.05, 0.10, 0.20, 0.26, 0.30, 0.50,
+    1.0, 5.0, 20.0, 100.0, 300.0, 600.0, 831.0, 1000.0,
 ]
