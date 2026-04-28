@@ -129,17 +129,13 @@ class MEVAttackStrategies:
     # more in burned fees — regardless of MT reveal.
     PHT_RESERVATION_PHI = 0.10  # 10 % of the equivalent full-execution gas cost
 
-    # ── B2 proposer ordering attack ──────────────────────────────────────────
-    # In P2S, the B2 block proposer sees ALL MTs as they are revealed.
-    # If the proposer is also an MEV searcher, they can:
-    #   1. Pre-commit attack PHTs in B1 (paying F_res per PHT)
-    #   2. When building B2, order victim MTs after their own attack MTs
-    #   3. Gain the MEV since they control the final ordering in B2
-    # Unlike external blind insert (5 % success), the proposer has ~100 % success
-    # per matched PHT because they control B2 block construction.
-    # This is the PRIMARY residual MEV vulnerability in P2S.
-    B2_ATTACK_PHTS_PER_BLOCK = 5   # attack PHTs proposer pre-commits per B1 block
-    B2_PROPOSER_MATCH_PROB   = 0.20 # prob each attack PHT matches a revealed victim MT
+    # ── B2 proposer ordering attack ─────────────────────────────────────────
+    # INFEASIBLE: P2S protocol structurally prevents B2 from reordering committed
+    # transactions.  MT censorship by the step-2 committee is the only residual
+    # risk, and is blocked by the f < n/3 BFT assumption (no honest-minority
+    # quorum can collude).  Constants retained for reference only.
+    B2_ATTACK_PHTS_PER_BLOCK = 5
+    B2_PROPOSER_MATCH_PROB   = 0.20
 
     def __init__(self, block_gas_prices_gwei: List[float]):
         self.block_gas_prices = block_gas_prices_gwei
@@ -193,33 +189,13 @@ class MEVAttackStrategies:
 
     def run_b2_proposer_ordering_attack(self, block_idx: int) -> Tuple[float, float, int]:
         """
-        B2 proposer ordering attack (primary residual P2S vulnerability).
+        INFEASIBLE under P2S protocol — retained for reference only.
 
-        The B2 proposer sees all MTs before finalising B2.  If they pre-committed
-        B2_ATTACK_PHTS_PER_BLOCK attack PHTs in B1 (each paying F_res), they can:
-          - match their PHTs to profitable victim MTs as they are revealed
-          - order their attack MT immediately before the victim MT in B2
-
-        Unlike blind insert (10 % fit × 50 % success ≈ 5 %), the proposer achieves
-        ~100 % success for matched PHTs because they control B2 ordering entirely.
-        The gain is sampled from the same log-normal as targeted attacks (proposer has
-        full information at match time, equivalent to an informed front-run).
-
-        Returns (total_cost_eth, total_gain_eth, n_successes) — n_successes can be
-        greater than 1 if multiple PHTs match in the same block.
+        B2 cannot reorder committed transactions by construction.  MT censorship
+        by the step-2 committee is the only residual risk but is blocked by the
+        f < n/3 BFT assumption.  Always returns (0, 0, 0).
         """
-        gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
-        total_cost = 0.0
-        total_gain = 0.0
-        n_successes = 0
-        for _ in range(self.B2_ATTACK_PHTS_PER_BLOCK):
-            exec_cost = self.gas_cost_eth(gas_price, self.GAS_BLIND_INSERT)
-            cost = exec_cost * (1.0 + self.PHT_RESERVATION_PHI)  # always pays F_res
-            total_cost += cost
-            if random.random() < self.B2_PROPOSER_MATCH_PROB:
-                total_gain += self._sample_mev_gain()  # full targeted gain at match time
-                n_successes += 1
-        return (total_cost, total_gain, n_successes)
+        return (0.0, 0.0, 0)
 
     def run_glimit_overdecl_pht(self, block_idx: int, inflation_factor: float = 5.0) -> Tuple[float, float, bool]:
         """
@@ -372,6 +348,8 @@ class MEVAttackStrategies:
         # at v_j = s_j + g_j + ε.  Fixed (not random) because this is a model
         # assumption, not a measured quantity — adding randomness here is noise.
         VICTIM_RESIDUAL_UTILITY = 0.01
+        # Victim gas: typical Uniswap v3 swap ~150k gas units.
+        VICTIM_GAS_UNITS = 150_000
 
         for name, desc, run_fn in [
             ("front_run", "Front-run visible target tx",
@@ -395,8 +373,10 @@ class MEVAttackStrategies:
                 if success:
                     successes += 1
                     s_j = alpha * gain   # s_j = m_j (money conserved)
+                    gp  = self.block_gas_prices[i % len(self.block_gas_prices)]
+                    g_j = self.gas_cost_eth(gp, VICTIM_GAS_UNITS)
                     total_victim_loss += s_j
-                    total_victim_valuation += s_j + cost / max(successes, 1) + VICTIM_RESIDUAL_UTILITY
+                    total_victim_valuation += s_j + g_j + VICTIM_RESIDUAL_UTILITY
             net = total_gain - total_cost
             cost_per_success = total_cost / successes if successes > 0 else total_cost
             results[name] = AttackStrategyResult(
@@ -426,6 +406,7 @@ class MEVAttackStrategies:
         total_victim_loss = 0.0
         total_victim_valuation = 0.0
         successes = 0
+        VICTIM_GAS_UNITS = 150_000
         for i in range(num_blocks):
             cost, gain, success = self.run_blind_insert_p2s_no_reveal(i)
             total_cost += cost
@@ -433,8 +414,10 @@ class MEVAttackStrategies:
             if success:
                 successes += 1
                 s_j = self.VICTIM_SLIPPAGE_ALPHA * gain  # s_j = m_j
+                gp  = self.block_gas_prices[i % len(self.block_gas_prices)]
+                g_j = self.gas_cost_eth(gp, VICTIM_GAS_UNITS)
                 total_victim_loss += s_j
-                total_victim_valuation += s_j + cost / max(successes, 1) + 0.01
+                total_victim_valuation += s_j + g_j + 0.01
         net = total_gain - total_cost
         cost_per_success = total_cost / successes if successes > 0 else total_cost
         return {

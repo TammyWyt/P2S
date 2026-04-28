@@ -38,9 +38,10 @@ N_BLOCKS      = 3_000
 # Post-Dencun Base L2 mean base fee (BaseScan chart/gasprice CSV, 2024-03-13 to 2025-12-31)
 MEAN_GAS_GWEI = 0.074
 
-# φ sweep: log-spaced to cover both deactivation thresholds at 0.074 gwei
-#   φ*_stuffer ≈ 0.26,  φ*_b2 ≈ 831
+# φ sweep: 0–1 only. φ > 1 means F_res > full execution cost — economically
+# incoherent as a protocol parameter, since no rational user would ever pay
+# more in reservation fees than the transaction itself costs.
+# Key threshold within range: φ*_stuffer ≈ 0.26 at 0.074 gwei (BlockStufferBot deactivates).
 PHI_SWEEP = [
-    0.001, 0.05, 0.10, 0.20, 0.26, 0.30, 0.50,
-    1.0, 5.0, 20.0, 100.0, 300.0, 600.0, 831.0, 1000.0,
+    0.001, 0.01, 0.05, 0.10, 0.15, 0.20, 0.25, 0.26, 0.30, 0.40, 0.50, 0.75, 1.0,
 ]

@@ -48,9 +48,9 @@ from scripts.simulation.simulator import (  # noqa: E402
 )
 
 # ── constants ────────────────────────────────────────────────────────────────
-NUM_BLOCKS = 100
+NUM_BLOCKS = 1000
 DATA_DIR = os.path.join(_ROOT, "data")
-OUTPUT_PATH = os.path.join(DATA_DIR, 'block_ledger_100.json')
+OUTPUT_PATH = os.path.join(DATA_DIR, 'block_ledger_1000.json')
 
 CONGESTION_LEVELS = [0.0, 0.1, 0.3, 0.5, 0.7]
 
@@ -123,10 +123,7 @@ def run_ledger() -> None:
         # ── P2S attack: blind insert ─────────────────────────────────────────
         p2s_cost, p2s_gain, p2s_ok = attack_strat.run_blind_insert_p2s_no_reveal(i)
         # victim slippage: s_j ≈ m_j (α sampled from [0.90, 1.00])
-        p2s_alpha = random.uniform(
-            MEVAttackStrategies.SANDWICH_VICTIM_SLIPPAGE_LO,
-            MEVAttackStrategies.SANDWICH_VICTIM_SLIPPAGE_HI,
-        )
+        p2s_alpha = random.uniform(0.90, 1.00)
         p2s_victim_slippage = p2s_alpha * p2s_gain if p2s_ok else 0.0
 
         # ── Ethereum PoS attacks: run all three; record each; pick best ───────
@@ -140,17 +137,19 @@ def run_ledger() -> None:
             "sandwich":   {"cost": sw_cost, "gain": sw_gain, "success": sw_ok},
             "arbitrage":  {"cost": ab_cost, "gain": ab_gain, "success": ab_ok},
         }
-        # rational attacker uses strategy with highest net gain this block
-        best_name = max(eth_all_attacks, key=lambda n: eth_all_attacks[n]['gain'] - eth_all_attacks[n]['cost'])
-        best = eth_all_attacks[best_name]
-        eth_cost = best['cost']
-        eth_gain = best['gain']
-        eth_ok   = best['success']
+        # rational attacker abstains when all strategies are net-negative (0 > loss)
+        best_net  = max(v['gain'] - v['cost'] for v in eth_all_attacks.values())
+        if best_net <= 0:
+            best_name = "abort"
+            eth_cost, eth_gain, eth_ok = 0.0, 0.0, False
+        else:
+            best_name = max(eth_all_attacks, key=lambda n: eth_all_attacks[n]['gain'] - eth_all_attacks[n]['cost'])
+            best      = eth_all_attacks[best_name]
+            eth_cost  = best['cost']
+            eth_gain  = best['gain']
+            eth_ok    = best['success']
 
-        eth_alpha = random.uniform(
-            MEVAttackStrategies.FRONT_RUN_VICTIM_SLIPPAGE_LO,
-            MEVAttackStrategies.FRONT_RUN_VICTIM_SLIPPAGE_HI,
-        ) if best_name in ("front_run", "sandwich") else 0.0
+        eth_alpha = random.uniform(0.90, 1.00) if best_name in ("front_run", "sandwich") else 0.0
         eth_victim_slippage = eth_alpha * eth_gain if eth_ok else 0.0
 
         # ── wallet deltas ────────────────────────────────────────────────────
@@ -268,11 +267,11 @@ def run_ledger() -> None:
 
         ledger.append(entry)
 
-        if (i + 1) % 10 == 0 or i == 0:
+        if (i + 1) % 100 == 0 or i == 0:
             p2s_att  = wallets['p2s']['attacker']
             eth_att  = wallets['ethereum_pos']['attacker']
             print(
-                f"  Block {i+1:>3}/100  "
+                f"  Block {i+1:>4}/{NUM_BLOCKS}  "
                 f"P2S attacker: {p2s_att:+.4f} ETH  "
                 f"PoS attacker: {eth_att:+.4f} ETH"
             )
@@ -317,7 +316,7 @@ def run_ledger() -> None:
     with open(OUTPUT_PATH, 'w') as f:
         json.dump(output, f, indent=2)
 
-    print(f"\n💾  Ledger saved → {OUTPUT_PATH}")
+    print(f"\nLedger saved → {OUTPUT_PATH}")
 
     # ── print final summary ──────────────────────────────────────────────────
     print("\n" + "=" * 70)
@@ -343,6 +342,6 @@ def run_ledger() -> None:
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("P2S Block Ledger — 100 Blocks")
+    print(f"P2S Block Ledger — {NUM_BLOCKS} Blocks")
     print("=" * 70)
     run_ledger()

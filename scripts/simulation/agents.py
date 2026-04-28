@@ -191,45 +191,21 @@ class BlockStufferBot(MevAgent):
 
 class B2ProposerBot(MevAgent):
     """
-    Colluding validator selected as B2 proposer (via RANDAO lookahead).
-    Pre-commits N attack PHTs in B1 only for slots where it is proposer.
+    Colluding B2 proposer attempting transaction reordering in the reveal phase.
 
-    E[net | proposer] = B2_MATCH_PROB · E[MEV] − exec_pht · (1 + φ)
-    φ* = B2_MATCH_PROB · E[MEV] / exec_pht − 1 ≈ 0.052 at 58 gwei.
+    INFEASIBLE under P2S protocol: the mechanism structurally prevents B2 from
+    reordering committed transactions. The only residual risk — MT censorship by
+    the step-2 committee — is blocked by the f < n/3 BFT assumption, so no
+    honest-minority quorum can collude to censor.
 
-    This is the PRIMARY residual MEV vector in P2S.
+    e_net always returns -1.0; act() is never called.
     """
 
     def e_net(self, phi, pool, gp) -> float:
-        exec_pht       = gas_eth(gp, GAS_PHT)
-        e_gain_per_pht = B2_MATCH_PROB * E_MEV_GAIN
-        return e_gain_per_pht - exec_pht * (1.0 + phi)
-
-    def step(self, phi: float, pool: AMMPool, txpool: List[Tx], gp: float):
-        """
-        Overrides base step: agent commits PHTs only when (a) profitable as
-        proposer AND (b) actually selected as proposer this slot (RANDAO known).
-        Activity rate is therefore bounded by 1/N_validators = 20%.
-        """
-        self._total += 1
-        if self.e_net(phi, pool, gp) <= 0:
-            return
-        if random.random() >= 1.0 / N_VALIDATORS:
-            return
-        self._active += 1
-        cost, gain = self.act(phi, pool, txpool, gp)
-        self._costs.append(cost)
-        self._gains.append(gain)
+        return -1.0  # structurally infeasible under f < n/3
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
-        # MEV gain from calibrated log-normal — consistent with analytical formula.
-        cost = B2_N_PHTS * gas_eth(gp, GAS_PHT) * (1.0 + phi)
-        gain = sum(
-            min(random.lognormvariate(MEV_MU, MEV_SIG), MEV_CAP)
-            for _ in range(B2_N_PHTS)
-            if random.random() < B2_MATCH_PROB
-        )
-        return cost, gain
+        return 0.0, 0.0
 
 
 # Ordered list used by sweep.py

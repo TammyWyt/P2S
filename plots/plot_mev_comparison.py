@@ -16,10 +16,15 @@ import seaborn as sns
 DATA_DIR = "data"
 FIGURES_DIR = "figures"
 
-# Colors from seaborn vlag palette (diverging blue to red)
-VLAG_PALETTE = sns.color_palette("vlag", n_colors=10)
-COLOR_BLUE = VLAG_PALETTE[1]   # Ethereum (blue end)
-COLOR_RED = VLAG_PALETTE[-2]   # P2S (red end)
+# Shared font sizes (match across all plot scripts)
+FS_LABEL  = 24
+FS_TICK   = 20
+FS_LEGEND = 18
+
+# vlag: index -2 = warm red (Ethereum, more MEV); index 1 = cool blue (P2S, less MEV)
+_VLAG     = sns.color_palette("vlag", n_colors=10)
+COLOR_ETH = _VLAG[-2]   # warm red  — Ethereum PoS
+COLOR_P2S = _VLAG[1]    # cool blue — P2S
 
 # Default paths: use one comparison file (generated once from inspect + compare)
 def _find_latest(path_pattern: str):
@@ -60,13 +65,13 @@ def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
     x = np.arange(len(types))
     w = 0.38
-    ax.bar(x - w / 2, eth_totals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
-    ax.bar(x + w / 2, p2s_totals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Total MEV (ETH)", fontsize=22, fontweight='bold')
+    ax.bar(x - w / 2, eth_totals, w, label="Ethereum", color=COLOR_ETH, edgecolor="white", linewidth=1.2)
+    ax.bar(x + w / 2, p2s_totals, w, label="P2S", color=COLOR_P2S, edgecolor="white", linewidth=1.2)
+    ax.set_ylabel("Total MEV (ETH)", fontsize=FS_LABEL, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=22)
-    ax.tick_params(axis='y', labelsize=22)
-    ax.legend(fontsize=22, loc='upper right')
+    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=FS_TICK)
+    ax.tick_params(axis='y', labelsize=FS_TICK)
+    ax.legend(fontsize=FS_LEGEND, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
@@ -90,11 +95,11 @@ def plot_mev_reduction(comparison_data: dict, out_path: str) -> None:
         reductions.append(stats["reduction"]["total_pct"])
 
     fig, ax = plt.subplots(figsize=(10, 7))
-    colors = [COLOR_RED if r > 0 else COLOR_BLUE for r in reductions]
+    colors = [COLOR_P2S if r > 0 else COLOR_ETH for r in reductions]
     ax.barh(types, reductions, height=0.68, color=colors, edgecolor="white", linewidth=1.2)
-    ax.set_xlabel("Reduction (%)", fontsize=22, fontweight='bold')
+    ax.set_xlabel("Reduction (%)", fontsize=FS_LABEL, fontweight='bold')
     ax.axvline(0, color="gray", linewidth=0.8, linestyle="--")
-    ax.tick_params(axis='both', labelsize=22)
+    ax.tick_params(axis='both', labelsize=FS_TICK)
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
@@ -119,13 +124,13 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
     x = np.arange(len(labels))
     w = 0.38
-    ax.bar(x - w / 2, eth_vals, w, label="Ethereum", color=COLOR_BLUE, edgecolor="white", linewidth=1.2)
-    ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=COLOR_RED, edgecolor="white", linewidth=1.2)
-    ax.set_ylabel("Count", fontsize=22, fontweight='bold')
+    ax.bar(x - w / 2, eth_vals, w, label="Ethereum", color=COLOR_ETH, edgecolor="white", linewidth=1.2)
+    ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=COLOR_P2S, edgecolor="white", linewidth=1.2)
+    ax.set_ylabel("Count", fontsize=FS_LABEL, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=22)
-    ax.tick_params(axis='y', labelsize=22)
-    ax.legend(fontsize=22, loc='upper right')
+    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=FS_TICK)
+    ax.tick_params(axis='y', labelsize=FS_TICK)
+    ax.legend(fontsize=FS_LEGEND, loc='upper right')
     sns.despine(ax=ax)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
