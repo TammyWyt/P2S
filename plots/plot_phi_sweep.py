@@ -60,7 +60,7 @@ AGENT_COLORS = {
 AGENT_LABELS = {
     "BlindPlanterBot":  "Blind Planter",
     "BlockStufferBot":  "Block Stuffer",
-    "CrossBlockArbBot": "Cross-Block Arb",
+    "CrossBlockArbBot": "Arbitrage",
 }
 
 
@@ -181,7 +181,7 @@ def plot_heatmap(phi_vals, out_path):
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(9, 5))
 
-    phi_labels = [f"{p:.3g}" for p in phi_vals]
+    phi_labels = [f"{p:.2g}" for p in phi_vals]
     gas_labels = [f"{g:.3g}" for g in gas_vals]
 
     im = ax.imshow(profit, aspect="auto", origin="lower",
