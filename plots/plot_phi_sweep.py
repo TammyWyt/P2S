@@ -103,7 +103,7 @@ def plot_activity(phi_vals, activity, out_path):
     ax.set_xlim(left=0)
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Activity rate", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylim(-0.05, 1.1)
+    ax.set_ylim(0, 1.05)
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper right")
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
@@ -127,9 +127,9 @@ def plot_profit(phi_vals, net, out_path):
                 label=AGENT_LABELS.get(name, name),
                 color=AGENT_COLORS.get(name, "#555"),
                 lw=2.2, marker="o", ms=5)
-    ax.axhline(0, color="gray", lw=1.0, ls="--", alpha=0.6)
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
+    ax.set_ylim(bottom=0)
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Mean net profit per block (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
@@ -268,8 +268,6 @@ def plot_stuffer_net(phi_vals, out_path):
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(9, 5))
 
-    ax.axhline(0, color="gray", lw=1.0, ls="--", alpha=0.6)
-
     for gp, label, alpha in gp_levels:
         net = np.maximum(0.0, np.array(
             [STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
@@ -292,7 +290,7 @@ def plot_stuffer_net(phi_vals, out_path):
 
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
-    ax.set_ylim(-benefit * 0.08, benefit * 1.18)
+    ax.set_ylim(0, benefit * 1.18)
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Net profit (ETH/block)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
