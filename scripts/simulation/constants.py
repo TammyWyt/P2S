@@ -31,7 +31,7 @@ B2_N_PHTS     = 5      # PHTs pre-committed per proposer slot
 
 # Block stuffer
 STUFF_N_PHTS    = 10
-STUFF_E_BENEFIT = 0.005 * E_MEV_GAIN   # marginal monopoly benefit ≈ 0.23% of MEV
+STUFF_E_BENEFIT = E_MEV_GAIN   # monopolist captures full uncontested MEV opportunity
 
 # Simulation defaults
 RANDOM_SEED = 42
@@ -48,4 +48,4 @@ PRIORITY_FEE_GWEI = 1.5
 # At empirical mainnet gas (~34.5 gwei base + 1.5 gwei tip = 36 gwei):
 #   φ*_stuffer ≈ 0.00054  (BlockStufferBot deactivates — transition fully captured)
 #   BlindPlanterBot and CrossBlockArbBot: never profitable at any φ (exec cost >> E[gain])
-PHI_SWEEP = list(np.logspace(-4, 0, 20))
+PHI_SWEEP = [0.0] + list(np.logspace(-4, 0, 20))

@@ -99,7 +99,8 @@ def plot_activity(phi_vals, activity, out_path):
                 color=AGENT_COLORS.get(name, "#555"),
                 lw=2.2, marker="o", ms=5,
                 linestyle=linestyles.get(name, "-"))
-    ax.set_xscale("log")
+    ax.set_xscale("symlog", linthresh=1e-4)
+    ax.set_xlim(left=0)
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Activity rate", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylim(-0.05, 1.1)
@@ -127,7 +128,8 @@ def plot_profit(phi_vals, net, out_path):
                 color=AGENT_COLORS.get(name, "#555"),
                 lw=2.2, marker="o", ms=5)
     ax.axhline(0, color="gray", lw=1.0, ls="--", alpha=0.6)
-    ax.set_xscale("log")
+    ax.set_xscale("symlog", linthresh=1e-4)
+    ax.set_xlim(left=0)
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Mean net profit per block (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
@@ -204,82 +206,100 @@ def plot_heatmap(phi_vals, out_path):
 
 # ── Plot 4: Gas params (declared g_limit, maxFeePerGas) vs φ ─────────────────
 
-def plot_gas_params(phi_vals, out_path):
-    """
-    BlockStuffer economics: how the attack earns and why φ deters it.
-
-    The attacker submits STUFF_N_PHTS PHTs each declaring STUFF_GAS_DECLARED
-    gas units to monopolise B1 block capacity.  At B1 they pay:
-        F_res = N_phts × φ × g_declared × effective_gas_price   (burned, non-refundable)
-    The monopoly gain STUFF_E_BENEFIT is constant (independent of φ).
-    The attack is profitable only while F_res < STUFF_E_BENEFIT, i.e. φ < φ*.
-
-    Top panel  — absolute ETH: F_res cost at p10/median/p90 gas price vs constant gain
-    Bottom panel — net profit (gain − F_res) showing the sign change at φ*
-    """
-    phi_arr = np.array(phi_vals)
-
-    # Historical gas price percentiles from block cache
+def _gas_params_data(phi_vals):
+    """Shared data prep for the two BlockStuffer economics plots."""
     hist = sorted(load_gas_prices(1005))
     n    = len(hist)
     gp_levels = [
-        (hist[n // 10],    "p10 base fee",    0.40),
-        (hist[n // 2],     "median base fee", 0.75),
-        (hist[9 * n // 10], "p90 base fee",   1.00),
+        (hist[n // 10],     "low gas",    0.40),
+        (hist[n // 2],      "median gas", 0.75),
+        (hist[9 * n // 10], "high gas",   1.00),
     ]
+    return np.array(phi_vals), hist, n, gp_levels
 
-    col   = AGENT_COLORS["BlockStufferBot"]
-    UETH  = 1e6   # display in µETH for readability
+
+def plot_stuffer_cost(phi_vals, out_path):
+    """F_res cost vs monopoly gain (ETH) across low/median/high historical gas."""
+    phi_arr, hist, n, gp_levels = _gas_params_data(phi_vals)
+    col     = _DEEP[0]
+    benefit = STUFF_E_BENEFIT
 
     sns.set_theme(style="ticks")
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 8), sharex=True)
+    fig, ax = plt.subplots(figsize=(9, 5))
 
-    # ── Panel 1: cost vs gain (µETH) ──────────────────────────────────────────
-    benefit_ueth = STUFF_E_BENEFIT * UETH
-    ax1.axhline(benefit_ueth, color="black", lw=1.8, ls="--",
-                label=f"Monopoly gain  = {benefit_ueth:.0f} µETH  (constant, independent of φ)")
+    ax.axhline(benefit, color="black", lw=1.8, ls="--",
+               label=f"Monopoly gain = {benefit:.4f} ETH  (constant, independent of φ)")
 
     for gp, label, alpha in gp_levels:
-        fres = np.array([STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED) * UETH
-                         for phi in phi_arr])
+        fres     = np.array([STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
+                             for phi in phi_arr])
         phi_star = STUFF_E_BENEFIT / (STUFF_N_PHTS * gas_eth(gp, STUFF_GAS_DECLARED))
-        ax1.plot(phi_arr, fres, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
-                 label=f"F_res at {label} ({gp:.1f} gwei)  [φ* ≈ {phi_star:.2g}]")
+        ax.plot(phi_arr, fres, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
+                label=f"F_res at {label} ({gp:.1f} gwei)  [φ* ≈ {phi_star:.2g}]")
 
-    ax1.set_xscale("log")
-    ax1.set_ylim(0, benefit_ueth * 3.2)   # clip at ~3× gain so crossover is centre-frame
-    ax1.set_ylabel("ETH per block (µETH)", fontsize=FS_LABEL, fontweight="bold")
-    ax1.tick_params(labelsize=FS_TICK)
-    ax1.legend(fontsize=FS_LEGEND - 3, loc="upper left")
-    ax1.grid(True, alpha=0.18, linestyle="--", color="gray")
-    ax1.set_axisbelow(True)
-    sns.despine(ax=ax1)
+    ax.set_xscale("symlog", linthresh=1e-4)
+    ax.set_xlim(left=0)
+    ax.set_ylim(0, benefit * 3.2)
+    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("ETH per block", fontsize=FS_LABEL, fontweight="bold")
+    ax.tick_params(labelsize=FS_TICK)
+    ax.legend(fontsize=FS_LEGEND - 3, loc="upper left")
+    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
+    ax.set_axisbelow(True)
+    sns.despine(ax=ax)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {out_path}")
 
-    # ── Panel 2: net profit = gain − F_res (µETH) ─────────────────────────────
-    ax2.axhline(0, color="gray", lw=1.2, ls="--", alpha=0.7)
+
+def plot_stuffer_net(phi_vals, out_path):
+    """
+    Rational net profit (ETH/block) vs φ.
+
+    Clipped at 0: a rational agent exits when e_net ≤ 0 and earns nothing,
+    not negative profit.  The drop to zero marks φ* (deterrence threshold).
+    At φ = 0 (no reservation fee) the attacker keeps the full monopoly gain.
+    """
+    phi_arr, hist, n, gp_levels = _gas_params_data(phi_vals)
+    col     = _DEEP[0]
+    benefit = STUFF_E_BENEFIT
+
+    sns.set_theme(style="ticks")
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    ax.axhline(0, color="gray", lw=1.0, ls="--", alpha=0.6)
+
     for gp, label, alpha in gp_levels:
-        net = np.array([(STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)) * UETH
-                        for phi in phi_arr])
-        ax2.plot(phi_arr, net, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
-                 label=f"{label} ({gp:.1f} gwei)")
+        net = np.maximum(0.0, np.array(
+            [STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
+             for phi in phi_arr]))
+        ax.plot(phi_arr, net, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
+                label=f"{label} ({gp:.1f} gwei)")
 
-    # Shade profit region for median
-    gp_med = hist[n // 2]
-    net_med = np.array([(STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp_med, STUFF_GAS_DECLARED)) * UETH
-                        for phi in phi_arr])
-    ax2.fill_between(phi_arr, net_med, 0,
-                     where=(net_med > 0), alpha=0.12, color=col, label="_nolegend_")
+    gp_med  = hist[n // 2]
+    net_med = np.maximum(0.0, np.array(
+        [STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp_med, STUFF_GAS_DECLARED)
+         for phi in phi_arr]))
+    ax.fill_between(phi_arr, net_med, 0, alpha=0.12, color=col, label="_nolegend_")
 
-    ax2.set_xscale("log")
-    ax2.set_ylim(-benefit_ueth * 1.5, benefit_ueth * 1.2)  # keep transition in view
-    ax2.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
-    ax2.set_ylabel("Net profit (µETH/block)", fontsize=FS_LABEL, fontweight="bold")
-    ax2.tick_params(labelsize=FS_TICK)
-    ax2.legend(fontsize=FS_LEGEND - 3, loc="upper right")
-    ax2.grid(True, alpha=0.18, linestyle="--", color="gray")
-    ax2.set_axisbelow(True)
-    sns.despine(ax=ax2)
+    # mark φ* for median gas
+    phi_star_med = STUFF_E_BENEFIT / (STUFF_N_PHTS * gas_eth(gp_med, STUFF_GAS_DECLARED))
+    ax.axvline(phi_star_med, color="gray", lw=1.0, ls=":", alpha=0.8)
+    ax.text(phi_star_med * 1.15, benefit * 0.12,
+            f"φ* ≈ {phi_star_med:.2g}\n(agent exits)",
+            fontsize=FS_TICK - 3, color="gray", ha="left")
 
+    ax.set_xscale("symlog", linthresh=1e-4)
+    ax.set_xlim(left=0)
+    ax.set_ylim(-benefit * 0.08, benefit * 1.18)
+    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Net profit (ETH/block)", fontsize=FS_LABEL, fontweight="bold")
+    ax.tick_params(labelsize=FS_TICK)
+    ax.legend(fontsize=FS_LEGEND - 3, loc="upper right")
+    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
+    ax.set_axisbelow(True)
+    sns.despine(ax=ax)
     plt.tight_layout()
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close()
@@ -299,8 +319,10 @@ def main():
                 os.path.join(FIGURES_DIR, "phi_profit.pdf"))
     plot_heatmap(phi_vals,
                  os.path.join(FIGURES_DIR, "phi_heatmap.pdf"))
-    plot_gas_params(phi_vals,
-                    os.path.join(FIGURES_DIR, "phi_gas_params.pdf"))
+    plot_stuffer_cost(phi_vals,
+                      os.path.join(FIGURES_DIR, "phi_stuffer_cost.pdf"))
+    plot_stuffer_net(phi_vals,
+                     os.path.join(FIGURES_DIR, "phi_stuffer_net.pdf"))
 
 
 if __name__ == "__main__":

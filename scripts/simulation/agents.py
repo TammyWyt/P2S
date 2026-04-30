@@ -173,7 +173,7 @@ class BlockStufferBot(MevAgent):
     F_res scales linearly with declared gas → attack is self-defeating at any φ > 0.
 
     E[net] = STUFF_E_BENEFIT − N_phts · φ · gas_eth(gp, g^declared)
-    φ*_stuffer ≈ 0.000329 at 58 gwei (deactivates essentially at φ → 0⁺).
+    φ*_stuffer ≈ 0.107 at median 35.9 gwei (deactivates mid-range φ).
     """
 
     def e_net(self, phi, pool, gp) -> float:
