@@ -29,10 +29,11 @@ if _REPO not in sys.path:
 
 from scripts.simulation.sweep import run_sweep
 from scripts.simulation.constants import (
-    PHI_SWEEP, MEAN_GAS_GWEI, N_BLOCKS, RANDOM_SEED,
-    GAS_PHT, GAS_PHT_LARGE, STUFF_GAS_DECLARED,
+    PHI_SWEEP, PRIORITY_FEE_GWEI, N_BLOCKS, RANDOM_SEED,
+    GAS_PHT_LARGE, STUFF_GAS_DECLARED, STUFF_N_PHTS, STUFF_E_BENEFIT,
     WEI_PER_ETH, GWEI_PER_ETH,
 )
+from scripts.simulation.environment import load_gas_prices, gas_eth
 from scripts.simulation.agents import (
     ALL_AGENTS, SandwichBot, FrontrunBot, BlindPlanterBot,
     BlockStufferBot, B2ProposerBot, CrossBlockArbBot,
@@ -69,7 +70,7 @@ def _run_sweep_cached():
     """Run phi sweep and return (phi_vals, activity, net)."""
     phi_vals = PHI_SWEEP
     print("Running φ sweep …")
-    activity, net = run_sweep(phi_values=phi_vals, n_blocks=N_BLOCKS, gas_gwei=MEAN_GAS_GWEI)
+    activity, net = run_sweep(phi_values=phi_vals, n_blocks=N_BLOCKS)
     return phi_vals, activity, net
 
 
@@ -84,16 +85,24 @@ def _active_agents(activity):
 def plot_activity(phi_vals, activity, out_path):
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(9, 5))
-    agents = _active_agents(activity)
+    # Show all non-infeasible agents so the reader sees which are deterred by φ
+    # vs which are already unprofitable from information hiding alone.
+    agents = [n for n in activity if n not in _INFEASIBLE]
+    linestyles = {
+        "BlockStufferBot":  "-",
+        "BlindPlanterBot":  "--",
+        "CrossBlockArbBot": ":",
+    }
     for name in agents:
         ax.plot(phi_vals, activity[name],
                 label=AGENT_LABELS.get(name, name),
                 color=AGENT_COLORS.get(name, "#555"),
-                lw=2.2, marker="o", ms=5)
+                lw=2.2, marker="o", ms=5,
+                linestyle=linestyles.get(name, "-"))
     ax.set_xscale("log")
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Activity rate", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylim(0, 1.05)
+    ax.set_ylim(-0.05, 1.1)
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper right")
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
@@ -157,12 +166,20 @@ def _sweep_2d(phi_vals, gas_vals, n_blocks=500):
 
 
 def plot_heatmap(phi_vals, out_path):
-    gas_vals = np.logspace(math.log10(0.01), math.log10(10.0), 12)
+    gas_vals = np.logspace(math.log10(10.0), math.log10(80.0), 12)  # realistic mainnet range
     print("Running 2-D heatmap sweep (this takes ~30 s) …")
     profit = _sweep_2d(phi_vals, gas_vals, n_blocks=500)
 
+    # Trim to last phi column where any gas price still has non-zero profit
+    last_active = max(
+        (pi for pi in range(len(phi_vals)) if profit[:, pi].sum() > 0),
+        default=0,
+    )
+    phi_vals  = phi_vals[:last_active + 1]
+    profit    = profit[:, :last_active + 1]
+
     sns.set_theme(style="ticks")
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(9, 5))
 
     phi_labels = [f"{p:.3g}" for p in phi_vals]
     gas_labels = [f"{g:.3g}" for g in gas_vals]
@@ -189,51 +206,76 @@ def plot_heatmap(phi_vals, out_path):
 
 def plot_gas_params(phi_vals, out_path):
     """
-    Optimal declared gas limit and effective maxFeePerGas (≈ g_base × (1+φ)) vs φ.
+    BlockStuffer economics: how the attack earns and why φ deters it.
 
-    - BlockStufferBot declares STUFF_GAS_DECLARED until φ* ≈ 0.26.
-    - BlindPlanterBot uses GAS_PHT_LARGE.
-    - Effective maxFeePerGas = g_base × (1 + φ) in gwei.
+    The attacker submits STUFF_N_PHTS PHTs each declaring STUFF_GAS_DECLARED
+    gas units to monopolise B1 block capacity.  At B1 they pay:
+        F_res = N_phts × φ × g_declared × effective_gas_price   (burned, non-refundable)
+    The monopoly gain STUFF_E_BENEFIT is constant (independent of φ).
+    The attack is profitable only while F_res < STUFF_E_BENEFIT, i.e. φ < φ*.
+
+    Top panel  — absolute ETH: F_res cost at p10/median/p90 gas price vs constant gain
+    Bottom panel — net profit (gain − F_res) showing the sign change at φ*
     """
-    from scripts.simulation.constants import STUFF_GAS_DECLARED, GAS_PHT_LARGE
+    phi_arr = np.array(phi_vals)
 
-    phi_arr  = np.array(phi_vals)
-    g_base   = MEAN_GAS_GWEI   # post-Dencun Base L2
+    # Historical gas price percentiles from block cache
+    hist = sorted(load_gas_prices(1005))
+    n    = len(hist)
+    gp_levels = [
+        (hist[n // 10],    "p10 base fee",    0.40),
+        (hist[n // 2],     "median base fee", 0.75),
+        (hist[9 * n // 10], "p90 base fee",   1.00),
+    ]
 
-    # Declared g_limit per strategy (constant until deactivation)
-    phi_stuffer_star = 0.26
-    stuffer_limit = np.where(phi_arr <= phi_stuffer_star, STUFF_GAS_DECLARED, np.nan)
-    planter_limit = np.where(phi_arr <= 1e6, GAS_PHT_LARGE, np.nan)   # always
-
-    # Effective max fee per gas = base_fee × (1 + φ)
-    eff_max_fee = g_base * (1.0 + phi_arr)
+    col   = AGENT_COLORS["BlockStufferBot"]
+    UETH  = 1e6   # display in µETH for readability
 
     sns.set_theme(style="ticks")
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9, 8), sharex=True)
 
-    # Top panel: declared gas limits — same colors as activity/profit plots
-    ax1.plot(phi_arr, stuffer_limit, color=AGENT_COLORS["BlockStufferBot"], lw=2.2, marker="o", ms=4,
-             label="Block Stuffer (declared g_limit)")
-    ax1.plot(phi_arr, planter_limit, color=AGENT_COLORS["BlindPlanterBot"], lw=2.2, marker="s", ms=4,
-             label="Blind Planter (declared g_limit)")
+    # ── Panel 1: cost vs gain (µETH) ──────────────────────────────────────────
+    benefit_ueth = STUFF_E_BENEFIT * UETH
+    ax1.axhline(benefit_ueth, color="black", lw=1.8, ls="--",
+                label=f"Monopoly gain  = {benefit_ueth:.0f} µETH  (constant, independent of φ)")
+
+    for gp, label, alpha in gp_levels:
+        fres = np.array([STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED) * UETH
+                         for phi in phi_arr])
+        phi_star = STUFF_E_BENEFIT / (STUFF_N_PHTS * gas_eth(gp, STUFF_GAS_DECLARED))
+        ax1.plot(phi_arr, fres, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
+                 label=f"F_res at {label} ({gp:.1f} gwei)  [φ* ≈ {phi_star:.2g}]")
+
     ax1.set_xscale("log")
-    ax1.set_ylabel("Declared gas limit (units)", fontsize=FS_LABEL, fontweight="bold")
+    ax1.set_ylim(0, benefit_ueth * 3.2)   # clip at ~3× gain so crossover is centre-frame
+    ax1.set_ylabel("ETH per block (µETH)", fontsize=FS_LABEL, fontweight="bold")
     ax1.tick_params(labelsize=FS_TICK)
-    ax1.legend(fontsize=FS_LEGEND)
+    ax1.legend(fontsize=FS_LEGEND - 3, loc="upper left")
     ax1.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax1.set_axisbelow(True)
-    ax1.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{x/1e3:.0f}k"))
     sns.despine(ax=ax1)
 
-    # Bottom panel: effective maxFeePerGas — use vlag warm tone to signal cost
-    _vlag = sns.color_palette("vlag", n_colors=10)
-    ax2.plot(phi_arr, eff_max_fee, color=_vlag[-2], lw=2.2, marker="o", ms=4,
-             label="Effective maxFeePerGas = g_base × (1 + φ)")
+    # ── Panel 2: net profit = gain − F_res (µETH) ─────────────────────────────
+    ax2.axhline(0, color="gray", lw=1.2, ls="--", alpha=0.7)
+    for gp, label, alpha in gp_levels:
+        net = np.array([(STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)) * UETH
+                        for phi in phi_arr])
+        ax2.plot(phi_arr, net, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
+                 label=f"{label} ({gp:.1f} gwei)")
+
+    # Shade profit region for median
+    gp_med = hist[n // 2]
+    net_med = np.array([(STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp_med, STUFF_GAS_DECLARED)) * UETH
+                        for phi in phi_arr])
+    ax2.fill_between(phi_arr, net_med, 0,
+                     where=(net_med > 0), alpha=0.12, color=col, label="_nolegend_")
+
     ax2.set_xscale("log")
+    ax2.set_ylim(-benefit_ueth * 1.5, benefit_ueth * 1.2)  # keep transition in view
     ax2.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
-    ax2.set_ylabel("maxFeePerGas (gwei)", fontsize=FS_LABEL, fontweight="bold")
+    ax2.set_ylabel("Net profit (µETH/block)", fontsize=FS_LABEL, fontweight="bold")
     ax2.tick_params(labelsize=FS_TICK)
-    ax2.legend(fontsize=FS_LEGEND)
+    ax2.legend(fontsize=FS_LEGEND - 3, loc="upper right")
     ax2.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax2.set_axisbelow(True)
     sns.despine(ax=ax2)
