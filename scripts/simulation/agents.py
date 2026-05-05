@@ -14,17 +14,13 @@ Agent taxonomy:
   CrossBlockArbBot — info-blocked; not profitable at empirical gas prices
 """
 
-import random
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
 from .constants import (
-    MEV_MU, MEV_SIG, MEV_CAP,
-    BLIND_MU, BLIND_SIG,
     E_MEV_GAIN, E_BLIND_GAIN,
-    GAS_PHT, GAS_PHT_LARGE, GAS_ARB,
+    GAS_PHT_LARGE, GAS_ARB,
     STUFF_GAS_DECLARED, STUFF_N_PHTS, STUFF_E_BENEFIT,
-    N_VALIDATORS, B2_MATCH_PROB, B2_N_PHTS,
     ARB_OPP_P2S, ARB_EXEC, ARB_EFF,
     BLIND_FIT, BLIND_SUCCESS,
 )
@@ -129,15 +125,16 @@ class BlindPlanterBot(MevAgent):
         return e_gain - cost
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
-        f_res = gas_eth(gp, GAS_PHT_LARGE) * phi
-        exec_ = gas_eth(gp, GAS_PHT_LARGE)
-        if random.random() < BLIND_FIT and random.random() < BLIND_SUCCESS:
-            dex = [t for t in txpool if t.is_dex]
-            gain = (pool.sandwich_profit(max(dex, key=lambda t: t.trade_eth).trade_eth)
-                    if dex else
-                    min(random.lognormvariate(BLIND_MU, BLIND_SIG), MEV_CAP))
-            return f_res + exec_, gain
-        return f_res, 0.0
+        f_res     = gas_eth(gp, GAS_PHT_LARGE) * phi   # burned at B1, non-refundable
+        exec_cost = gas_eth(gp, GAS_PHT_LARGE)          # paid at B2 only on reveal
+        dex = [t for t in txpool if t.is_dex]
+        if not dex:
+            return f_res, 0.0                            # no opportunity — do not reveal
+        best = max(dex, key=lambda t: t.trade_eth).trade_eth
+        gain = BLIND_FIT * BLIND_SUCCESS * pool.sandwich_profit(best)
+        if gain <= exec_cost:
+            return f_res, 0.0                            # not worth executing — do not reveal
+        return f_res + exec_cost, gain
 
 
 class CrossBlockArbBot(MevAgent):
@@ -155,16 +152,16 @@ class CrossBlockArbBot(MevAgent):
         return e_gain - cost
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
-        if random.random() >= ARB_OPP_P2S:
-            return 0.0, 0.0
-        cost = gas_eth(gp, GAS_ARB) * (1.0 + phi)
-        dex  = [t for t in txpool if t.is_dex]
+        f_res     = gas_eth(gp, GAS_ARB) * phi          # burned at B1, non-refundable
+        exec_cost = gas_eth(gp, GAS_ARB)                 # paid at B2 only on reveal
+        dex = [t for t in txpool if t.is_dex]
         if not dex:
-            return cost, 0.0
-        max_gain = pool.sandwich_profit(max(dex, key=lambda t: t.trade_eth).trade_eth) * ARB_EFF
-        if ARB_EXEC * max_gain <= cost:
-            return 0.0, 0.0
-        return (cost, max_gain) if random.random() < ARB_EXEC else (cost, 0.0)
+            return f_res, 0.0                            # no opportunity — do not reveal
+        best = max(dex, key=lambda t: t.trade_eth).trade_eth
+        gain = ARB_OPP_P2S * ARB_EXEC * ARB_EFF * pool.sandwich_profit(best)
+        if gain <= exec_cost:
+            return f_res, 0.0                            # not worth executing — do not reveal
+        return f_res + exec_cost, gain
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -177,7 +174,7 @@ class BlockStufferBot(MevAgent):
     F_res scales linearly with declared gas → attack is self-defeating at any φ > 0.
 
     E[net] = STUFF_E_BENEFIT − N_phts · φ · gas_eth(gp, g^declared)
-    φ*_stuffer ≈ 0.000329 at 58 gwei (deactivates essentially at φ → 0⁺).
+    φ*_stuffer ≈ 0.107 at median 35.9 gwei (deactivates mid-range φ).
     """
 
     def e_net(self, phi, pool, gp) -> float:
@@ -186,8 +183,7 @@ class BlockStufferBot(MevAgent):
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
         cost = STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
-        gain = E_MEV_GAIN * 0.005 if random.random() < 0.10 else 0.0
-        return cost, gain
+        return cost, STUFF_E_BENEFIT
 
 
 class B2ProposerBot(MevAgent):

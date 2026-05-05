@@ -88,20 +88,33 @@ def gas_eth(gp_gwei: float, gas_units: int) -> float:
 
 def load_gas_prices(n: int) -> List[float]:
     """
-    Load per-block base fees from the Ethereum block cache (gwei).
-    Falls back to uniform random if the cache is absent.
+    Load per-block effective gas prices (base_fee + PRIORITY_FEE_GWEI) from the
+    Ethereum block cache, cycling through the 1005-block history as needed.
+
+    EIP-1559 split:
+      base_fee          — burned by the protocol (per block, from cache)
+      PRIORITY_FEE_GWEI — paid to the proposer per gas unit (constant tip)
+      effective         — what the attacker declares as maxFeePerGas = base + tip
+
+    Falls back to uniform [20, 50] gwei base fee if the cache is absent.
     """
-    random.seed(RANDOM_SEED)
+    from .constants import PRIORITY_FEE_GWEI
+
     if not os.path.exists(CACHE_PATH):
-        return [random.uniform(15, 60) for _ in range(n)]
+        random.seed(RANDOM_SEED)
+        return [random.uniform(20, 50) + PRIORITY_FEE_GWEI for _ in range(n)]
+
     with open(CACHE_PATH, encoding="utf-8") as fh:
         cache = json.load(fh)
-    prices = []
-    for b in list(cache.values())[:n]:
-        txs = b.get("transactions", [])
-        gp  = txs[0].get("gasPrice", 20e9) if txs else 20e9
-        gp  = float(gp) / 1e9 if gp > 1e9 else float(gp)
-        prices.append(max(gp, 1.0))
-    while len(prices) < n:
-        prices.append(random.uniform(15, 60))
-    return prices[:n]
+
+    base_fees: List[float] = []
+    for b in cache.values():
+        bf = b.get("base_fee", 0)
+        bf_gwei = float(bf) / 1e9 if float(bf) > 1e9 else float(bf)
+        base_fees.append(max(bf_gwei, 1.0))
+
+    effective = [bf + PRIORITY_FEE_GWEI for bf in base_fees]
+    result: List[float] = []
+    while len(result) < n:
+        result.extend(effective)
+    return result[:n]

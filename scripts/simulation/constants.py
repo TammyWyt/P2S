@@ -1,6 +1,7 @@
 """Shared simulation constants — calibrated to empirical Ethereum data."""
 
 import math
+import numpy as np
 
 WEI_PER_ETH  = 1e18
 GWEI_PER_ETH = 1e9
@@ -30,18 +31,21 @@ B2_N_PHTS     = 5      # PHTs pre-committed per proposer slot
 
 # Block stuffer
 STUFF_N_PHTS    = 10
-STUFF_E_BENEFIT = 0.005 * E_MEV_GAIN   # marginal monopoly benefit ≈ 0.23% of MEV
+STUFF_E_BENEFIT = E_MEV_GAIN   # monopolist captures full uncontested MEV opportunity
 
 # Simulation defaults
-RANDOM_SEED   = 42
-N_BLOCKS      = 3_000
-# Post-Dencun Base L2 mean base fee (BaseScan chart/gasprice CSV, 2024-03-13 to 2025-12-31)
-MEAN_GAS_GWEI = 0.074
+RANDOM_SEED = 42
+N_BLOCKS    = 3_000
 
-# φ sweep: 0–1 only. φ > 1 means F_res > full execution cost — economically
-# incoherent as a protocol parameter, since no rational user would ever pay
-# more in reservation fees than the transaction itself costs.
-# Key threshold within range: φ*_stuffer ≈ 0.26 at 0.074 gwei (BlockStufferBot deactivates).
-PHI_SWEEP = [
-    0.001, 0.01, 0.05, 0.10, 0.15, 0.20, 0.25, 0.26, 0.30, 0.40, 0.50, 0.75, 1.0,
-]
+# EIP-1559 priority fee (tip) paid to the block proposer per gas unit (gwei).
+# Base fee is burned; proposer receives only the priority fee.
+# Calibrated to Ethereum mainnet post-Merge median tip (~1–3 gwei in normal conditions).
+PRIORITY_FEE_GWEI = 1.5
+
+# φ sweep: 20 evenly log-spaced points from 10^-4 to 10^0.
+# Uniform spacing on the log axis gives a smooth line when plotted on a log scale.
+# φ > 1 is economically incoherent (F_res > full execution cost).
+# At empirical mainnet gas (~34.5 gwei base + 1.5 gwei tip = 36 gwei):
+#   φ*_stuffer ≈ 0.00054  (BlockStufferBot deactivates — transition fully captured)
+#   BlindPlanterBot and CrossBlockArbBot: never profitable at any φ (exec cost >> E[gain])
+PHI_SWEEP = [0.0] + list(np.logspace(-4, 0, 20))
