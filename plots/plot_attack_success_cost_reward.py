@@ -120,7 +120,7 @@ def _panel_cumulative(ax, pos_series, p2s_series):
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper left")
     sns.despine(ax=ax)
-    ax.grid(True, alpha=0.2, linestyle="--", color="gray")
+    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
 
 
@@ -160,9 +160,9 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
         sys.path.insert(0, _repo)
     from scripts.simulation.agents import BlockStufferBot, CrossBlockArbBot
     from scripts.simulation.environment import AMMPool, build_txpool
-    from scripts.simulation.constants import MEAN_GAS_GWEI, RANDOM_SEED
+    from scripts.simulation.constants import RANDOM_SEED
 
-    _PHI, _N = 0.10, 1000
+    _PHI, _N, _GP = 0.10, 1000, 36.0   # 36 gwei ≈ mainnet median (34.5 base + 1.5 tip)
     _rng.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     _pool = AMMPool(1_000.0)
@@ -171,7 +171,7 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
     for _ in range(_N):
         _txpool = build_txpool(_rng.randint(50, 200))
         for a in _p2s.values():
-            a.step(_PHI, _pool, _txpool, MEAN_GAS_GWEI)
+            a.step(_PHI, _pool, _txpool, _GP)
         _pool.step()
 
     for name, agent in _p2s.items():
@@ -193,10 +193,6 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
         legend=False,
     )
 
-    # Break-even line
-    xs = np.linspace(0, min(X_MAX, Y_CLIP), 200)
-    ax.plot(xs, xs, color="gray", lw=1.4, ls="--", alpha=0.55, zorder=1)
-
     # ── Legend: PoS/P2S sections, stripped names, outside axes, no frame ────
     def _circle(color, label):
         return mlines.Line2D([], [], marker="o", linestyle="None",
@@ -211,8 +207,6 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
             handles.append(_header(f"{section}:"))
             current_section = section
         handles.append(_circle(STRATEGY_COLORS[key], f"  {name}"))
-    handles.append(mlines.Line2D([], [], color="gray", lw=1.4, ls="--",
-                                 alpha=0.55, label="gain = cost"))
     ax.legend(handles=handles, fontsize=FS_LEGEND, loc="upper left",
               bbox_to_anchor=(1.02, 1), borderaxespad=0, frameon=False)
 
@@ -222,6 +216,8 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
     ax.set_ylabel("Gain per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
     sns.despine(ax=ax)
+    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
+    ax.set_axisbelow(True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

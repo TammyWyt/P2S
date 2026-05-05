@@ -99,7 +99,7 @@ def plot_activity(phi_vals, activity, out_path):
                 linestyle=linestyles.get(name, "-"))
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
-    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Activity rate", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylim(0, 1.05)
     ax.tick_params(labelsize=FS_TICK)
@@ -128,7 +128,7 @@ def plot_profit(phi_vals, net, out_path):
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
-    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Net profit / block (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper right")
@@ -194,7 +194,7 @@ def plot_heatmap(phi_vals, out_path):
     ax.set_xticklabels(phi_labels, rotation=45, ha="right", fontsize=FS_TICK - 2)
     ax.set_yticks(range(len(gas_vals)))
     ax.set_yticklabels(gas_labels, fontsize=FS_TICK - 2)
-    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Base gas price (gwei)", fontsize=FS_LABEL, fontweight="bold")
     plt.tight_layout()
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
@@ -225,20 +225,16 @@ def plot_stuffer_cost(phi_vals, out_path):
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(9, 5))
 
-    ax.axhline(benefit, color="black", lw=1.8, ls="--",
-               label=f"Monopoly gain = {benefit:.4f} ETH  (constant, independent of φ)")
-
     for gp, label, alpha in gp_levels:
         fres     = np.array([STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
                              for phi in phi_arr])
-        phi_star = STUFF_E_BENEFIT / (STUFF_N_PHTS * gas_eth(gp, STUFF_GAS_DECLARED))
         ax.plot(phi_arr, fres, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
-                label=f"F_res at {label} ({gp:.1f} gwei)  [φ* ≈ {phi_star:.2g}]")
+                label=f"{label} ({gp:.1f} gwei)")
 
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
     ax.set_ylim(0, benefit * 3.2)
-    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("ETH per block", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND - 3, loc="upper left")
@@ -273,23 +269,10 @@ def plot_stuffer_net(phi_vals, out_path):
         ax.plot(phi_arr, net, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
                 label=f"{label} ({gp:.1f} gwei)")
 
-    gp_med  = hist[n // 2]
-    net_med = np.maximum(0.0, np.array(
-        [STUFF_E_BENEFIT - STUFF_N_PHTS * phi * gas_eth(gp_med, STUFF_GAS_DECLARED)
-         for phi in phi_arr]))
-    ax.fill_between(phi_arr, net_med, 0, alpha=0.12, color=col, label="_nolegend_")
-
-    # mark φ* for median gas
-    phi_star_med = STUFF_E_BENEFIT / (STUFF_N_PHTS * gas_eth(gp_med, STUFF_GAS_DECLARED))
-    ax.axvline(phi_star_med, color="gray", lw=1.0, ls=":", alpha=0.8)
-    ax.text(phi_star_med * 1.15, benefit * 0.12,
-            f"φ* ≈ {phi_star_med:.2g}\n(agent exits)",
-            fontsize=FS_TICK - 3, color="gray", ha="left")
-
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
     ax.set_ylim(0, benefit * 1.18)
-    ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Net profit (ETH/block)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND - 3, loc="upper right")
