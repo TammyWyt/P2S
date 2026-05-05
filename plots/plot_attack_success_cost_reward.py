@@ -47,23 +47,29 @@ STRATEGY_LABELS = {
     "sandwich":         "Sandwich (PoS)",
     "arbitrage":        "Arbitrage (PoS)",
     "blind_insert_p2s": "Blind Insert (P2S)",
-    "cross_blk_arb":    "Arbitrage (P2S)",
 }
-
-# Not real P2S attacks: inference is not applicable; b2_proposer is invalid
-# because the P2S mechanism prevents B2 transaction reordering.
-_SKIP_P2S_AGENTS = {"inference", "b2_proposer"}
 
 # Warm tones for PoS strategies (flare palette), cool tones for P2S (mako palette)
 _FLARE = sns.color_palette("flare", n_colors=8)
 _MAKO  = sns.color_palette("mako",  n_colors=8)
 STRATEGY_COLORS = {
     "Front-Run (PoS)":    _FLARE[7],  # deep red
-    "Sandwich (PoS)":     _FLARE[5],  # salmon/pink
-    "Arbitrage (PoS)":    _FLARE[3],  # amber/orange
-    "Blind Insert (P2S)": _MAKO[5],   # blue
-    "Arbitrage (P2S)":    _MAKO[3],   # teal-green
+    "Sandwich (PoS)":     _FLARE[5],  # salmon
+    "Arbitrage (PoS)":    _FLARE[3],  # amber
+    "Blind Insert (P2S)": _MAKO[6],   # light teal
+    "Block Stuffer (P2S)":_MAKO[4],   # medium blue
+    "Arbitrage (P2S)":    _MAKO[2],   # deep blue
 }
+
+# Legend display: (section, display_name, STRATEGY_COLORS key)
+_LEGEND_ENTRIES = [
+    ("PoS", "Front-Run",    "Front-Run (PoS)"),
+    ("PoS", "Sandwich",     "Sandwich (PoS)"),
+    ("PoS", "Arbitrage",    "Arbitrage (PoS)"),
+    ("P2S", "Blind Insert", "Blind Insert (P2S)"),
+    ("P2S", "Block Stuffer","Block Stuffer (P2S)"),
+    ("P2S", "Arbitrage",    "Arbitrage (P2S)"),
+]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -110,7 +116,7 @@ def _panel_cumulative(ax, pos_series, p2s_series):
     ax.set_xlim(0, n)
     ax.set_ylim(0)
     ax.set_xlabel("Block", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Cumulative MEV extracted (ETH)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Cumulative MEV (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper left")
     sns.despine(ax=ax)
@@ -124,9 +130,12 @@ def _panel_cumulative(ax, pos_series, p2s_series):
 
 def _panel_cost_gain(ax, block_ledger, p2s_agents):
     import pandas as pd
+    import matplotlib.lines as mlines
+    import random as _rng
 
-    Y_CLIP = 0.20   # ETH — clips 6 extreme outliers (<2% of successes)
+    Y_CLIP = 0.60   # ETH — axis hard limit; points above are simply outside ylim
 
+    # ── ETH PoS attacks from block ledger ────────────────────────────────────
     records = []
     if block_ledger:
         for b in block_ledger.get("blocks", []):
@@ -136,7 +145,6 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
                         "Strategy": STRATEGY_LABELS.get(strat, strat),
                         "cost":     v["cost_eth"],
                         "gain":     v["gain_eth"],
-                        "clipped":  v["gain_eth"] > Y_CLIP,
                     })
             atk = b["p2s"]["attack"]
             if atk["success"]:
@@ -144,41 +152,75 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
                     "Strategy": STRATEGY_LABELS.get(atk["strategy"], atk["strategy"]),
                     "cost":     atk["cost_eth"],
                     "gain":     atk["gain_eth"],
-                    "clipped":  atk["gain_eth"] > Y_CLIP,
                 })
 
-    df = pd.DataFrame(records)
-    df["gain_plot"] = df["gain"].clip(upper=Y_CLIP)
+    # ── P2S agent simulation (Block Stuffer, Cross-Block Arb) ────────────────
+    _repo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if _repo not in sys.path:
+        sys.path.insert(0, _repo)
+    from scripts.simulation.agents import BlockStufferBot, CrossBlockArbBot
+    from scripts.simulation.environment import AMMPool, build_txpool
+    from scripts.simulation.constants import MEAN_GAS_GWEI, RANDOM_SEED
 
-    # Main scatter — successful attacks at actual coordinates
+    _PHI, _N = 0.10, 1000
+    _rng.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+    _pool = AMMPool(1_000.0)
+    _p2s = {"Block Stuffer (P2S)": BlockStufferBot(),
+            "Arbitrage (P2S)":      CrossBlockArbBot()}
+    for _ in range(_N):
+        _txpool = build_txpool(_rng.randint(50, 200))
+        for a in _p2s.values():
+            a.step(_PHI, _pool, _txpool, MEAN_GAS_GWEI)
+        _pool.step()
+
+    for name, agent in _p2s.items():
+        for c, g in zip(agent._costs, agent._gains):
+            if g > 0:
+                records.append({"Strategy": name, "cost": c, "gain": g})
+
+    df = pd.DataFrame(records)
+    X_MAX = df["cost"].max() * 1.10
+
+    # ── Scatter — all points; ylim clips anything above Y_CLIP naturally ─────
     sns.scatterplot(
-        data=df[~df["clipped"]],
-        x="cost", y="gain_plot",
+        data=df,
+        x="cost", y="gain",
         hue="Strategy",
         palette=STRATEGY_COLORS,
         alpha=0.65, s=60,
         ax=ax,
+        legend=False,
     )
-    # Clipped outliers — same color, triangle marker at y=Y_CLIP
-    for strat, grp in df[df["clipped"]].groupby("Strategy"):
-        ax.scatter(grp["cost"], [Y_CLIP] * len(grp),
-                   color=STRATEGY_COLORS.get(strat, "#555"),
-                   marker="^", s=80, alpha=0.8, zorder=6)
 
-    # Break-even line: gain = cost (above = profitable, below = loss even when successful)
-    xlim = ax.get_xlim()
-    xs = np.linspace(0, Y_CLIP, 200)
-    ax.plot(xs, xs, color="gray", lw=1.2, ls="--", alpha=0.6, zorder=1)
-    ax.fill_between(xs, xs, Y_CLIP, alpha=0.04, color="#2CA02C")
-    ax.text(Y_CLIP * 0.68, Y_CLIP * 0.90, "Profitable\n(gain > cost)",
-            fontsize=FS_LEGEND - 2, color="gray", alpha=0.7, va="top")
+    # Break-even line
+    xs = np.linspace(0, min(X_MAX, Y_CLIP), 200)
+    ax.plot(xs, xs, color="gray", lw=1.4, ls="--", alpha=0.55, zorder=1)
 
-    ax.set_xlim(0)
-    ax.set_ylim(0, Y_CLIP * 1.05)
+    # ── Legend: PoS/P2S sections, stripped names, outside axes, no frame ────
+    def _circle(color, label):
+        return mlines.Line2D([], [], marker="o", linestyle="None",
+                             color=color, markersize=8, alpha=0.75, label=label)
+    def _header(text):
+        return mlines.Line2D([], [], color="none", linestyle="None", label=text)
+
+    handles = []
+    current_section = None
+    for section, name, key in _LEGEND_ENTRIES:
+        if section != current_section:
+            handles.append(_header(f"{section}:"))
+            current_section = section
+        handles.append(_circle(STRATEGY_COLORS[key], f"  {name}"))
+    handles.append(mlines.Line2D([], [], color="gray", lw=1.4, ls="--",
+                                 alpha=0.55, label="gain = cost"))
+    ax.legend(handles=handles, fontsize=FS_LEGEND, loc="upper left",
+              bbox_to_anchor=(1.02, 1), borderaxespad=0, frameon=False)
+
+    ax.set_xlim(0, X_MAX)
+    ax.set_ylim(0, Y_CLIP)
     ax.set_xlabel("Cost per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Gain per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND, loc="upper right")
     sns.despine(ax=ax)
 
 

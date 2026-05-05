@@ -142,10 +142,11 @@ class BlindPlanterBot(MevAgent):
 
 class CrossBlockArbBot(MevAgent):
     """
-    Cross-block CFMM arbitrage: commits PHT in B1, reads on-chain state after B2,
+    P2S arbitrage: commits PHT in B1, reads on-chain state after B2,
     decides whether to reveal in B2.  Does NOT need transaction content.
 
     At empirical gas (58 gwei), E[net] < 0 regardless of φ.
+    At Base L2 gas (0.074 gwei), profitable at low φ.
     """
 
     def e_net(self, phi, pool, gp) -> float:

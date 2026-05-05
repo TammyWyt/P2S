@@ -59,7 +59,7 @@ AGENT_COLORS = {
 AGENT_LABELS = {
     "BlindPlanterBot":  "Blind Planter",
     "BlockStufferBot":  "Block Stuffer",
-    "CrossBlockArbBot": "Cross-Block Arb",
+    "CrossBlockArbBot": "Arbitrage",
 }
 
 
@@ -83,7 +83,7 @@ def _active_agents(activity):
 
 def plot_activity(phi_vals, activity, out_path):
     sns.set_theme(style="ticks")
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     agents = _active_agents(activity)
     for name in agents:
         ax.plot(phi_vals, activity[name],
@@ -109,7 +109,7 @@ def plot_activity(phi_vals, activity, out_path):
 
 def plot_profit(phi_vals, net, out_path):
     sns.set_theme(style="ticks")
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     agents = [name for name in net if name not in _INFEASIBLE]
     for name in agents:
         vals = net[name]
@@ -120,7 +120,7 @@ def plot_profit(phi_vals, net, out_path):
     ax.axhline(0, color="gray", lw=1.0, ls="--", alpha=0.6)
     ax.set_xscale("log")
     ax.set_xlabel("φ (reservation fee multiplier)", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Mean net profit per block (ETH)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Net profit / block (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper right")
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
@@ -217,7 +217,7 @@ def plot_gas_params(phi_vals, out_path):
     ax1.plot(phi_arr, planter_limit, color=AGENT_COLORS["BlindPlanterBot"], lw=2.2, marker="s", ms=4,
              label="Blind Planter (declared g_limit)")
     ax1.set_xscale("log")
-    ax1.set_ylabel("Declared gas limit (units)", fontsize=FS_LABEL, fontweight="bold")
+    ax1.set_ylabel("Gas limit (units)", fontsize=FS_LABEL, fontweight="bold")
     ax1.tick_params(labelsize=FS_TICK)
     ax1.legend(fontsize=FS_LEGEND)
     ax1.grid(True, alpha=0.18, linestyle="--", color="gray")
