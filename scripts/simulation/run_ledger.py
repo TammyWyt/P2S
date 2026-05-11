@@ -49,7 +49,8 @@ from scripts.simulation.simulator import (  # noqa: E402
 
 # ── constants ────────────────────────────────────────────────────────────────
 NUM_BLOCKS = 1000
-DATA_DIR = os.path.join(_ROOT, "data")
+N_SEEDS    = 5
+DATA_DIR   = os.path.join(_ROOT, "data")
 OUTPUT_PATH = os.path.join(DATA_DIR, 'block_ledger_1000.json')
 
 CONGESTION_LEVELS = [0.0, 0.1, 0.3, 0.5, 0.7]
@@ -338,6 +339,114 @@ def run_ledger() -> None:
     print(f"\nAttack successes over {NUM_BLOCKS} blocks:")
     print(f"  P2S  (blind insert)      : {p2s_successes}/{NUM_BLOCKS} ({p2s_successes}%)")
     print(f"  Ethereum PoS (best strat): {eth_successes}/{NUM_BLOCKS} ({eth_successes}%)")
+
+
+def run_ledger_seed(seed: int) -> dict:
+    """Run a single ledger simulation with the given random seed; return summary metrics."""
+    random.seed(seed)
+
+    sim = P2SSimulator()
+    ethereum_blocks = sim.load_ethereum_blocks(DATA_DIR)
+    while len(ethereum_blocks) < NUM_BLOCKS:
+        ethereum_blocks.append(sim._synthetic_ethereum_block(len(ethereum_blocks)))
+    ethereum_blocks = ethereum_blocks[:NUM_BLOCKS]
+
+    NUM_VALIDATORS = 5
+    for i in range(NUM_VALIDATORS):
+        sim.create_validator(f"p2s_v{i}", "P2S")
+        sim.create_validator(f"eth_v{i}", "Ethereum PoS")
+    sim._p2s_proposer_index = 0
+    sim._eth_proposer_index = 0
+
+    block_gas_prices: list[float] = []
+    for b in ethereum_blocks:
+        txs = b.get("transactions", [])
+        if txs:
+            gp = txs[0].get("gasPrice", sim.base_gas_price_gwei * 1e9)
+            if isinstance(gp, (int, float)) and gp > 1e9:
+                gp = gp / 1e9
+            block_gas_prices.append(float(gp) if gp > 0 else sim.base_gas_price_gwei)
+        else:
+            block_gas_prices.append(sim.base_gas_price_gwei)
+    attack_strat = MEVAttackStrategies(block_gas_prices)
+
+    p2s_mev_total = 0.0
+    pos_mev_total = 0.0
+    p2s_slip_total = 0.0
+    pos_slip_total = 0.0
+    p2s_success = 0
+    pos_success = 0
+    p2s_reward_total = 0.0
+    pos_reward_total = 0.0
+
+    for i, eth_block in enumerate(ethereum_blocks):
+        congestion = random.choice(CONGESTION_LEVELS)
+        p2s_proposer = sim.select_proposer("P2S")
+        eth_proposer = sim.select_proposer("Ethereum PoS")
+
+        p2s_blk = sim.simulate_p2s_block(i, p2s_proposer, eth_block, congestion)
+        eth_blk = sim.simulate_ethereum_pos_block(i, eth_proposer, eth_block, congestion)
+
+        p2s_cost, p2s_gain, p2s_ok = attack_strat.run_blind_insert_p2s_no_reveal(i)
+        p2s_alpha = random.uniform(0.90, 1.00)
+        p2s_victim_slippage = p2s_alpha * p2s_gain if p2s_ok else 0.0
+
+        has_target = random.random() < 0.2
+        fr_cost, fr_gain, fr_ok = attack_strat.run_front_run(i, has_target)
+        sw_cost, sw_gain, sw_ok = attack_strat.run_sandwich(i, has_target)
+        ab_cost, ab_gain, ab_ok = attack_strat.run_arbitrage(i)
+        eth_all = {
+            "front_run": (fr_cost, fr_gain, fr_ok),
+            "sandwich":  (sw_cost, sw_gain, sw_ok),
+            "arbitrage": (ab_cost, ab_gain, ab_ok),
+        }
+        best_net = max(g - c for c, g, _ in eth_all.values())
+        if best_net <= 0:
+            eth_cost, eth_gain, eth_ok = 0.0, 0.0, False
+            best_name = "abort"
+        else:
+            best_name = max(eth_all, key=lambda n: eth_all[n][1] - eth_all[n][0])
+            eth_cost, eth_gain, eth_ok = eth_all[best_name]
+        eth_alpha = random.uniform(0.90, 1.00) if best_name in ("front_run", "sandwich") else 0.0
+        eth_victim_slippage = eth_alpha * eth_gain if eth_ok else 0.0
+
+        p2s_mev_total  += max(0.0, p2s_gain - p2s_cost)
+        pos_mev_total  += max(0.0, eth_gain - eth_cost)
+        p2s_slip_total += p2s_victim_slippage
+        pos_slip_total += eth_victim_slippage
+        p2s_success    += int(p2s_ok)
+        pos_success    += int(eth_ok)
+        p2s_reward_total += p2s_blk["block_reward"]
+        pos_reward_total += eth_blk["block_reward"]
+
+    return {
+        "p2s_mev_eth":      p2s_mev_total,
+        "pos_mev_eth":      pos_mev_total,
+        "p2s_slip_eth":     p2s_slip_total,
+        "pos_slip_eth":     pos_slip_total,
+        "p2s_success_rate": p2s_success / NUM_BLOCKS,
+        "pos_success_rate": pos_success / NUM_BLOCKS,
+        "p2s_reward_eth":   p2s_reward_total,
+        "pos_reward_eth":   pos_reward_total,
+    }
+
+
+def run_ledger_multi_seed(n_seeds: int = N_SEEDS, base_seed: int = 42) -> dict:
+    """Run n_seeds independent ledger simulations; return mean ± std for each metric."""
+    import numpy as np
+    keys = ["p2s_mev_eth", "pos_mev_eth", "p2s_slip_eth", "pos_slip_eth",
+            "p2s_success_rate", "pos_success_rate", "p2s_reward_eth", "pos_reward_eth"]
+    rows = {k: [] for k in keys}
+
+    for s in range(n_seeds):
+        seed = base_seed + s * 10_000
+        print(f"  Seed {seed} ({s+1}/{n_seeds}) …")
+        r = run_ledger_seed(seed)
+        for k in keys:
+            rows[k].append(r[k])
+
+    return {k: {"mean": float(np.mean(rows[k])), "std": float(np.std(rows[k], ddof=1))}
+            for k in keys}
 
 
 if __name__ == "__main__":
