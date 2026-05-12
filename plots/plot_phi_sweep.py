@@ -187,7 +187,7 @@ def plot_heatmap(phi_vals, out_path):
     im = ax.imshow(profit, aspect="auto", origin="lower",
                    cmap=sns.color_palette("mako", as_cmap=True), interpolation="nearest")
     cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Total attacker net profit / block (ETH)", fontsize=FS_LEGEND)
+    cbar.set_label("Net profit / block (ETH)", fontsize=FS_LEGEND)
     cbar.ax.tick_params(labelsize=FS_TICK - 2)
 
     ax.set_xticks(range(len(phi_vals)))
@@ -214,37 +214,6 @@ def _gas_params_data(phi_vals):
         (hist[9 * n // 10], "high gas",   1.00),
     ]
     return np.array(phi_vals), hist, n, gp_levels
-
-
-def plot_stuffer_cost(phi_vals, out_path):
-    """F_res cost vs monopoly gain (ETH) across low/median/high historical gas."""
-    phi_arr, hist, n, gp_levels = _gas_params_data(phi_vals)
-    col     = _DEEP[0]
-    benefit = STUFF_E_BENEFIT
-
-    sns.set_theme(style="ticks")
-    fig, ax = plt.subplots(figsize=(9, 5))
-
-    for gp, label, alpha in gp_levels:
-        fres     = np.array([STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
-                             for phi in phi_arr])
-        ax.plot(phi_arr, fres, color=col, alpha=alpha, lw=2.2, marker="o", ms=4,
-                label=f"{label} ({gp:.1f} gwei)")
-
-    ax.set_xscale("symlog", linthresh=1e-4)
-    ax.set_xlim(left=0)
-    ax.set_ylim(0, benefit * 3.2)
-    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("ETH per block", fontsize=FS_LABEL, fontweight="bold")
-    ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND - 3, loc="upper left")
-    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
-    ax.set_axisbelow(True)
-    sns.despine(ax=ax)
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=300, bbox_inches="tight")
-    plt.close()
-    print(f"Saved {out_path}")
 
 
 def plot_stuffer_net(phi_vals, out_path):
@@ -298,8 +267,6 @@ def main():
                 os.path.join(FIGURES_DIR, "phi_profit.pdf"))
     plot_heatmap(phi_vals,
                  os.path.join(FIGURES_DIR, "phi_heatmap.pdf"))
-    plot_stuffer_cost(phi_vals,
-                      os.path.join(FIGURES_DIR, "phi_stuffer_cost.pdf"))
     plot_stuffer_net(phi_vals,
                      os.path.join(FIGURES_DIR, "phi_stuffer_net.pdf"))
 

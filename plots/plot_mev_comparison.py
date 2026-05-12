@@ -26,6 +26,11 @@ _VLAG     = sns.color_palette("vlag", n_colors=10)
 COLOR_ETH = _VLAG[-2]   # warm red  — Ethereum PoS
 COLOR_P2S = _VLAG[1]    # cool blue — P2S
 
+_LABEL_MAP = {
+    "Miner Payments":  "Gas Reward",
+    "Sandwich Attacks": "Sandwich",
+}
+
 # Default paths: use one comparison file (generated once from inspect + compare)
 def _find_latest(path_pattern: str):
     files = glob.glob(path_pattern)
@@ -58,7 +63,8 @@ def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
     eth_totals = []
     p2s_totals = []
     for mev_type, stats in mev_by_type.items():
-        types.append(mev_type.replace("_", " ").title())
+        raw = mev_type.replace("_", " ").title()
+        types.append(_LABEL_MAP.get(raw, raw))
         eth_totals.append(stats["ethereum"]["total"])
         p2s_totals.append(stats["p2s"]["total"])
 
@@ -69,7 +75,7 @@ def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
     ax.bar(x + w / 2, p2s_totals, w, label="P2S", color=COLOR_P2S, edgecolor="white", linewidth=1.2)
     ax.set_ylabel("Total MEV (ETH)", fontsize=FS_LABEL, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=FS_TICK)
+    ax.set_xticklabels(types, rotation=25, ha="right", fontsize=FS_LABEL)
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc='upper right')
     sns.despine(ax=ax)
@@ -78,7 +84,6 @@ def plot_mev_totals(comparison_data: dict, out_path: str) -> None:
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
-    plt.show()
     plt.close()
     print(f"Saved {out_path}")
 
@@ -93,21 +98,21 @@ def plot_mev_reduction(comparison_data: dict, out_path: str) -> None:
     types = []
     reductions = []
     for mev_type, stats in mev_by_type.items():
-        types.append(mev_type.replace("_", " ").title())
+        raw = mev_type.replace("_", " ").title()
+        types.append(_LABEL_MAP.get(raw, raw))
         reductions.append(stats["reduction"]["total_pct"])
 
     fig, ax = plt.subplots(figsize=(10, 7))
     colors = [COLOR_P2S if r > 0 else COLOR_ETH for r in reductions]
     ax.barh(types, reductions, height=0.68, color=colors, edgecolor="white", linewidth=1.2)
     ax.set_xlabel("Reduction (%)", fontsize=FS_LABEL, fontweight='bold')
-    ax.tick_params(labelsize=FS_TICK)
+    ax.tick_params(labelsize=FS_LABEL)
     sns.despine(ax=ax)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
-    plt.show()
     plt.close()
     print(f"Saved {out_path}")
 
@@ -120,7 +125,7 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     p2s = comp.get("p2s", {})
 
     keys = ["miner_payments", "swaps", "arbitrages", "sandwich_attacks"]
-    labels = [k.replace("_", " ").title() for k in keys]
+    labels = [_LABEL_MAP.get(k.replace("_", " ").title(), k.replace("_", " ").title()) for k in keys]
     eth_vals = [eth.get(k, 0) for k in keys]
     p2s_vals = [p2s.get(k, 0) for k in keys]
 
@@ -131,8 +136,8 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     ax.bar(x + w / 2, p2s_vals, w, label="P2S", color=COLOR_P2S, edgecolor="white", linewidth=1.2)
     ax.set_ylabel("Count", fontsize=FS_LABEL, fontweight='bold')
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=FS_TICK)
-    ax.tick_params(labelsize=FS_TICK)
+    ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=FS_LABEL)
+    ax.tick_params(labelsize=FS_LABEL)
     ax.legend(fontsize=FS_LEGEND, loc='upper right')
     sns.despine(ax=ax)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
@@ -140,7 +145,6 @@ def plot_activities_count(comparison_data: dict, out_path: str) -> None:
     plt.tight_layout()
     os.makedirs(FIGURES_DIR, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
-    plt.show()
     plt.close()
     print(f"Saved {out_path}")
 
