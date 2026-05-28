@@ -67,11 +67,11 @@ AGENT_LABELS = {
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _run_sweep_cached():
-    """Run phi sweep and return (phi_vals, activity, net)."""
+    """Run phi sweep and return (phi_vals, activity, net, activity_se, net_se)."""
     phi_vals = PHI_SWEEP
     print("Running φ sweep …")
-    activity, net = run_sweep(phi_values=phi_vals, n_blocks=N_BLOCKS)
-    return phi_vals, activity, net
+    activity, net, activity_se, net_se = run_sweep(phi_values=phi_vals, n_blocks=N_BLOCKS)
+    return phi_vals, activity, net, activity_se, net_se
 
 
 def _active_agents(activity):
@@ -82,7 +82,7 @@ def _active_agents(activity):
 
 # ── Plot 1: Activity rate vs φ ────────────────────────────────────────────────
 
-def plot_activity(phi_vals, activity, out_path):
+def plot_activity(phi_vals, activity, out_path, activity_se=None):
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(10, 5))
     agents = [n for n in activity if n not in _INFEASIBLE]
@@ -91,12 +91,18 @@ def plot_activity(phi_vals, activity, out_path):
         "BlindPlanterBot":  "--",
         "CrossBlockArbBot": ":",
     }
+    phi_arr = np.array(phi_vals)
     for name in agents:
-        ax.plot(phi_vals, activity[name],
+        vals = np.array(activity[name])
+        col  = AGENT_COLORS.get(name, "#555")
+        ax.plot(phi_arr, vals,
                 label=AGENT_LABELS.get(name, name),
-                color=AGENT_COLORS.get(name, "#555"),
-                lw=2.2, marker="o", ms=5,
+                color=col, lw=2.2, marker="o", ms=5,
                 linestyle=linestyles.get(name, "-"))
+        if activity_se and name in activity_se:
+            se = np.array(activity_se[name])
+            ax.fill_between(phi_arr, np.maximum(0, vals - se), np.minimum(1, vals + se),
+                            alpha=0.15, color=col)
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
     ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
@@ -115,16 +121,21 @@ def plot_activity(phi_vals, activity, out_path):
 
 # ── Plot 2: Mean net profit vs φ ─────────────────────────────────────────────
 
-def plot_profit(phi_vals, net, out_path):
+def plot_profit(phi_vals, net, out_path, net_se=None):
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(10, 5))
     agents = [name for name in net if name not in _INFEASIBLE]
+    phi_arr = np.array(phi_vals)
     for name in agents:
-        vals = net[name]
-        ax.plot(phi_vals, vals,
+        vals = np.array(net[name])
+        col  = AGENT_COLORS.get(name, "#555")
+        ax.plot(phi_arr, vals,
                 label=AGENT_LABELS.get(name, name),
-                color=AGENT_COLORS.get(name, "#555"),
-                lw=2.2, marker="o", ms=5)
+                color=col, lw=2.2, marker="o", ms=5)
+        if net_se and name in net_se:
+            se = np.array(net_se[name])
+            ax.fill_between(phi_arr, np.maximum(0, vals - se), vals + se,
+                            alpha=0.15, color=col)
     ax.set_xscale("symlog", linthresh=1e-4)
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
@@ -259,12 +270,14 @@ def plot_stuffer_net(phi_vals, out_path):
 def main():
     os.makedirs(FIGURES_DIR, exist_ok=True)
 
-    phi_vals, activity, net = _run_sweep_cached()
+    phi_vals, activity, net, activity_se, net_se = _run_sweep_cached()
 
     plot_activity(phi_vals, activity,
-                  os.path.join(FIGURES_DIR, "phi_activity.pdf"))
+                  os.path.join(FIGURES_DIR, "phi_activity.pdf"),
+                  activity_se=activity_se)
     plot_profit(phi_vals, net,
-                os.path.join(FIGURES_DIR, "phi_profit.pdf"))
+                os.path.join(FIGURES_DIR, "phi_profit.pdf"),
+                net_se=net_se)
     plot_heatmap(phi_vals,
                  os.path.join(FIGURES_DIR, "phi_heatmap.pdf"))
     plot_stuffer_net(phi_vals,

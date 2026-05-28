@@ -158,6 +158,10 @@ class CrossBlockArbBot(MevAgent):
         if not dex:
             return f_res, 0.0                            # no opportunity — do not reveal
         best = max(dex, key=lambda t: t.trade_eth).trade_eth
+        # Simplification: gain proxy uses single-pool sandwich profit scaled by
+        # ARB_OPP_P2S/ARB_EXEC/ARB_EFF.  A full cross-DEX model would compare
+        # pool prices across two venues; the direction of the result (unprofitable
+        # at mainnet gas) is unchanged because execution cost dominates.
         gain = ARB_OPP_P2S * ARB_EXEC * ARB_EFF * pool.sandwich_profit(best)
         if gain <= exec_cost:
             return f_res, 0.0                            # not worth executing — do not reveal

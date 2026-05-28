@@ -880,7 +880,7 @@ class P2SSimulator:
         for b in ethereum_blocks:
             txs = b.get('transactions', [])
             if txs:
-                gp = txs[0].get('gasPrice', self.base_gas_price_gwei * GWEI_PER_ETH)
+                gp = txs[0].get('gasPrice', self.base_gas_price_gwei)
                 if isinstance(gp, int) and gp > 1e9:
                     gp = gp / 1e9
                 block_gas_prices.append(float(gp) if gp > 0 else self.base_gas_price_gwei)
