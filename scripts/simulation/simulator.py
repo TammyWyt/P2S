@@ -1082,14 +1082,81 @@ class P2SSimulator:
         """Save results to JSON"""
         os.makedirs('data', exist_ok=True)
         filename = f"data/simulation_{self.results['metadata']['timestamp']}.json"
-        
+
         # Convert to JSON-serializable format
         json_results = json.loads(json.dumps(self.results, default=str))
-        
+
         with open(filename, 'w') as f:
             json.dump(json_results, f, indent=2)
-        
+
         print(f"\n💾 Results saved to {filename}")
+
+    def save_ledger_json(self, path: str = "data/block_ledger_1000.json"):
+        """Write block_ledger_1000.json in the format expected by plots/plot_welfare.py."""
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        p2s_blocks = self.results.get("p2s_data", [])
+        pos_blocks  = self.results.get("ethereum_pos_data", [])
+        blocks = []
+        for p, e in zip(p2s_blocks, pos_blocks):
+            p_loss = float(p.get("victim_welfare_loss", 0.0))
+            e_loss = float(e.get("victim_welfare_loss", 0.0))
+            blocks.append({
+                "p2s": {
+                    "block_state":   {"victim_welfare_loss_eth": p_loss},
+                    "wallet_deltas": {"users_aggregate_net_eth": -p_loss},
+                    "attack":        {"victim_slippage_eth":     p_loss},
+                },
+                "ethereum_pos": {
+                    "block_state":   {"victim_welfare_loss_eth": e_loss},
+                    "wallet_deltas": {"users_aggregate_net_eth": -e_loss},
+                    "attack":        {"victim_slippage_eth":     e_loss},
+                },
+            })
+        with open(path, "w") as f:
+            json.dump({"blocks": blocks}, f, indent=2)
+        print(f"💾 Block ledger saved to {path}")
+
+    def save_mev_comparison_json(self, path: str = "data/mev_comparison.json"):
+        """Write mev_comparison.json in the format expected by plots/plot_mev_comparison.py."""
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        eth_strats = self.results.get("attack_strategies", {})
+        p2s_strats = self.results.get("attack_strategies_p2s", {})
+
+        # Build per-strategy totals keyed by snake_case type name
+        _key_map = {
+            "front_run":       "front_running",
+            "sandwich":        "sandwich_attacks",
+            "arbitrage":       "arbitrage",
+            "blind_insert":    "blind_planting",
+            "b2_proposer":     "b2_proposer",
+            "block_stuffing":  "block_stuffing",
+        }
+        mev_by_type = {}
+        all_keys = set(list(eth_strats.keys()) + list(p2s_strats.keys()))
+        for raw_key in all_keys:
+            canonical = _key_map.get(raw_key, raw_key)
+            eth_val = float(eth_strats.get(raw_key, {}).get("total_gain_eth", 0.0))
+            p2s_val = float(p2s_strats.get(raw_key, {}).get("total_gain_eth", 0.0))
+            mev_by_type[canonical] = {
+                "ethereum": {"total": eth_val},
+                "p2s":      {"total": p2s_val},
+            }
+
+        p2s_total = sum(v["p2s"]["total"] for v in mev_by_type.values())
+        eth_total = sum(v["ethereum"]["total"] for v in mev_by_type.values())
+        reduction = (eth_total - p2s_total) / eth_total if eth_total > 0 else 0.0
+
+        out = {
+            "mev_by_type": mev_by_type,
+            "summary": {
+                "ethereum_total_eth": eth_total,
+                "p2s_total_eth":      p2s_total,
+                "reduction_fraction": reduction,
+            },
+        }
+        with open(path, "w") as f:
+            json.dump(out, f, indent=2)
+        print(f"💾 MEV comparison saved to {path}")
 
 def main():
     """Main function"""
@@ -1105,7 +1172,11 @@ def main():
     
     simulator = P2SSimulator()
     results = simulator.run_simulation(num_blocks)
-    
+
+    simulator.save_results()
+    simulator.save_ledger_json()
+    simulator.save_mev_comparison_json()
+
     print(f"\n✅ Simulation complete!")
     print(f"Run the plotting scripts to generate visualizations")
 
