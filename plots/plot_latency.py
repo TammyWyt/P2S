@@ -5,7 +5,7 @@ Network latency comparison: P2S vs Ethereum PoS.
 Runs the block simulator to obtain per-block timing data, then produces:
 
   latency_cdf.pdf       — CDF of total slot latency (all congestion levels pooled)
-  latency_congestion.pdf — median latency ± IQR vs congestion level, both protocols
+  latency_congestion.pdf — box plots of slot latency by congestion level, both protocols
   latency_breakdown.pdf  — stacked mean phase time, P2S vs PoS
 
 All timing comes from simulate_network_delay() in simulator.py using the real
@@ -18,7 +18,10 @@ import random
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 import numpy as np
+import pandas as pd
 import seaborn as sns
 
 _REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -92,41 +95,58 @@ def plot_cdf(p2s, pos, out_path):
     print(f"Saved {out_path}")
 
 
-# ── Figure 2: Median latency ± IQR vs congestion level ───────────────────────
+# ── Figure 2: Box plots of latency by congestion level ───────────────────────
+# Inspired by Javed & Mangues-Bafalluy (2025): box plots with overall-mean
+# reference lines make the full per-level distribution visible rather than
+# just the median+IQR band.
 
 def plot_by_congestion(p2s, pos, out_path):
-    def stats_by_congestion(blocks):
-        medians, q25s, q75s = [], [], []
-        for c in CONGESTION_LEVELS:
-            lats = [b['network_latency'] for b in blocks
-                    if abs(b['congestion_level'] - c) < 1e-9]
-            if not lats:
-                lats = [0.0]
-            medians.append(np.median(lats))
-            q25s.append(np.percentile(lats, 25))
-            q75s.append(np.percentile(lats, 75))
-        return np.array(medians), np.array(q25s), np.array(q75s)
+    records = []
+    for b in p2s:
+        c = b["congestion_level"]
+        if any(abs(c - cl) < 1e-9 for cl in CONGESTION_LEVELS):
+            records.append({"Congestion": f"{c:.1f}", "Latency (s)": b["network_latency"],
+                            "Protocol": "P2S"})
+    for b in pos:
+        c = b["congestion_level"]
+        if any(abs(c - cl) < 1e-9 for cl in CONGESTION_LEVELS):
+            records.append({"Congestion": f"{c:.1f}", "Latency (s)": b["network_latency"],
+                            "Protocol": "Ethereum PoS"})
 
-    p2s_med, p2s_q25, p2s_q75 = stats_by_congestion(p2s)
-    pos_med, pos_q25, pos_q75 = stats_by_congestion(pos)
-    x = np.array(CONGESTION_LEVELS)
+    df = pd.DataFrame(records)
+    # keep congestion labels in the order they appear in CONGESTION_LEVELS
+    order = [f"{c:.1f}" for c in CONGESTION_LEVELS]
 
     sns.set_theme(style="ticks")
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(10, 5))
 
-    for med, q25, q75, label, col, ls in [
-        (p2s_med, p2s_q25, p2s_q75, "P2S",          COL_P2S, "-"),
-        (pos_med, pos_q25, pos_q75, "Ethereum PoS",  COL_POS, "--"),
-    ]:
-        ax.plot(x, med, color=col, lw=2.2, linestyle=ls,
-                marker="o", ms=7, label=label)
-        ax.fill_between(x, q25, q75, alpha=0.18, color=col)
+    palette = {"P2S": COL_P2S, "Ethereum PoS": COL_POS}
+    sns.boxplot(data=df, x="Congestion", y="Latency (s)", hue="Protocol",
+                order=order, palette=palette, linewidth=1.8,
+                fliersize=3, width=0.6, ax=ax)
+
+    # overall-mean reference lines (dashed) — same idea as the red dashed line
+    # in Javed & Mangues-Bafalluy Fig. 6
+    means = {}
+    for protocol, col in [("P2S", COL_P2S), ("Ethereum PoS", COL_POS)]:
+        means[protocol] = df[df["Protocol"] == protocol]["Latency (s)"].mean()
+        ax.axhline(means[protocol], color=col, lw=1.8, linestyle="--", alpha=0.55)
+
+    # manual legend: protocol boxes + mean-line entries
+    legend_handles = [
+        Patch(facecolor=COL_P2S, edgecolor="k", linewidth=0.5, label="P2S"),
+        Patch(facecolor=COL_POS, edgecolor="k", linewidth=0.5, label="Ethereum PoS"),
+        Line2D([0], [0], color=COL_P2S, lw=1.8, linestyle="--",
+               label=f"P2S mean ({means['P2S']:.2f} s)"),
+        Line2D([0], [0], color=COL_POS, lw=1.8, linestyle="--",
+               label=f"PoS mean ({means['Ethereum PoS']:.2f} s)"),
+    ]
+    ax.legend(handles=legend_handles, fontsize=FS_LEGEND - 2, ncol=2)
+    ax.get_legend().set_title(None)
 
     ax.set_xlabel("Congestion level", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Slot network latency (s)", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_xticks(CONGESTION_LEVELS)
     ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
     sns.despine(ax=ax)
