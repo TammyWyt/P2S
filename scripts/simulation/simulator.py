@@ -26,6 +26,19 @@ WEI_PER_ETH = 1e18
 GWEI_PER_ETH = 1e9
 DEFAULT_NUM_BLOCKS = 1000
 
+# Post-Merge Ethereum economics (EIP-3675):
+#   * Execution-layer block issuance: 0 ETH (no PoW block subsidy)
+#   * Proposer receives EIP-1559 priority fees only (base fee burned)
+#   * Consensus-layer attester reward per slot: ~0.06 ETH (approx.; varies with
+#     validator participation rate).  Modeled as a fixed per-block reward on the
+#     selected proposer for accounting parity with PoS.
+POST_MERGE_BLOCK_ISSUANCE_ETH = 0.0
+POST_MERGE_ATTESTER_REWARD_ETH = 0.06   # consensus-layer reward per slot
+
+# Proposer captures priority-fee tip portion of tx gas fees as MEV/revenue.
+# Post-EIP-1559: base fee is burned, only the tip flows to the proposer.
+PROPOSER_TIP_FRACTION = 0.10            # ~10 % of declared gas price is tip
+
 
 @dataclass
 class AttackStrategyResult:
@@ -42,6 +55,11 @@ class AttackStrategyResult:
     cost_per_success_eth: float = 0.0  # total_cost / successes; high when success rate is low
     total_victim_welfare_loss_eth: float = 0.0  # total slippage s_j ≈ m_j suffered by victims
     total_victim_base_valuation_eth: float = 0.0  # Σ v_j: victims' gross value for attacked txs
+    per_block_gain_eth: List[float] = None  # length=num_blocks: gain at each block (for bootstrap CI)
+
+    def __post_init__(self):
+        if self.per_block_gain_eth is None:
+            self.per_block_gain_eth = []
 
 
 class MEVAttackStrategies:
@@ -366,10 +384,12 @@ class MEVAttackStrategies:
             attempts = num_blocks
             successes = 0
             alpha = victim_alpha[name]
+            per_block_gains: List[float] = []
             for i in range(num_blocks):
                 cost, gain, success = run_fn(i)
                 total_cost += cost
                 total_gain += gain
+                per_block_gains.append(gain)
                 if success:
                     successes += 1
                     s_j = alpha * gain   # s_j = m_j (money conserved)
@@ -392,6 +412,7 @@ class MEVAttackStrategies:
                 cost_per_success_eth=cost_per_success,
                 total_victim_welfare_loss_eth=total_victim_loss,
                 total_victim_base_valuation_eth=total_victim_valuation,
+                per_block_gain_eth=per_block_gains,
             )
         return results
 
@@ -407,10 +428,12 @@ class MEVAttackStrategies:
         total_victim_valuation = 0.0
         successes = 0
         VICTIM_GAS_UNITS = 150_000
+        per_block_gains: List[float] = []
         for i in range(num_blocks):
             cost, gain, success = self.run_blind_insert_p2s_no_reveal(i)
             total_cost += cost
             total_gain += gain
+            per_block_gains.append(gain)
             if success:
                 successes += 1
                 s_j = self.VICTIM_SLIPPAGE_ALPHA * gain  # s_j = m_j
@@ -434,6 +457,7 @@ class MEVAttackStrategies:
                 cost_per_success_eth=cost_per_success,
                 total_victim_welfare_loss_eth=total_victim_loss,
                 total_victim_base_valuation_eth=total_victim_valuation,
+                per_block_gain_eth=per_block_gains,
             ),
             # g_limit over-declaration: cost of inflating g_limit by 5×.
             # With F_res = φ · g_limit · g_base, cost scales linearly with g_limit:
@@ -592,8 +616,49 @@ class P2SSimulator:
             'excluded_count': len(transactions) - len(included),
         }
 
+    @staticmethod
+    def _congestion_to_block_fill(congestion_level: float) -> float:
+        """Map the synthetic 'congestion_level' delay multiplier to block gas-utilization fraction.
+
+        The simulator's congestion bands (0.0, 0.1, 0.3, 0.5, 0.7) historically
+        modeled a delay multiplier with no clear Ethereum observable.  We expose
+        a deterministic correspondence so plots can label the x-axis honestly:
+            congestion 0.0 → 0.00 fill (empty block)
+            congestion 0.1 → 0.25 fill
+            congestion 0.3 → 0.50 fill (EIP-1559 target)
+            congestion 0.5 → 0.75 fill (above target)
+            congestion 0.7 → 1.00 fill (block at gas limit)
+        Values outside the buckets are linearly interpolated.
+        """
+        anchors = [(0.0, 0.0), (0.1, 0.25), (0.3, 0.50), (0.5, 0.75), (0.7, 1.0)]
+        for (c0, f0), (c1, f1) in zip(anchors, anchors[1:]):
+            if c0 <= congestion_level <= c1:
+                if c1 == c0:
+                    return f0
+                return f0 + (f1 - f0) * (congestion_level - c0) / (c1 - c0)
+        # outside buckets: clamp
+        return max(0.0, min(1.0, anchors[-1][1] if congestion_level > anchors[-1][0] else anchors[0][1]))
+
+    @staticmethod
+    def _block_fill_to_congestion(block_fill: float) -> float:
+        """Inverse of _congestion_to_block_fill: take gas-utilization fraction → delay multiplier."""
+        anchors = [(0.0, 0.0), (0.25, 0.1), (0.50, 0.3), (0.75, 0.5), (1.0, 0.7)]
+        block_fill = max(0.0, min(1.0, block_fill))
+        for (f0, c0), (f1, c1) in zip(anchors, anchors[1:]):
+            if f0 <= block_fill <= f1:
+                if f1 == f0:
+                    return c0
+                return c0 + (c1 - c0) * (block_fill - f0) / (f1 - f0)
+        return anchors[-1][1]
+
     def simulate_network_delay(self, congestion_level=0.0):
-        """Simulate network delay"""
+        """Simulate per-slot network delay (seconds).
+
+        congestion_level is the synthetic delay multiplier (legacy name).  The
+        plotting code translates this back to block gas-utilization % via
+        ``_congestion_to_block_fill`` so the x-axis is labelled with an
+        Ethereum observable rather than a synthetic parameter.
+        """
         base_delay = self.network_latency_base
         jitter = random.uniform(-self.network_jitter, self.network_jitter)
         congestion_delay = congestion_level * random.uniform(0.5, 2.0)
@@ -695,10 +760,13 @@ class P2SSimulator:
             for tx in transactions
         )
 
-        # Block reward: fixed issuance + fraction of tx fees (benign, mainnet-like).
-        # Reservation fees are burned, so they are NOT added to proposer reward.
-        block_reward = 2.0 + sum(
-            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000)) * 0.1
+        # Block reward (post-Merge, EIP-3675):
+        #   * Execution layer issuance: 0 ETH (POST_MERGE_BLOCK_ISSUANCE_ETH = 0)
+        #   * Consensus layer attester reward: ~0.06 ETH/slot
+        #   * Plus EIP-1559 priority-fee tip ≈ PROPOSER_TIP_FRACTION of gas fees
+        # Reservation fees are burned (EIP-1559 style) and NOT proposer revenue.
+        block_reward = POST_MERGE_BLOCK_ISSUANCE_ETH + POST_MERGE_ATTESTER_REWARD_ETH + sum(
+            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000)) * PROPOSER_TIP_FRACTION
             for tx in transactions
         )
 
@@ -775,8 +843,10 @@ class P2SSimulator:
             self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000))
             for tx in transactions
         )
-        block_reward = 2.0 + sum(
-            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000)) * 0.1
+        # Block reward (post-Merge, EIP-3675): same accounting as P2S branch.
+        # Zero execution-layer issuance + consensus-layer attester reward + EIP-1559 tip.
+        block_reward = POST_MERGE_BLOCK_ISSUANCE_ETH + POST_MERGE_ATTESTER_REWARD_ETH + sum(
+            self.gas_cost_eth(tx.get('gas_price', self.base_gas_price_gwei), tx.get('gas_limit', 21000)) * PROPOSER_TIP_FRACTION
             for tx in transactions
         )
 
@@ -902,6 +972,7 @@ class P2SSimulator:
                 'cost_per_success_eth': r.cost_per_success_eth,
                 'total_victim_welfare_loss_eth': r.total_victim_welfare_loss_eth,
                 'total_victim_base_valuation_eth': r.total_victim_base_valuation_eth,
+                'per_block_gain_eth': list(r.per_block_gain_eth or []),
             }
             for name, r in strategy_results.items()
         }
@@ -920,6 +991,7 @@ class P2SSimulator:
                 'cost_per_success_eth': r.cost_per_success_eth,
                 'total_victim_welfare_loss_eth': r.total_victim_welfare_loss_eth,
                 'total_victim_base_valuation_eth': r.total_victim_base_valuation_eth,
+                'per_block_gain_eth': list(r.per_block_gain_eth or []),
             }
             for name, r in strategy_results_p2s.items()
         }
@@ -1117,46 +1189,138 @@ class P2SSimulator:
         print(f"💾 Block ledger saved to {path}")
 
     def save_mev_comparison_json(self, path: str = "data/mev_comparison.json"):
-        """Write mev_comparison.json in the format expected by plots/plot_mev_comparison.py."""
+        """Write mev_comparison.json in the schema expected by plots/plot_mev_comparison.py.
+
+        Writes atomically (tmpfile + os.replace) so a crash mid-write cannot leave
+        a half-written file in place.  Includes block-count metadata so a reader
+        can verify that the file was generated by the current 1000-block run rather
+        than an older stub.
+        """
+        import tempfile
+
         os.makedirs(os.path.dirname(path), exist_ok=True)
         eth_strats = self.results.get("attack_strategies", {})
         p2s_strats = self.results.get("attack_strategies_p2s", {})
 
-        # Build per-strategy totals keyed by snake_case type name
+        # Map simulator strategy keys → display keys consumed by plot_mev_comparison.py
         _key_map = {
-            "front_run":       "front_running",
-            "sandwich":        "sandwich_attacks",
-            "arbitrage":       "arbitrage",
-            "blind_insert":    "blind_planting",
-            "b2_proposer":     "b2_proposer",
-            "block_stuffing":  "block_stuffing",
+            "front_run":             "front_running",
+            "sandwich":              "sandwich_attacks",
+            "arbitrage":             "arbitrage",
+            "blind_insert_p2s":      "blind_planting",
+            "glimit_overdecl_5x_pht":"block_stuffing",
         }
-        mev_by_type = {}
-        all_keys = set(list(eth_strats.keys()) + list(p2s_strats.keys()))
-        for raw_key in all_keys:
-            canonical = _key_map.get(raw_key, raw_key)
-            eth_val = float(eth_strats.get(raw_key, {}).get("total_gain_eth", 0.0))
-            p2s_val = float(p2s_strats.get(raw_key, {}).get("total_gain_eth", 0.0))
-            mev_by_type[canonical] = {
-                "ethereum": {"total": eth_val},
-                "p2s":      {"total": p2s_val},
+
+        num_blocks = int(self.results.get("metadata", {}).get("num_blocks", DEFAULT_NUM_BLOCKS))
+
+        def _bucket_for(raw_key: str, eth_record: dict, p2s_record: dict) -> dict:
+            eth_total = float(eth_record.get("total_gain_eth", 0.0))
+            p2s_total = float(p2s_record.get("total_gain_eth", 0.0))
+            eth_succ  = int(eth_record.get("successes", 0))
+            p2s_succ  = int(p2s_record.get("successes", 0))
+            red_total = eth_total - p2s_total
+            red_pct   = (red_total / eth_total * 100.0) if eth_total > 0 else 0.0
+            red_count = eth_succ - p2s_succ
+            red_count_pct = (red_count / eth_succ * 100.0) if eth_succ > 0 else 0.0
+            return {
+                "ethereum": {"count": eth_succ, "total": eth_total,
+                             "avg":   eth_total / eth_succ if eth_succ else 0.0,
+                             "median":eth_total / eth_succ if eth_succ else 0.0},
+                "p2s":      {"count": p2s_succ, "total": p2s_total,
+                             "avg":   p2s_total / p2s_succ if p2s_succ else 0.0,
+                             "median":p2s_total / p2s_succ if p2s_succ else 0.0},
+                "reduction": {"count": red_count, "count_pct": red_count_pct,
+                              "total": red_total, "total_pct": red_pct},
             }
 
-        p2s_total = sum(v["p2s"]["total"] for v in mev_by_type.values())
-        eth_total = sum(v["ethereum"]["total"] for v in mev_by_type.values())
-        reduction = (eth_total - p2s_total) / eth_total if eth_total > 0 else 0.0
+        mev_by_type: Dict[str, Dict[str, Any]] = {}
+        for raw_key in set(list(eth_strats.keys()) + list(p2s_strats.keys())):
+            canonical = _key_map.get(raw_key, raw_key)
+            mev_by_type[canonical] = _bucket_for(
+                raw_key,
+                eth_strats.get(raw_key, {}),
+                p2s_strats.get(raw_key, {}),
+            )
 
-        out = {
-            "mev_by_type": mev_by_type,
-            "summary": {
-                "ethereum_total_eth": eth_total,
-                "p2s_total_eth":      p2s_total,
-                "reduction_fraction": reduction,
+        p2s_total = sum(v["p2s"]["total"]      for v in mev_by_type.values())
+        eth_total = sum(v["ethereum"]["total"] for v in mev_by_type.values())
+        reduction_fraction = (eth_total - p2s_total) / eth_total if eth_total > 0 else 0.0
+        reduction_pct      = reduction_fraction * 100.0
+
+        # Activity-count summary (consumed by plot_activities_count)
+        comparison = {
+            "ethereum": {
+                "total_blocks":      num_blocks,
+                "total_mev":         eth_total,
+                "avg_mev_per_block": eth_total / num_blocks if num_blocks else 0.0,
+                "miner_payments":    num_blocks,
+                "swaps":             int(eth_strats.get("sandwich",  {}).get("attempts", num_blocks)),
+                "arbitrages":        int(eth_strats.get("arbitrage", {}).get("successes", 0)),
+                "sandwich_attacks":  int(eth_strats.get("sandwich",  {}).get("successes", 0)),
+            },
+            "p2s": {
+                "total_blocks":      num_blocks,
+                "total_mev":         p2s_total,
+                "avg_mev_per_block": p2s_total / num_blocks if num_blocks else 0.0,
+                "miner_payments":    num_blocks,
+                "swaps":             int(p2s_strats.get("blind_insert_p2s", {}).get("attempts", num_blocks)),
+                "arbitrages":        0,
+                "sandwich_attacks":  int(p2s_strats.get("blind_insert_p2s", {}).get("successes", 0)),
+            },
+            "differences": {
+                "total_mev": {"ethereum": eth_total, "p2s": p2s_total,
+                              "reduction": reduction_pct,
+                              "reduction_abs": eth_total - p2s_total},
             },
         }
-        with open(path, "w") as f:
-            json.dump(out, f, indent=2)
-        print(f"💾 MEV comparison saved to {path}")
+
+        # Per-block aggregate gain (sum across all attacker strategies, length = num_blocks).
+        # Used by plot_mev_comparison.py to bootstrap a 95% CI on reduction %.
+        def _sum_per_block(record_dict: Dict[str, Any]) -> List[float]:
+            vectors = [list(r.get("per_block_gain_eth") or []) for r in record_dict.values()]
+            if not vectors:
+                return [0.0] * num_blocks
+            length = max(len(v) for v in vectors) or num_blocks
+            return [sum(v[i] if i < len(v) else 0.0 for v in vectors) for i in range(length)]
+
+        per_block_eth = _sum_per_block(eth_strats)
+        per_block_p2s = _sum_per_block(p2s_strats)
+
+        out = {
+            "timestamp": datetime.now().isoformat(),
+            "metadata":  {
+                "num_blocks":          num_blocks,
+                "post_merge_economics": True,
+                "block_issuance_eth":   POST_MERGE_BLOCK_ISSUANCE_ETH,
+                "attester_reward_eth":  POST_MERGE_ATTESTER_REWARD_ETH,
+                "proposer_tip_fraction":PROPOSER_TIP_FRACTION,
+            },
+            "comparison": comparison,
+            "mev_by_type": mev_by_type,
+            "per_block_gain_eth": {
+                "ethereum": per_block_eth,
+                "p2s":      per_block_p2s,
+            },
+            "summary": {
+                "ethereum_total_eth":  eth_total,
+                "p2s_total_eth":       p2s_total,
+                "reduction_fraction":  reduction_fraction,
+                "reduction_pct":       reduction_pct,
+            },
+        }
+
+        # Atomic write: tmp file in same directory, then os.replace
+        dir_name = os.path.dirname(path) or "."
+        tmp_fd, tmp_path = tempfile.mkstemp(prefix=".mev_cmp_", suffix=".json", dir=dir_name)
+        try:
+            with os.fdopen(tmp_fd, "w") as f:
+                json.dump(out, f, indent=2, default=str)
+            os.replace(tmp_path, path)
+        except Exception:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+            raise
+        print(f"💾 MEV comparison saved to {path} (num_blocks={num_blocks})")
 
 def main():
     """Main function"""
