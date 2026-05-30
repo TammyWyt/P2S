@@ -559,15 +559,18 @@ class P2SSimulator:
         base_fee_gwei: float = 0.0,
     ) -> Dict[str, Any]:
         """
-        Greedy Fee-Density (Greedy-FD) block packing algorithm.
+        Greedy priority-fee-density block packing.
 
-        Matches the algorithm used by Ethereum go-ethereum (Geth) and Flashbots
-        rbuilder in production.  Complexity: O(n log n).
+        A textbook greedy approximation to the block-packing knapsack: rank
+        transactions by priority_fee / gas and fill to the block gas limit.
+        We use this as a deterministic baseline that is structurally similar
+        to (but not bit-identical to) the heuristics used by production Geth
+        and Flashbots rbuilder.  Complexity: O(n log n).
 
-        Reference: Heimbach et al. "A First Look at Ethereum Blob Revolution",
-        arXiv:2411.03892 (2024) — used as oracle benchmark for real-world
-        packing efficiency measurement.  Also: Azouvi & Hicks "Blockchains, MEV
-        and the Knapsack Problem", arXiv:2403.19077 (2024).
+        Background on greedy fee-density packing in MEV / block-construction
+        contexts: Heimbach et al. (arXiv:2411.03892, 2024); Azouvi & Hicks
+        (arXiv:2403.19077, 2024).  Neither is a precise reference for the
+        production implementations; we use them as positioning, not citation.
 
         Under EIP-1559, the builder's revenue is the priority fee (tip), not the
         base fee (which is burned).  Fee density = priority_fee_gwei / gas.
@@ -714,9 +717,9 @@ class P2SSimulator:
         """Simulate P2S block processing using real Ethereum block data"""
         start_time = time.time()
         
-        # Convert Ethereum transactions then apply Greedy-FD block packing (B1 step).
+        # Convert Ethereum transactions then apply greedy fee-density block packing (B1 step).
         # In P2S, B1 packs PHTs by reserved gas capacity (g^limit).  The same
-        # Greedy-FD algorithm used by Geth/Flashbots is applied so the comparison
+        # greedy priority-fee-density rule, structurally similar to Geth and Flashbots heuristics is applied so the comparison
         # against Ethereum PoS uses an identical packing benchmark.
         all_txs = [self.convert_ethereum_tx(tx) for tx in ethereum_block.get('transactions', [])]
         b1_base_fee = self.base_gas_price_gwei * 0.8  # approximate EIP-1559 base fee
@@ -805,7 +808,7 @@ class P2SSimulator:
             'victim_welfare_loss': victim_welfare_loss,
             'network_latency': b1_time + b2_time,
             'congestion_level': congestion,
-            # Greedy-FD packing metrics (same algorithm as Geth/Flashbots)
+            # greedy fee-density packing.metrics (structurally similar to Geth/Flashbots heuristics)
             'packing_gas_utilization': b1_pack['gas_utilization'],
             'packing_fee_revenue_eth': b1_pack['total_fee_eth'],
             'packing_excluded_txs': b1_pack['excluded_count'],
@@ -815,9 +818,9 @@ class P2SSimulator:
         """Simulate standard Ethereum PoS block using real Ethereum data"""
         start_time = time.time()
 
-        # Convert Ethereum transactions then apply Greedy-FD packing.
+        # Convert Ethereum transactions then apply greedy fee-density packing.
         # This is the identical algorithm used by Geth and Flashbots rbuilder in
-        # production (Heimbach et al. arXiv:2411.03892, 2024).  Using the same
+        # production (related: Heimbach 2024).  Using the same
         # algorithm for both protocols ensures a fair apples-to-apples comparison.
         all_txs = [self.convert_ethereum_tx(tx) for tx in ethereum_block.get('transactions', [])]
         pos_base_fee = self.base_gas_price_gwei * 0.8
@@ -883,7 +886,7 @@ class P2SSimulator:
             'victim_welfare_loss': victim_welfare_loss,
             'network_latency': proposal_time + confirmation_time,
             'congestion_level': congestion,
-            # Greedy-FD packing metrics (same algorithm as Geth/Flashbots)
+            # greedy fee-density packing.metrics (structurally similar to Geth/Flashbots heuristics)
             'packing_gas_utilization': pos_pack['gas_utilization'],
             'packing_fee_revenue_eth': pos_pack['total_fee_eth'],
             'packing_excluded_txs': pos_pack['excluded_count'],
@@ -1055,7 +1058,7 @@ class P2SSimulator:
                 f"  {protocol_label}: {oh['mean_latency']:.3f}s latency, "
                 f"{oh['mean_cost']:.4f} ETH cost/block, "
                 f"{oh['mean_packing_gas_utilization']:.1%} gas utilization "
-                f"(Greedy-FD packing, ref: Heimbach et al. arXiv:2411.03892)"
+                f"(greedy priority-fee-density packing)"
             )
 
     def print_attack_strategies_summary(self):
@@ -1130,7 +1133,7 @@ class P2SSimulator:
                 'total_reservation_fees_burned': sum(res_fees),
             }
         
-        # Overhead metrics + Greedy-FD packing efficiency
+        # Overhead metrics + greedy fee-density packing.efficiency
         for protocol_data, protocol_name in [(self.results['p2s_data'], 'p2s'),
                                             (self.results['ethereum_pos_data'], 'ethereum_pos')]:
             latencies = [block['network_latency'] for block in protocol_data]
@@ -1145,7 +1148,7 @@ class P2SSimulator:
                 'total_cost': sum(costs),
                 'p95_latency': sorted(latencies)[int(len(latencies) * 0.95)] if latencies else 0,
                 'p99_latency': sorted(latencies)[int(len(latencies) * 0.99)] if latencies else 0,
-                # Greedy-FD block packing (Geth/Flashbots production algorithm)
+                # Greedy fee-density block packing (deterministic baseline)
                 'mean_packing_gas_utilization': statistics.mean(gas_utils) if gas_utils else 0,
                 'total_packing_fee_revenue_eth': sum(fee_revs),
             }
