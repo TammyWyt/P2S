@@ -1,0 +1,365 @@
+{
+  "n_windows": 40,
+  "blocks_sampled": 400,
+  "n_sandwiches_total": 60,
+  "total_extracted_eth": 1.612632004679509,
+  "p2s_eliminated_eth": 1.612632004679509,
+  "mean_per_sandwich_eth": 0.026877200077991818,
+  "median_per_sandwich_eth": 0.000614659212181504,
+  "all_profits_eth": [
+    0.7235437856597084,
+    0.35478810710249653,
+    0.18435706094141482,
+    0.1235907861939891,
+    0.09138925042715852,
+    0.03550685593677635,
+    0.011222086130058397,
+    0.01064107353361613,
+    0.008702648865360435,
+    0.0076180908670976,
+    0.006417849371328513,
+    0.006125924739186688,
+    0.005914710715204333,
+    0.005324973468024832,
+    0.004894110938824704,
+    0.004419235261841197,
+    0.003193016110022656,
+    0.00299726801510953,
+    0.002290115216932864,
+    0.002154733552795648,
+    0.002069332423081984,
+    0.001345378766638274,
+    0.001295400791179264,
+    0.00110017734770688,
+    0.00102997610725376,
+    0.000885824119898112,
+    0.000861939806765056,
+    0.00072941429587968,
+    0.00071262097375232,
+    0.000615790936064,
+    0.000613527488299008,
+    0.000505036614402048,
+    0.000441368019206144,
+    0.000434826784014337,
+    0.000434453088305153,
+    0.000400875067539456,
+    0.000360446540382208,
+    0.000339465625141248,
+    0.000330463373688832,
+    0.000323988547656696,
+    0.000300931178561536,
+    0.000290610372149248,
+    0.000283175783759872,
+    0.000203611514601472,
+    0.000199450386504476,
+    0.000194254220023386,
+    0.000180594784862208,
+    0.0001472100040704,
+    0.0001364725858304,
+    0.000124871879163904,
+    0.00012380671049728,
+    0.000121056522141696,
+    0.000118803090374656,
+    0.000117583319662592,
+    4.2507274551296e-05,
+    3.4175054774272e-05,
+    3.2268089294848e-05,
+    2.5048232493056e-05,
+    1.773821493248e-05,
+    1.5845697458046e-05
+  ],
+  "windows": [
+    {
+      "block": 25222678,
+      "n_swaps": 332,
+      "n_sandwiches": 3,
+      "extracted_eth": 0.001353017777455104
+    },
+    {
+      "block": 25168678,
+      "n_swaps": 237,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 25114678,
+      "n_swaps": 174,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 25060678,
+      "n_swaps": 181,
+      "n_sandwiches": 3,
+      "extracted_eth": 0.000293314758705152
+    },
+    {
+      "block": 25006678,
+      "n_swaps": 285,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.000434826784014337
+    },
+    {
+      "block": 24952678,
+      "n_swaps": 441,
+      "n_sandwiches": 4,
+      "extracted_eth": 0.0016144953864355841
+    },
+    {
+      "block": 24898678,
+      "n_swaps": 663,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 24844678,
+      "n_swaps": 192,
+      "n_sandwiches": 3,
+      "extracted_eth": 0.005798789083253743
+    },
+    {
+      "block": 24790678,
+      "n_swaps": 204,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 24736678,
+      "n_swaps": 164,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 24682678,
+      "n_swaps": 201,
+      "n_sandwiches": 1,
+      "extracted_eth": 1.773821493248e-05
+    },
+    {
+      "block": 24628678,
+      "n_swaps": 304,
+      "n_sandwiches": 2,
+      "extracted_eth": 0.3601130805705214
+    },
+    {
+      "block": 24574678,
+      "n_swaps": 348,
+      "n_sandwiches": 2,
+      "extracted_eth": 0.0005547007604055939
+    },
+    {
+      "block": 24520678,
+      "n_swaps": 737,
+      "n_sandwiches": 4,
+      "extracted_eth": 0.19673212830249898
+    },
+    {
+      "block": 24466678,
+      "n_swaps": 284,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 24412678,
+      "n_swaps": 215,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.000505036614402048
+    },
+    {
+      "block": 24358678,
+      "n_swaps": 460,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 24304678,
+      "n_swaps": 270,
+      "n_sandwiches": 3,
+      "extracted_eth": 0.0014156212207616
+    },
+    {
+      "block": 24250678,
+      "n_swaps": 268,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.000434453088305153
+    },
+    {
+      "block": 24196678,
+      "n_swaps": 272,
+      "n_sandwiches": 2,
+      "extracted_eth": 0.000299397875236864
+    },
+    {
+      "block": 24142678,
+      "n_swaps": 281,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.000124871879163904
+    },
+    {
+      "block": 24088678,
+      "n_swaps": 263,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 24034678,
+      "n_swaps": 629,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.008702648865360435
+    },
+    {
+      "block": 23980678,
+      "n_swaps": 149,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 23926678,
+      "n_swaps": 328,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.00299726801510953
+    },
+    {
+      "block": 23872678,
+      "n_swaps": 246,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.000400875067539456
+    },
+    {
+      "block": 23818678,
+      "n_swaps": 324,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.004894110938824704
+    },
+    {
+      "block": 23764678,
+      "n_swaps": 457,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 23710678,
+      "n_swaps": 207,
+      "n_sandwiches": 1,
+      "extracted_eth": 0.03550685593677635
+    },
+    {
+      "block": 23656678,
+      "n_swaps": 262,
+      "n_sandwiches": 4,
+      "extracted_eth": 0.012974700637901852
+    },
+    {
+      "block": 23602678,
+      "n_swaps": 222,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 23548678,
+      "n_swaps": 323,
+      "n_sandwiches": 5,
+      "extracted_eth": 0.7372221741489327
+    },
+    {
+      "block": 23494678,
+      "n_swaps": 257,
+      "n_sandwiches": 3,
+      "extracted_eth": 0.0016691937796003758
+    },
+    {
+      "block": 23440678,
+      "n_swaps": 229,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 23386678,
+      "n_swaps": 428,
+      "n_sandwiches": 2,
+      "extracted_eth": 0.012795807086411778
+    },
+    {
+      "block": 23332678,
+      "n_swaps": 357,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 23278678,
+      "n_swaps": 265,
+      "n_sandwiches": 0,
+      "extracted_eth": 0
+    },
+    {
+      "block": 23224678,
+      "n_swaps": 321,
+      "n_sandwiches": 2,
+      "extracted_eth": 0.001475467295064064
+    },
+    {
+      "block": 23170678,
+      "n_swaps": 529,
+      "n_sandwiches": 3,
+      "extracted_eth": 0.12476722068603646
+    },
+    {
+      "block": 23116678,
+      "n_swaps": 372,
+      "n_sandwiches": 5,
+      "extracted_eth": 0.09953420990585934
+    }
+  ],
+  "top": [
+    {
+      "pool": "0xe0554a476a092703abdb3ef35c80e0d76d32939f",
+      "attacker": "0x207e1074858a7e78f17002075739ed2745dbaece",
+      "profit_eth": 0.7235437856597084
+    },
+    {
+      "pool": "0xc7bbec68d12a0d1830360f8ec58fa599ba1b0e9b",
+      "attacker": "0xf48a3f7c0575c85cf4529aa220caf3c055773f1c",
+      "profit_eth": 0.35478810710249653
+    },
+    {
+      "pool": "0xc7bbec68d12a0d1830360f8ec58fa599ba1b0e9b",
+      "attacker": "0x1f2f10d1c40777ae1da742455c65828ff36df387",
+      "profit_eth": 0.18435706094141482
+    },
+    {
+      "pool": "0xe0554a476a092703abdb3ef35c80e0d76d32939f",
+      "attacker": "0x2e1dee213ba8d7af0934c49a23187babeaca8764",
+      "profit_eth": 0.1235907861939891
+    },
+    {
+      "pool": "0x3bfd3c38ac8fa80979511aef221494bcc5bb033f",
+      "attacker": "0x6e0064cb01008bcb00a91f00dc43e500a2ce00d6",
+      "profit_eth": 0.09138925042715852
+    },
+    {
+      "pool": "0xe0554a476a092703abdb3ef35c80e0d76d32939f",
+      "attacker": "0xbadc0de76438f9524d42c219b390636196bfbdfc",
+      "profit_eth": 0.03550685593677635
+    },
+    {
+      "pool": "0x9082338165d78e11869c3d02914bb49cc20ca0a6",
+      "attacker": "0xbadc0de76438f9524d42c219b390636196bfbdfc",
+      "profit_eth": 0.011222086130058397
+    },
+    {
+      "pool": "0xe0554a476a092703abdb3ef35c80e0d76d32939f",
+      "attacker": "0x1f2f10d1c40777ae1da742455c65828ff36df387",
+      "profit_eth": 0.01064107353361613
+    },
+    {
+      "pool": "0xf15b73e7f5edcfc0d91da289c21d9af89cf377ce",
+      "attacker": "0x841b6ff0979f86bd76579a3cd03fa43a6a1bb697",
+      "profit_eth": 0.008702648865360435
+    },
+    {
+      "pool": "0xd8af189b47b27fb698910f4e89a24ba26bcef59c",
+      "attacker": "0x2ba151b2cb21e2b1ac297765b921d35aeaff139a",
+      "profit_eth": 0.0076180908670976
+    }
+  ]
+}
