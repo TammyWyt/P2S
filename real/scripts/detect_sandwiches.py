@@ -76,23 +76,35 @@ def weth_flow(topic0, data, widx):
         amt = signed(b[0:64]) if widx == 0 else signed(b[64:128])
         return (amt, 0) if amt > 0 else (0, -amt)
 
+def get_reserves(pool, block):
+    """V2 getReserves() at a given block. Returns (r0, r1) or None."""
+    try:
+        res = rpc("eth_call", [{"to": pool, "data": "0x0902f1ac"}, hex(block)])
+        b = res[2:]
+        return int(b[0:64], 16), int(b[64:128], 16)
+    except Exception:
+        return None
+
 def detect_group(swaps):
-    """swaps sorted by logIndex, each {to, win, wout}. Returns [(attacker, profit_wei)]."""
+    """swaps sorted by logIndex, each {to, win, wout}. Returns tuples
+    (attacker, profit_wei, front_weth_in_wei, victim_weth_in_wei)."""
     found = []
     n = len(swaps)
     for p in range(n):
         if swaps[p]["win"] == 0:
             continue
         X = swaps[p]["to"]
-        victim = False
+        victim = False; victim_max = 0
         for q in range(p+1, n):
             t = swaps[q]
             if t["to"] != X and t["win"] > 0:
                 victim = True
+                if t["win"] > victim_max:
+                    victim_max = t["win"]
             if t["to"] == X and t["wout"] > 0 and victim:
                 profit = t["wout"] - swaps[p]["win"]
                 if profit > 0:
-                    found.append((X, profit))
+                    found.append((X, profit, swaps[p]["win"], victim_max))
                 break
     return found
 
@@ -108,7 +120,7 @@ def scan_window(lo):
         key = (lg["address"].lower(), lg["blockNumber"])
         groups.setdefault(key, []).append(lg)
     sandwiches = []
-    for (pool, _blk), lgs in groups.items():
+    for (pool, blk), lgs in groups.items():
         if len(lgs) < 3:
             continue
         tos = [lg["topics"][2][-40:].lower() for lg in lgs]
@@ -117,14 +129,26 @@ def scan_window(lo):
         widx = weth_index(pool)
         if widx is None:
             continue
+        version = "v2" if lgs[0]["topics"][0].lower() == V2_TOPIC else "v3"
         swaps = []
         for lg in lgs:
             win, wout = weth_flow(lg["topics"][0].lower(), lg["data"], widx)
             swaps.append({"li": h2i(lg["logIndex"]), "to": lg["topics"][2][-40:].lower(),
                           "win": win, "wout": wout})
         swaps.sort(key=lambda r: r["li"])
-        for X, profit in detect_group(swaps):
-            sandwiches.append({"pool": pool, "attacker": "0x"+X, "profit_eth": profit/WEI})
+        reserves = None  # fetch once per V2 pool/block that has a sandwich
+        for X, profit, frontin, vic in detect_group(swaps):
+            rec = {"pool": pool, "block": h2i(blk), "version": version, "attacker": "0x"+X,
+                   "profit_eth": profit/WEI, "front_weth_in_eth": frontin/WEI,
+                   "victim_weth_in_eth": vic/WEI}
+            if version == "v2":
+                if reserves is None:
+                    r = get_reserves(pool, h2i(blk) - 1)
+                    reserves = r if r else (0, 0)
+                r0, r1 = reserves
+                rec["reserve_eth_wei"] = r0 if widx == 0 else r1
+                rec["reserve_token"] = r1 if widx == 0 else r0
+            sandwiches.append(rec)
     return len(logs), sandwiches
 
 def main():
@@ -155,6 +179,11 @@ def main():
         "all_profits_eth": prof_list,
         "windows": per_window,
         "top": sorted(total, key=lambda s: -s["profit_eth"])[:10],
+        "all_sandwiches": total,
+        # V2 attacked trades usable for the faithful t8n anchor (have reserves + victim size)
+        "attacked_trades_v2": [s for s in total
+                               if s.get("version") == "v2" and s.get("reserve_eth_wei", 0) > 0
+                               and s.get("victim_weth_in_eth", 0) > 0],
     }
     json.dump(summary, open(OUT, "w"), indent=2)
     print(f"\nTOTAL: {len(total)} real sandwiches over {len(per_window)*SPAN} blocks, "

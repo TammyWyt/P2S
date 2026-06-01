@@ -1,0 +1,459 @@
+{
+  "n_trades": 45,
+  "pos_total_extractable_eth": 0.08910977944766112,
+  "p2s_total_extractable_eth": 0.0,
+  "detected_total_eth": 0.09297198197021891,
+  "n_validation_pairs": 33,
+  "rows": [
+    {
+      "pool": "0xcc9a0c905bb88b84b744fed69490c8f97ad3a585",
+      "reserve_eth": 11.367699637181358,
+      "victim_eth": 0.04968110452913926,
+      "front_eth": 0.21845974661988352,
+      "detected_profit_eth": 0.000561859031728128,
+      "t8n_pos_profit_eth": 0.00046757444017258,
+      "p2s_blind_eth": -0.0013785458282851,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x893189ed3c82753da683fd302a4156fecdc1f79a",
+      "reserve_eth": 3.009688532408669,
+      "victim_eth": 0.214055422576233,
+      "front_eth": 0.007820102355386369,
+      "detected_profit_eth": 0.001091832226250752,
+      "t8n_pos_profit_eth": 0.00099759399482054,
+      "p2s_blind_eth": -0.000140979542809485,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xcc9a0c905bb88b84b744fed69490c8f97ad3a585",
+      "reserve_eth": 11.41681888267877,
+      "victim_eth": 0.05021962551956056,
+      "front_eth": 0.22268493029389108,
+      "detected_profit_eth": 0.000584514984214528,
+      "t8n_pos_profit_eth": 0.000490251747296214,
+      "p2s_blind_eth": -0.001403017553455728,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x35b21ef7477159ee4d2bb28f1ae72513490361d7",
+      "reserve_eth": 10.684302266370134,
+      "victim_eth": 0.06526867435616131,
+      "front_eth": 0.1623804377573622,
+      "detected_profit_eth": 0.000972621113982976,
+      "t8n_pos_profit_eth": 0.000878353217640553,
+      "p2s_blind_eth": -0.001052653519415218,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xd7a90a6d0919a2b9069d0850edebed707abc7a04",
+      "reserve_eth": 5.791360510926497,
+      "victim_eth": 0.0995,
+      "front_eth": 0.025522672146317312,
+      "detected_profit_eth": 0.0007198365188096,
+      "t8n_pos_profit_eth": 0.000625599478114931,
+      "p2s_blind_eth": -0.000246489425333023,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x8973be4402bf0a39448f419c2d64bd3591dd2299",
+      "reserve_eth": 3.475615521524782,
+      "victim_eth": 0.012754835970688407,
+      "front_eth": 0.01756788223377408,
+      "detected_profit_eth": 2.2525895507968e-05,
+      "t8n_pos_profit_eth": -7.1736094781664e-05,
+      "p2s_blind_eth": -0.000198985019642541,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x2baa35eb05c10df4e0cab30ca5ea6298ed434782",
+      "reserve_eth": 2.3838303863874732,
+      "victim_eth": 0.02,
+      "front_eth": 0.005985951654346752,
+      "detected_profit_eth": 6.3960048992256e-05,
+      "t8n_pos_profit_eth": -3.0289891729487e-05,
+      "p2s_blind_eth": -0.000130022547345104,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xb0faed793ef218c78134a14b5a41cb2309cdeb7a",
+      "reserve_eth": 10.631039897798019,
+      "victim_eth": 0.42615253027781824,
+      "front_eth": 0.09346184090170163,
+      "detected_profit_eth": 0.006929160932950016,
+      "t8n_pos_profit_eth": 0.006834949151822389,
+      "p2s_blind_eth": -0.000649329195166859,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x00156e1aa205a2712a68fd96650842ab220f5561",
+      "reserve_eth": 32.22363049932323,
+      "victim_eth": 0.48585392273172745,
+      "front_eth": 0.0815740121818071,
+      "detected_profit_eth": 0.001962967557996544,
+      "t8n_pos_profit_eth": 0.001868762597075787,
+      "p2s_blind_eth": -0.000581721238074783,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xb4714b02be766f27f52399c7675f0b95338ce7c9",
+      "reserve_eth": 1.9447400283795044,
+      "victim_eth": 0.022259597025724574,
+      "front_eth": 0.00965591552753664,
+      "detected_profit_eth": 0.000161430640787456,
+      "t8n_pos_profit_eth": 6.7180311292453e-05,
+      "p2s_blind_eth": -0.000151826486248795,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x1ff3fca1e35f1c8c1a805482f2098b5259b0e1fb",
+      "reserve_eth": 1.3910985078528444,
+      "victim_eth": 0.049575,
+      "front_eth": 0.03682371048885453,
+      "detected_profit_eth": 0.002332450709569536,
+      "t8n_pos_profit_eth": 0.00223821399620029,
+      "p2s_blind_eth": -0.000309204877124884,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x9435c91cf73e45354e614c78d1d42d8e2e6dc813",
+      "reserve_eth": 1.8845514606315559,
+      "victim_eth": 0.0428406447556804,
+      "front_eth": 0.00931239104086016,
+      "detected_profit_eth": 0.000366300580806656,
+      "t8n_pos_profit_eth": 0.000272054625288241,
+      "p2s_blind_eth": -0.000149767840410794,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x2a588404eaa53261bfbeefdc09cd40d0d772c83e",
+      "reserve_eth": 3.1631974133984144,
+      "victim_eth": 0.050817328655735856,
+      "front_eth": 0.032412968658403325,
+      "detected_profit_eth": 0.000833794886074368,
+      "t8n_pos_profit_eth": 0.000739556698143931,
+      "p2s_blind_eth": -0.000286478153232033,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x0b420bcc3c04b1adff7b777c37ba521de9a0e5f2",
+      "reserve_eth": 3.36000090681385,
+      "victim_eth": 0.02,
+      "front_eth": 0.008416135988903936,
+      "detected_profit_eth": 4.9057099677696e-05,
+      "t8n_pos_profit_eth": -4.5192803947971e-05,
+      "p2s_blind_eth": -0.00014455784434589,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x7a682500fc63e7e755810fc75ada3ff42b30e4db",
+      "reserve_eth": 1.7911866296323544,
+      "victim_eth": 0.0198,
+      "front_eth": 0.15268322603538842,
+      "detected_profit_eth": 0.002138202223673344,
+      "t8n_pos_profit_eth": 0.002043973022344648,
+      "p2s_blind_eth": -0.000937524008338304,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x7a682500fc63e7e755810fc75ada3ff42b30e4db",
+      "reserve_eth": 1.982235767885997,
+      "victim_eth": 0.12573,
+      "front_eth": 0.17321104920438374,
+      "detected_profit_eth": 0.018802855720779776,
+      "t8n_pos_profit_eth": 0.01870862592005588,
+      "p2s_blind_eth": -0.001049027208871629,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x7dd3f5705504002dc946aeafe6629b9481b72272",
+      "reserve_eth": 23.759680946175568,
+      "victim_eth": 0.19896994167770374,
+      "front_eth": 0.05916096318144512,
+      "detected_profit_eth": 0.000630312220491776,
+      "t8n_pos_profit_eth": 0.000536047442725994,
+      "p2s_blind_eth": -0.00044783225410604,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x1ae71aadbeb70c0a8c297fd99075e5b71865ab7d",
+      "reserve_eth": 2.2546630716908753,
+      "victim_eth": 0.03,
+      "front_eth": 0.12294851549934387,
+      "detected_profit_eth": 0.002320003894345728,
+      "t8n_pos_profit_eth": 0.002225801155257661,
+      "p2s_blind_eth": -0.000792973542068747,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xe920f34ef4176dc23cdb6db70b7fd85b37dce915",
+      "reserve_eth": 1.3884419091398277,
+      "victim_eth": 0.05122140330156772,
+      "front_eth": 0.00712868068589568,
+      "detected_profit_eth": 0.000484987690287104,
+      "t8n_pos_profit_eth": 0.000390747741902485,
+      "p2s_blind_eth": -0.000136741070988226,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x43e9f972a4d213ada1808840ab7542a6d4a18765",
+      "reserve_eth": 2.4040751634530144,
+      "victim_eth": 0.05373,
+      "front_eth": 0.014734235331985408,
+      "detected_profit_eth": 0.000567124661633024,
+      "t8n_pos_profit_eth": 0.000472886334321178,
+      "p2s_blind_eth": -0.000181988289926091,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xd60114fd97c0bc936ca2617fd2f5640db513a5ce",
+      "reserve_eth": 7.5700806899054385,
+      "victim_eth": 0.05,
+      "front_eth": 0.08832321378372812,
+      "detected_profit_eth": 0.00061873298866176,
+      "t8n_pos_profit_eth": 0.000524513060640401,
+      "p2s_blind_eth": -0.000617315972937783,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x318ba85ca49a3b12d3cf9c72cc72b29316971802",
+      "reserve_eth": 59.21079195228982,
+      "victim_eth": 0.9915,
+      "front_eth": 0.47801639389626366,
+      "detected_profit_eth": 0.012987710520164352,
+      "t8n_pos_profit_eth": 0.012893494758604218,
+      "p2s_blind_eth": -0.002935235879953324,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xb1cb41f38f07da9cbe0fde6538744a11c00861b7",
+      "reserve_eth": 0.9969645859720382,
+      "victim_eth": 0.0545325,
+      "front_eth": 0.002564198095367122,
+      "detected_profit_eth": 0.000269552322727085,
+      "t8n_pos_profit_eth": 0.000175293148862035,
+      "p2s_blind_eth": -0.000109584936227084,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xd8f2ece00967337723a730ea269a25bc51bf0af5",
+      "reserve_eth": 7.009481891419917,
+      "victim_eth": 0.0781920090963134,
+      "front_eth": 0.08992581763045786,
+      "detected_profit_eth": 0.001432405952954368,
+      "t8n_pos_profit_eth": 0.001338147996091314,
+      "p2s_blind_eth": -0.000626223832290123,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xb1cb41f38f07da9cbe0fde6538744a11c00861b7",
+      "reserve_eth": 1.051227533649311,
+      "victim_eth": 0.049575,
+      "front_eth": 0.002694088751054848,
+      "detected_profit_eth": 0.000241007794847744,
+      "t8n_pos_profit_eth": 0.000146756444199652,
+      "p2s_blind_eth": -0.000110361273630041,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xf15b73e7f5edcfc0d91da289c21d9af89cf377ce",
+      "reserve_eth": 20.538483805535137,
+      "victim_eth": 0.10545,
+      "front_eth": 0.051481885993336834,
+      "detected_profit_eth": 0.000216393337274368,
+      "t8n_pos_profit_eth": 0.000122166552495141,
+      "p2s_blind_eth": -0.000401899413229319,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xdd7c03711fd374065e2985a94366f1498de48734",
+      "reserve_eth": 1.798273782150717,
+      "victim_eth": 0.010323515240836008,
+      "front_eth": 0.021994079755698177,
+      "detected_profit_eth": 0.00011662983692288,
+      "t8n_pos_profit_eth": 2.2392565117852e-05,
+      "p2s_blind_eth": -0.000224433836325482,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xa1444ac5b8ac4f20f748558fe4e848087f528e00",
+      "reserve_eth": 13.566752741543871,
+      "victim_eth": 0.1,
+      "front_eth": 0.006823547687141376,
+      "detected_profit_eth": 5.92705486848e-05,
+      "t8n_pos_profit_eth": -3.500199267194e-05,
+      "p2s_blind_eth": -0.00013513344660435,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xda976f3766e032d1a51e0064147f911c1b9dbc4c",
+      "reserve_eth": 7.2559357075912665,
+      "victim_eth": 0.030104011560359734,
+      "front_eth": 0.04174192451570893,
+      "detected_profit_eth": 9.2878667776e-05,
+      "t8n_pos_profit_eth": -1.383908342083e-06,
+      "p2s_blind_eth": -0.000342927983765333,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x9e58e2bb1873eea24317964370b43617ae59a506",
+      "reserve_eth": 0.006960707176035973,
+      "victim_eth": 0.000840314683849537,
+      "front_eth": 8.341630124032e-05,
+      "detected_profit_eth": 2.0280835506176e-05,
+      "t8n_pos_profit_eth": -7.3994092582144e-05,
+      "p2s_blind_eth": -9.4779864108174e-05,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xe0322d3b96357257ec5a133e0c3bc907e9faecbb",
+      "reserve_eth": 0.905151614297866,
+      "victim_eth": 0.0228045,
+      "front_eth": 0.002300699341750272,
+      "detected_profit_eth": 0.000102297531056128,
+      "t8n_pos_profit_eth": 8.060305040425e-06,
+      "p2s_blind_eth": -0.000107998752768551,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xbf16540c857b4e32ce6c37d2f7725c8eec869b8b",
+      "reserve_eth": 152.36846013412085,
+      "victim_eth": 1.2727,
+      "front_eth": 1.555678090867245,
+      "detected_profit_eth": 0.01628354386906317,
+      "t8n_pos_profit_eth": 0.016189336935022287,
+      "p2s_blind_eth": -0.009320752187435713,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xcaa004418eb42cdf00cb057b7c9e28f0ffd840a5",
+      "reserve_eth": 118.7795165711685,
+      "victim_eth": 0.7072514458242537,
+      "front_eth": 0.059686524773466115,
+      "detected_profit_eth": 0.000349618927828992,
+      "t8n_pos_profit_eth": 0.000255354972073647,
+      "p2s_blind_eth": -0.000451677451183923,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x43e3d02d14c69f4169f33d83964c62a7f1fef652",
+      "reserve_eth": 8.001955540654237,
+      "victim_eth": 0.031088508789408824,
+      "front_eth": 0.6579951234805924,
+      "detected_profit_eth": 0.000877083861450752,
+      "t8n_pos_profit_eth": 0.000782821948182144,
+      "p2s_blind_eth": -0.003738483272516826,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x85644d9c03ec6b5bf2fbd044d23a4bea47584b4c",
+      "reserve_eth": 11.601855469279503,
+      "victim_eth": 0.061562235,
+      "front_eth": 0.058685793903837186,
+      "detected_profit_eth": 0.00026527865503744,
+      "t8n_pos_profit_eth": 0.000171028688878691,
+      "p2s_blind_eth": -0.000444089655473861,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x807ac92bc2f76876c2b20ad862d67a58727dc73c",
+      "reserve_eth": 16.637303096937476,
+      "victim_eth": 0.5286406109248503,
+      "front_eth": 0.10244860470204825,
+      "detected_profit_eth": 0.005892918468411392,
+      "t8n_pos_profit_eth": 0.005798651134474733,
+      "p2s_blind_eth": -0.000704321639515964,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x3a0ef60e803aae8e94f741e7f61c7cbe9501e569",
+      "reserve_eth": 16.29934240847751,
+      "victim_eth": 0.8019464183863751,
+      "front_eth": 0.0429999999942656,
+      "detected_profit_eth": 0.004028316298248192,
+      "t8n_pos_profit_eth": 0.003934031168163057,
+      "p2s_blind_eth": -0.000351225218457527,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xa43b79be77e9dd4dc2998854350b60ae9627d8ee",
+      "reserve_eth": 59.33528867026523,
+      "victim_eth": 0.43626,
+      "front_eth": 0.41582517296090316,
+      "detected_profit_eth": 0.003553771904827392,
+      "t8n_pos_profit_eth": 0.003459550418929511,
+      "p2s_blind_eth": -0.002568236722193622,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x4255c33130c02a3680c2295f91678dd8074d8327",
+      "reserve_eth": 5.583872296285074,
+      "victim_eth": 0.04273857806573762,
+      "front_eth": 0.014007059469041664,
+      "detected_profit_eth": 0.000129106700140544,
+      "t8n_pos_profit_eth": 3.4820503408481e-05,
+      "p2s_blind_eth": -0.000178005572081776,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0xb43ce19ca5ccf272f97addff2d61b6f040fa4c5d",
+      "reserve_eth": 4.560985190091381,
+      "victim_eth": 0.4648282698238624,
+      "front_eth": 0.011899999090011408,
+      "detected_profit_eth": 0.001052812447666929,
+      "t8n_pos_profit_eth": 0.002353925001858756,
+      "p2s_blind_eth": -0.000165346477967469,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x69192d177d39d480ac491f22e017c31f5c00dbed",
+      "reserve_eth": 9.00491656223605,
+      "victim_eth": 0.057739102708664336,
+      "front_eth": 0.04557082477776077,
+      "detected_profit_eth": 0.000305840326180864,
+      "t8n_pos_profit_eth": 0.000211575730137654,
+      "p2s_blind_eth": -0.000365922327254441,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x270e3bcbf493d71ce7961385ea2f033e71fe1d2f",
+      "reserve_eth": 3.4957707476744133,
+      "victim_eth": 0.01,
+      "front_eth": 0.7004260736444662,
+      "detected_profit_eth": 0.00136831215599616,
+      "t8n_pos_profit_eth": -0.00054911354660568,
+      "p2s_blind_eth": -0.00359356658492702,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x8d6776bd4eab79a7251f4ad14740bae05e899cf6",
+      "reserve_eth": 2.5958555015798286,
+      "victim_eth": 0.035255786822833174,
+      "front_eth": 0.033354718436655106,
+      "detected_profit_eth": 0.00069078534324224,
+      "t8n_pos_profit_eth": 0.000596521412328164,
+      "p2s_blind_eth": -0.000291582052291818,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x2a66392317698c5818df7a72a58556049f0ae6f2",
+      "reserve_eth": 10.598428171932651,
+      "victim_eth": 0.044055,
+      "front_eth": 0.10797876776638873,
+      "detected_profit_eth": 0.000238954800480256,
+      "t8n_pos_profit_eth": 0.000144691993723936,
+      "p2s_blind_eth": -0.000734701217019044,
+      "p2s_rational_eth": 0.0
+    },
+    {
+      "pool": "0x3bfd3c38ac8fa80979511aef221494bcc5bb033f",
+      "reserve_eth": 11.853091035135682,
+      "victim_eth": 0.07014396347094994,
+      "front_eth": 0.03173149253933465,
+      "detected_profit_eth": 0.000182679236509696,
+      "t8n_pos_profit_eth": 8.8472834953255e-05,
+      "p2s_blind_eth": -0.000283884844257158,
+      "p2s_rational_eth": 0.0
+    }
+  ]
+}
