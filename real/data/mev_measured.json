@@ -1,0 +1,458 @@
+{
+  "n": 50,
+  "pos_total_mev_eth": 0.0,
+  "p2s_total_mev_eth": 0.0,
+  "reduction_pct": NaN,
+  "per_fixture": [
+    {
+      "fixture": "slot_25220635_77.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.4242698928209536,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220636_100.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 1.116912150668297,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220636_173.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.5271444247177746,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220636_51.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 1.543382525155306,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220637_665.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.34440537653928965,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220639_142.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.31427430555122043,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220639_98.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.6598496169793698,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220640_207.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.3223104705485765,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220640_87.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.35736598890180904,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220643_62.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.3783105498974398,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220643_66.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.31561012147240775,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220696_109.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 1.3278641868871723,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220696_143.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.8057185477737002,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220696_76.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 1.636346834078204,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220717_141.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 1.2592059418470398,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220717_71.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 1.5000000000000002,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220719_227.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.558188152884116,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220719_99.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.6131414709142391,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220724_208.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 1.1407747067653726,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220724_243.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.6465572530238823,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220724_261.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.7957216679717247,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220777_115.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.9675327137583716,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220777_209.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.562120795167501,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220777_213.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.3493283064442693,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220805_124.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.3294691128478563,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220807_100.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.8089604947807175,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220807_104.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.7090195064061979,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220807_141.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.3815518503986882,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220813_167.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 1.0894776176596273,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220813_174.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.8781579562466975,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220813_221.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.4877830253153642,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220815_158.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.40723174769002596,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220815_185.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.3264994500262018,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220816_1501.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.6620339778846764,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220816_1544.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.569501619769582,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220818_100.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.5798835141410946,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220818_64.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 1.2072891606339378,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220818_71.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 1.0197940136410026,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25220866_21.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.3121288105408561,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221059_957.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 0.317687538816597,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221127_163.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.36703966235914465,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221129_142.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 2.234521399600111,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221129_84.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 4.956313470743185,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221129_88.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 4.474300187738423,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221133_106.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 0.6159016474154659,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221133_117.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 0.5146040395334263,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221134_155.json",
+      "pool": "DAI/WETH",
+      "victim_weth": 1.3053598501560697,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221134_64.json",
+      "pool": "USDC/WETH",
+      "victim_weth": 2.3717831888052063,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221134_71.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 1.9898066364196965,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    },
+    {
+      "fixture": "slot_25221135_260.json",
+      "pool": "WETH/USDT",
+      "victim_weth": 1.5000000000000009,
+      "front_run_eth": 0.0,
+      "pos_mev_eth": -5.8366e-05,
+      "p2s_mev_eth": -5.8366e-05,
+      "analytic_profit_eth": 0.0
+    }
+  ]
+}

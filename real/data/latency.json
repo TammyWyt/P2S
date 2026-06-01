@@ -1,0 +1,31 @@
+{
+  "LinkDelayMs": 50,
+  "K": 1000,
+  "Rows": [
+    {
+      "N": 4,
+      "BroadcastMs": 51.512,
+      "AgreementMs": 52.332
+    },
+    {
+      "N": 7,
+      "BroadcastMs": 51.807,
+      "AgreementMs": 54.761
+    },
+    {
+      "N": 16,
+      "BroadcastMs": 52.329,
+      "AgreementMs": 77.28
+    },
+    {
+      "N": 31,
+      "BroadcastMs": 52.532,
+      "AgreementMs": 96.999
+    },
+    {
+      "N": 64,
+      "BroadcastMs": 53.049,
+      "AgreementMs": 482.039
+    }
+  ]
+}

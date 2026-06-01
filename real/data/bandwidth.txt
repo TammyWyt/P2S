@@ -1,0 +1,31 @@
+== per-message RLP sizes (bytes) ==
+  baseline signed tx : 374
+  PHT (B1)           : 77
+  MT  (B2)           : 371
+  MT-ref (agreement) : 33
+
+== per-transaction overhead ==
+  P2S per tx (PHT+MT): 448   baseline: 374   overhead: +74 bytes (19.8%)
+
+== per-slot overhead vs block size K and proposer count N ==
+  K(txs)   N    tx-overhead    agreement        total-overhead
+  50       4    3.6 KB         6.4 KB           10.1 KB       
+  50       10   3.6 KB         16.1 KB          19.7 KB       
+  50       31   3.6 KB         50.0 KB          53.6 KB       
+  50       64   3.6 KB         103.1 KB         106.7 KB      
+  100      4    7.2 KB         12.9 KB          20.1 KB       
+  100      10   7.2 KB         32.2 KB          39.5 KB       
+  100      31   7.2 KB         99.9 KB          107.1 KB      
+  100      64   7.2 KB         206.2 KB         213.5 KB      
+  250      4    18.1 KB        32.2 KB          50.3 KB       
+  250      10   18.1 KB        80.6 KB          98.6 KB       
+  250      31   18.1 KB        249.8 KB         267.8 KB      
+  250      64   18.1 KB        515.6 KB         533.7 KB      
+  500      4    36.1 KB        64.5 KB          100.6 KB      
+  500      10   36.1 KB        161.1 KB         197.3 KB      
+  500      31   36.1 KB        499.5 KB         535.6 KB      
+  500      64   36.1 KB        1031.2 KB        1067.4 KB     
+  1000     4    72.3 KB        128.9 KB         201.2 KB      
+  1000     10   72.3 KB        322.3 KB         394.5 KB      
+  1000     31   72.3 KB        999.0 KB         1071.3 KB     
+  1000     64   72.3 KB        2062.5 KB        2134.8 KB     

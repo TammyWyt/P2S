@@ -1,0 +1,20 @@
+{
+  "block": 25221314,
+  "pools": {
+    "USDC/WETH": {
+      "pool": "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc",
+      "reserve_eth_wei": 4536635431420044780001,
+      "reserve_token": 8972846084605
+    },
+    "WETH/USDT": {
+      "pool": "0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852",
+      "reserve_eth_wei": 3803330482787368012701,
+      "reserve_token": 7521029066710
+    },
+    "DAI/WETH": {
+      "pool": "0xA478c2975Ab1Ea89e8196811F51A7B7Ade33eB11",
+      "reserve_eth_wei": 2085612713161313570921,
+      "reserve_token": 4122581771116937152719891
+    }
+  }
+}

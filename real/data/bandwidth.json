@@ -1,0 +1,149 @@
+{
+  "BaselineTxB": 374,
+  "PHTB": 77,
+  "MTB": 371,
+  "RefB": 33,
+  "PerTxOverheadB": 74,
+  "Rows": [
+    {
+      "K": 50,
+      "N": 4,
+      "TxOverheadB": 3700,
+      "AgreeB": 6600,
+      "TotalB": 10300
+    },
+    {
+      "K": 50,
+      "N": 10,
+      "TxOverheadB": 3700,
+      "AgreeB": 16500,
+      "TotalB": 20200
+    },
+    {
+      "K": 50,
+      "N": 31,
+      "TxOverheadB": 3700,
+      "AgreeB": 51150,
+      "TotalB": 54850
+    },
+    {
+      "K": 50,
+      "N": 64,
+      "TxOverheadB": 3700,
+      "AgreeB": 105600,
+      "TotalB": 109300
+    },
+    {
+      "K": 100,
+      "N": 4,
+      "TxOverheadB": 7400,
+      "AgreeB": 13200,
+      "TotalB": 20600
+    },
+    {
+      "K": 100,
+      "N": 10,
+      "TxOverheadB": 7400,
+      "AgreeB": 33000,
+      "TotalB": 40400
+    },
+    {
+      "K": 100,
+      "N": 31,
+      "TxOverheadB": 7400,
+      "AgreeB": 102300,
+      "TotalB": 109700
+    },
+    {
+      "K": 100,
+      "N": 64,
+      "TxOverheadB": 7400,
+      "AgreeB": 211200,
+      "TotalB": 218600
+    },
+    {
+      "K": 250,
+      "N": 4,
+      "TxOverheadB": 18500,
+      "AgreeB": 33000,
+      "TotalB": 51500
+    },
+    {
+      "K": 250,
+      "N": 10,
+      "TxOverheadB": 18500,
+      "AgreeB": 82500,
+      "TotalB": 101000
+    },
+    {
+      "K": 250,
+      "N": 31,
+      "TxOverheadB": 18500,
+      "AgreeB": 255750,
+      "TotalB": 274250
+    },
+    {
+      "K": 250,
+      "N": 64,
+      "TxOverheadB": 18500,
+      "AgreeB": 528000,
+      "TotalB": 546500
+    },
+    {
+      "K": 500,
+      "N": 4,
+      "TxOverheadB": 37000,
+      "AgreeB": 66000,
+      "TotalB": 103000
+    },
+    {
+      "K": 500,
+      "N": 10,
+      "TxOverheadB": 37000,
+      "AgreeB": 165000,
+      "TotalB": 202000
+    },
+    {
+      "K": 500,
+      "N": 31,
+      "TxOverheadB": 37000,
+      "AgreeB": 511500,
+      "TotalB": 548500
+    },
+    {
+      "K": 500,
+      "N": 64,
+      "TxOverheadB": 37000,
+      "AgreeB": 1056000,
+      "TotalB": 1093000
+    },
+    {
+      "K": 1000,
+      "N": 4,
+      "TxOverheadB": 74000,
+      "AgreeB": 132000,
+      "TotalB": 206000
+    },
+    {
+      "K": 1000,
+      "N": 10,
+      "TxOverheadB": 74000,
+      "AgreeB": 330000,
+      "TotalB": 404000
+    },
+    {
+      "K": 1000,
+      "N": 31,
+      "TxOverheadB": 74000,
+      "AgreeB": 1023000,
+      "TotalB": 1097000
+    },
+    {
+      "K": 1000,
+      "N": 64,
+      "TxOverheadB": 74000,
+      "AgreeB": 2112000,
+      "TotalB": 2186000
+    }
+  ]
+}

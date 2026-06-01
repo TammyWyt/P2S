@@ -1,0 +1,272 @@
+{
+  "block": 25221314,
+  "pools": {
+    "USDC/WETH": {
+      "reserve_eth": 4536.635431420044,
+      "curve": [
+        {
+          "victim_eth": 1,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 2,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 4,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 8,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 15,
+          "front_run_eth": 22.926786321371722,
+          "pos_mev_eth": 0.012832234721239847,
+          "p2s_mev_eth": -0.13676206291794005,
+          "pos_ext_eth": 0.012832234721239847
+        },
+        {
+          "victim_eth": 25,
+          "front_run_eth": 22.951864758367226,
+          "pos_mev_eth": 0.11295448516230053,
+          "p2s_mev_eth": -0.13691080906515976,
+          "pos_ext_eth": 0.11295448516230053
+        },
+        {
+          "victim_eth": 40,
+          "front_run_eth": 22.989380748089786,
+          "pos_mev_eth": 0.2639506127693486,
+          "p2s_mev_eth": -0.1371333217148707,
+          "pos_ext_eth": 0.2639506127693486
+        },
+        {
+          "victim_eth": 60,
+          "front_run_eth": 23.039211763480687,
+          "pos_mev_eth": 0.46679577458709154,
+          "p2s_mev_eth": -0.13742887126980893,
+          "pos_ext_eth": 0.46679577458709154
+        },
+        {
+          "victim_eth": 100,
+          "front_run_eth": 23.138226302133255,
+          "pos_mev_eth": 0.8776863837999517,
+          "p2s_mev_eth": -0.13801611070543385,
+          "pos_ext_eth": 0.8776863837999517
+        },
+        {
+          "victim_eth": 160,
+          "front_run_eth": 23.285150505143985,
+          "pos_mev_eth": 1.5070197068956142,
+          "p2s_mev_eth": -0.13888744780806764,
+          "pos_ext_eth": 1.5070197068956142
+        },
+        {
+          "victim_eth": 250,
+          "front_run_eth": 23.502015477056784,
+          "pos_mev_eth": 2.4802521157149506,
+          "p2s_mev_eth": -0.1401734687447217,
+          "pos_ext_eth": 2.4802521157149506
+        },
+        {
+          "victim_eth": 400,
+          "front_run_eth": 23.854363687873043,
+          "pos_mev_eth": 4.180209887071011,
+          "p2s_mev_eth": -0.14226265296023125,
+          "pos_ext_eth": 4.180209887071011
+        }
+      ]
+    },
+    "WETH/USDT": {
+      "reserve_eth": 3803.330482787368,
+      "curve": [
+        {
+          "victim_eth": 1,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 2,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 4,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 8,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 15,
+          "front_run_eth": 19.226969353538816,
+          "pos_mev_eth": 0.03498118548323866,
+          "p2s_mev_eth": -0.11470706883950334,
+          "pos_ext_eth": 0.03498118548323866
+        },
+        {
+          "victim_eth": 25,
+          "front_run_eth": 19.252027249269865,
+          "pos_mev_eth": 0.13527059127224125,
+          "p2s_mev_eth": -0.11485569225860776,
+          "pos_ext_eth": 0.13527059127224125
+        },
+        {
+          "victim_eth": 40,
+          "front_run_eth": 19.28949144670046,
+          "pos_mev_eth": 0.2866741140340936,
+          "p2s_mev_eth": -0.115077896293935,
+          "pos_ext_eth": 0.2866741140340936
+        },
+        {
+          "victim_eth": 60,
+          "front_run_eth": 19.339218489665335,
+          "pos_mev_eth": 0.4903548787308122,
+          "p2s_mev_eth": -0.11537282583495954,
+          "pos_ext_eth": 0.4903548787308122
+        },
+        {
+          "victim_eth": 100,
+          "front_run_eth": 19.437902162855714,
+          "pos_mev_eth": 0.9039187976952843,
+          "p2s_mev_eth": -0.11595809364641083,
+          "pos_ext_eth": 0.9039187976952843
+        },
+        {
+          "victim_eth": 160,
+          "front_run_eth": 19.584036176536337,
+          "pos_mev_eth": 1.5397661132391742,
+          "p2s_mev_eth": -0.1168247215537781,
+          "pos_ext_eth": 1.5397661132391742
+        },
+        {
+          "victim_eth": 250,
+          "front_run_eth": 19.79907962486032,
+          "pos_mev_eth": 2.5283983510381693,
+          "p2s_mev_eth": -0.11809988791923767,
+          "pos_ext_eth": 2.5283983510381693
+        },
+        {
+          "victim_eth": 400,
+          "front_run_eth": 20.14681736945636,
+          "pos_mev_eth": 4.269012205591737,
+          "p2s_mev_eth": -0.12016160439681953,
+          "pos_ext_eth": 4.269012205591737
+        }
+      ]
+    },
+    "DAI/WETH": {
+      "reserve_eth": 2085.6127131613134,
+      "curve": [
+        {
+          "victim_eth": 1,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 2,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 4,
+          "front_run_eth": 0.0,
+          "pos_mev_eth": 0.0,
+          "p2s_mev_eth": 0.0,
+          "pos_ext_eth": 0.0
+        },
+        {
+          "victim_eth": 8,
+          "front_run_eth": 10.542827777577882,
+          "pos_mev_eth": 0.016884653330483286,
+          "p2s_mev_eth": -0.062940580801425,
+          "pos_ext_eth": 0.016884653330483286
+        },
+        {
+          "victim_eth": 15,
+          "front_run_eth": 10.560363567982579,
+          "pos_mev_eth": 0.08712239095671753,
+          "p2s_mev_eth": -0.0630445889934581,
+          "pos_ext_eth": 0.08712239095671753
+        },
+        {
+          "victim_eth": 25,
+          "front_run_eth": 10.58531438717216,
+          "pos_mev_eth": 0.1882634245708952,
+          "p2s_mev_eth": -0.06319257418539688,
+          "pos_ext_eth": 0.1882634245708952
+        },
+        {
+          "victim_eth": 40,
+          "front_run_eth": 10.62251967043609,
+          "pos_mev_eth": 0.3417425164417713,
+          "p2s_mev_eth": -0.06341323502467425,
+          "pos_ext_eth": 0.3417425164417713
+        },
+        {
+          "victim_eth": 60,
+          "front_run_eth": 10.671720110284445,
+          "pos_mev_eth": 0.5496800843616818,
+          "p2s_mev_eth": -0.06370502599013454,
+          "pos_ext_eth": 0.5496800843616818
+        },
+        {
+          "victim_eth": 100,
+          "front_run_eth": 10.768746757403473,
+          "pos_mev_eth": 0.9768612296522552,
+          "p2s_mev_eth": -0.06428041791972847,
+          "pos_ext_eth": 0.9768612296522552
+        },
+        {
+          "victim_eth": 160,
+          "front_run_eth": 10.910950207926094,
+          "pos_mev_eth": 1.6458825767567589,
+          "p2s_mev_eth": -0.06512362377338832,
+          "pos_ext_eth": 1.6458825767567589
+        },
+        {
+          "victim_eth": 250,
+          "front_run_eth": 11.117067613174738,
+          "pos_mev_eth": 2.712920453820184,
+          "p2s_mev_eth": -0.06634561031107018,
+          "pos_ext_eth": 2.712920453820184
+        },
+        {
+          "victim_eth": 400,
+          "front_run_eth": 11.442683038957556,
+          "pos_mev_eth": 4.660431718061545,
+          "p2s_mev_eth": -0.06827556559971495,
+          "pos_ext_eth": 4.660431718061545
+        }
+      ]
+    }
+  }
+}

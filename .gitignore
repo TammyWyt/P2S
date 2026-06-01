@@ -17,3 +17,7 @@ data/simulation_*.json
 
 # OS
 .DS_Store
+
+# real/ prototype (isolated; rm -rf real/ to revert to simulation)
+real/.env.local
+real/**/t8n_*

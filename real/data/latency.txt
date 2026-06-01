@@ -1,0 +1,7 @@
+one-way link delay = 50ms; agreement payload = 32 KB (K=1000 refs)
+N    broadcast (B1/B2)      agreement (all-to-all)
+4    50.6 ms                65.1 ms               
+7    61.6 ms                57.3 ms               
+16   52.3 ms                72.9 ms               
+31   52.5 ms                89.2 ms               
+64   53.4 ms                514.0 ms              
