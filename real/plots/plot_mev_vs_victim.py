@@ -20,13 +20,13 @@ styles = ["-", "--", ":"]
 for (name, p), ls in zip(pools.items(), styles):
     xs = [c["victim_eth"] for c in p["curve"]]
     pos = [c["pos_ext_eth"] for c in p["curve"]]
-    ax.plot(xs, pos, ls=ls, color=POS_C, lw=LW,
+    ax.plot(xs, pos, ls=ls, color=POS_C, lw=LW, marker="o", ms=5,
             label=f"PoS — {name} ({p['reserve_eth']:.0f} ETH pool)")
 
 # P2S is identically zero across all pools and sizes; one flat line conveys it.
 any_pool = next(iter(pools.values()))
 xs = [c["victim_eth"] for c in any_pool["curve"]]
-ax.plot(xs, [0]*len(xs), color=P2S_C, lw=LW, label="P2S — all pools")
+ax.plot(xs, [0]*len(xs), color=P2S_C, lw=LW, marker="s", ms=5, label="P2S — all pools")
 
 ax.set_xscale("log")
 ax.set_xlabel("Victim swap size (ETH)")

@@ -23,7 +23,7 @@ blocks = d["blocks_sampled"]
 
 fig, ax = plt.subplots(figsize=(6.6, 4.2))
 ranks = list(range(1, len(profits) + 1))
-ax.scatter(ranks, profits, color=POS_C, s=42, zorder=3,
+ax.scatter(ranks, profits, color=POS_C, s=42, marker="o", zorder=3,
            label=f"PoS: {len(profits)} real detected sandwiches")
 ax.plot(ranks, profits, color=POS_C, lw=LW, alpha=0.6)
 # P2S floor at 0 (shown on log axis as a labeled baseline)
