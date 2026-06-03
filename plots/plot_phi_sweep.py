@@ -310,7 +310,8 @@ def plot_profit_by_gas(phi_vals, out_path, n_blocks=N_BLOCKS):
     gas_handles = [Line2D([0], [0], color=stuffer_col, lw=3.2, alpha=a,
                           label=f"{lab} ({gp:.0f} gwei)")
                    for gp, lab, a in gp_levels]
-    ax.legend(handles=gas_handles, loc="upper right", fontsize=FS_LEGEND - 2)
+    ax.legend(handles=gas_handles, loc="upper right", fontsize=FS_LEGEND - 2,
+              frameon=False)
 
     sns.despine(ax=ax)
     plt.tight_layout()

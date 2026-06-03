@@ -118,7 +118,7 @@ def _panel_cumulative(ax, pos_series, p2s_series):
     ax.set_xlabel("Block", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Cumulative MEV (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND, loc="upper left")
+    ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
     sns.despine(ax=ax)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)

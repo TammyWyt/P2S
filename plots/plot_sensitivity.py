@@ -142,9 +142,11 @@ def plot_heatmap(grid: np.ndarray, out_path: str) -> None:
     for text in ax.texts:
         text.set_text(text.get_text() + "%")
 
-    ax.set_xlabel("BLIND_SUCCESS", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("BLIND_FIT", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Success rate given alignment", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Target-alignment rate", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
+    plt.setp(ax.get_yticklabels(), rotation=0)
+    plt.setp(ax.get_xticklabels(), rotation=0)
     # Colour-bar label font
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=FS_TICK - 2)
