@@ -48,10 +48,14 @@ from scripts.simulation import agents as sim_agents
 from scripts.simulation.simulator import P2SSimulator, MEVAttackStrategies
 
 FIGURES_DIR = os.path.join(_REPO, "figures")
-N_BLOCKS    = 1000
+N_BLOCKS    = 3000   # more blocks/cell -> smoother residual surface for the 11x11 sweep
 
-FIT_VALUES     = [0.05, 0.10, 0.20]
-SUCCESS_VALUES = [0.30, 0.50, 0.70]
+# Finer 11x11 sweep so the residual surface reads as a smooth, monotone, bounded
+# surface rather than a coarse 3x3 grid. Ranges include the empirically
+# calibrated operating point (0.10, 0.50) exactly.
+FIT_VALUES     = [round(v, 3) for v in np.linspace(0.02, 0.22, 11)]
+SUCCESS_VALUES = [round(v, 3) for v in np.linspace(0.30, 0.80, 11)]
+CALIB_FIT, CALIB_SUCCESS = 0.10, 0.50
 
 FS_LABEL  = 22
 FS_TICK   = 18
@@ -75,8 +79,18 @@ def _patch_blind(fit: float, success: float):
 
 
 def _run_one(fit: float, success: float, n_blocks: int) -> float:
-    """Run a single 1000-block simulation at (fit, success). Return headline MEV reduction %."""
+    """Run a single simulation at (fit, success). Return headline MEV reduction %.
+
+    Each combo is an independent simulation run with its OWN seed (derived from
+    fit/success), so the surface shows genuine per-cell Monte-Carlo sampling
+    noise rather than a synthetic, perfectly smooth product surface. Distinct
+    per-cell seeds keep the whole figure reproducible."""
+    import random as _random
     _patch_blind(fit, success)
+
+    seed = sim_constants.RANDOM_SEED + int(round(fit * 1000)) * 131 + int(round(success * 1000))
+    _random.seed(seed)
+    np.random.seed(seed)
 
     sim = P2SSimulator()
     sim.run_simulation(n_blocks)
@@ -104,53 +118,41 @@ def run_sweep() -> np.ndarray:
 
 
 def plot_heatmap(grid: np.ndarray, out_path: str) -> None:
-    """Render a 3×3 reduction heatmap using sns.heatmap.
+    """Render the residual-extraction surface over the (FIT, SUCCESS) grid.
 
-    We use sns.heatmap rather than imshow because matplotlib's PDF backend
-    triangulates imshow output into Gouraud-shaded quads, which produces
-    diagonal colour bleeds across cell boundaries.  sns.heatmap renders each
-    cell as an explicit Rectangle patch, so the PDF stays cleanly tiled.
+    The grid stores MEV-*reduction* %; we plot the complementary *residual*
+    (100 - reduction = the fraction of baseline MEV P2S still leaves on the
+    table) on a 0-anchored colour scale, so "the residual is small everywhere"
+    is visually obvious instead of a near-saturated reduction grid. The
+    empirically calibrated operating point and the strong-attacker worst case
+    are marked, making the figure a bounded-worst-case claim rather than a
+    pattern-hunt.
+
+    Uses pcolormesh with flat shading (explicit rectangles, no Gouraud
+    triangulation) so the PDF stays cleanly tiled.
     """
-    import pandas as pd
+    residual = 100.0 - grid                      # % of baseline MEV still extractable
+    fit  = np.array(FIT_VALUES, dtype=float)
+    succ = np.array(SUCCESS_VALUES, dtype=float)
+    X, Y = np.meshgrid(succ, fit)                # X = success (cols), Y = fit (rows)
 
     sns.set_theme(style="ticks")
     fig, ax = plt.subplots(figsize=(8.5, 6))
 
-    # rows = FIT (ascending top-to-bottom in display), cols = SUCCESS
-    df = pd.DataFrame(grid,
-                      index=[f"{f:.2f}" for f in FIT_VALUES],
-                      columns=[f"{s:.2f}" for s in SUCCESS_VALUES])
+    cmap = sns.color_palette("mako", as_cmap=True)   # blue palette, matching phi_heatmap
+    vmax = max(8.0, float(np.ceil(residual.max())))
+    mesh = ax.pcolormesh(X, Y, residual, cmap=cmap, vmin=0.0, vmax=vmax,
+                         shading="nearest", rasterized=True)
 
-    cmap = sns.color_palette("mako", as_cmap=True)
-    sns.heatmap(
-        df,
-        ax=ax,
-        cmap=cmap,
-        annot=True,
-        fmt=".1f",
-        annot_kws={"fontsize": FS_LABEL - 4, "fontweight": "bold"},
-        cbar_kws={"label": "MEV reduction (%)"},
-        linewidths=0.6,
-        linecolor="white",
-        square=False,
-        vmin=max(0.0, grid.min() - 2),
-        vmax=min(100.0, grid.max() + 1),
-    )
-
-    # Annotate "%" suffix and fix tick fonts.  sns.heatmap writes raw values;
-    # we re-style the in-cell text to add a '%' suffix.
-    for text in ax.texts:
-        text.set_text(text.get_text() + "%")
+    cbar = fig.colorbar(mesh, ax=ax)
+    cbar.set_label("Residual MEV (% of baseline)", fontsize=FS_LEGEND, fontweight="bold")
+    cbar.ax.tick_params(labelsize=FS_TICK - 2)
 
     ax.set_xlabel("Success rate given alignment", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Target-alignment rate", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlim(succ.min(), succ.max())
+    ax.set_ylim(fit.min(), fit.max())
     ax.tick_params(labelsize=FS_TICK)
-    plt.setp(ax.get_yticklabels(), rotation=0)
-    plt.setp(ax.get_xticklabels(), rotation=0)
-    # Colour-bar label font
-    cbar = ax.collections[0].colorbar
-    cbar.ax.tick_params(labelsize=FS_TICK - 2)
-    cbar.set_label("MEV reduction (%)", fontsize=FS_LEGEND, fontweight="bold")
 
     plt.tight_layout()
     plt.savefig(out_path, dpi=300, bbox_inches="tight")
@@ -182,6 +184,10 @@ def main() -> None:
             print(f"{fit:>10.2f}", *[f"{grid[i, j]:>10.2f}" for j in range(grid.shape[1])])
         print(f"\nMin reduction: {grid.min():.2f}%   Max: {grid.max():.2f}%   "
               f"Range: {grid.max() - grid.min():.2f}%")
+        fi = int(np.argmin(np.abs(np.array(FIT_VALUES) - CALIB_FIT)))
+        si = int(np.argmin(np.abs(np.array(SUCCESS_VALUES) - CALIB_SUCCESS)))
+        print(f"CAPTION-NUMS calibrated_residual={100.0 - grid[fi, si]:.1f}%  "
+              f"corner_residual={100.0 - grid[-1, -1]:.1f}%")
     finally:
         # Restore original calibration
         (sim_constants.BLIND_FIT, sim_constants.BLIND_SUCCESS,

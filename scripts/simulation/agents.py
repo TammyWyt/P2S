@@ -14,17 +14,27 @@ Agent taxonomy:
   CrossBlockArbBot — info-blocked; not profitable at empirical gas prices
 """
 
+import random
 from abc import ABC, abstractmethod
 from typing import List, Tuple
 
 from .constants import (
     E_MEV_GAIN, E_BLIND_GAIN,
+    MEV_MU, MEV_SIG, MEV_CAP,
     GAS_PHT_LARGE, GAS_ARB,
     STUFF_GAS_DECLARED, STUFF_N_PHTS, STUFF_E_BENEFIT,
     ARB_OPP_P2S, ARB_EXEC, ARB_EFF,
     BLIND_FIT, BLIND_SUCCESS,
 )
 from .environment import AMMPool, Tx, gas_eth
+
+
+def _sample_mev_gain() -> float:
+    """Draw one realized MEV opportunity from the calibrated log-normal gain
+    distribution (Torres/Weintraub). Mean equals E_MEV_GAIN by construction, so
+    using this in place of a constant keeps calibration intact while making each
+    block's captured value genuinely stochastic."""
+    return min(random.lognormvariate(MEV_MU, MEV_SIG), MEV_CAP)
 
 
 class MevAgent(ABC):
@@ -129,11 +139,16 @@ class BlindPlanterBot(MevAgent):
         exec_cost = gas_eth(gp, GAS_PHT_LARGE)          # paid at B2 only on reveal
         dex = [t for t in txpool if t.is_dex]
         if not dex:
-            return f_res, 0.0                            # no opportunity — do not reveal
+            return f_res, 0.0                            # no opportunity — only F_res burned
+        # Blind plant: two independent stochastic gates resolve this block —
+        # whether the speculative PHT aligns with a real target (BLIND_FIT) and,
+        # if so, whether it executes profitably (BLIND_SUCCESS).
+        if random.random() >= BLIND_FIT or random.random() >= BLIND_SUCCESS:
+            return f_res, 0.0                            # missed — only F_res burned
         best = max(dex, key=lambda t: t.trade_eth).trade_eth
-        gain = BLIND_FIT * BLIND_SUCCESS * pool.sandwich_profit(best)
+        gain = pool.sandwich_profit(best)               # realized opportunity captured
         if gain <= exec_cost:
-            return f_res, 0.0                            # not worth executing — do not reveal
+            return f_res, 0.0                            # not worth revealing in B2
         return f_res + exec_cost, gain
 
 
@@ -157,12 +172,14 @@ class CrossBlockArbBot(MevAgent):
         dex = [t for t in txpool if t.is_dex]
         if not dex:
             return f_res, 0.0                            # no opportunity — do not reveal
+        # Cross-block arb: a cross-DEX opportunity is present this block
+        # (ARB_OPP_P2S) and the attacker's execution lands (ARB_EXEC) — two
+        # independent stochastic gates. ARB_EFF is the price-efficiency capture
+        # fraction of the realized opportunity.
+        if random.random() >= ARB_OPP_P2S or random.random() >= ARB_EXEC:
+            return f_res, 0.0                            # no opportunity / missed execution
         best = max(dex, key=lambda t: t.trade_eth).trade_eth
-        # Simplification: gain proxy uses single-pool sandwich profit scaled by
-        # ARB_OPP_P2S/ARB_EXEC/ARB_EFF.  A full cross-DEX model would compare
-        # pool prices across two venues; the direction of the result (unprofitable
-        # at mainnet gas) is unchanged because execution cost dominates.
-        gain = ARB_OPP_P2S * ARB_EXEC * ARB_EFF * pool.sandwich_profit(best)
+        gain = ARB_EFF * pool.sandwich_profit(best)
         if gain <= exec_cost:
             return f_res, 0.0                            # not worth executing — do not reveal
         return f_res + exec_cost, gain
@@ -187,7 +204,8 @@ class BlockStufferBot(MevAgent):
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
         cost = STUFF_N_PHTS * phi * gas_eth(gp, STUFF_GAS_DECLARED)
-        return cost, STUFF_E_BENEFIT
+        gain = _sample_mev_gain()       # MEV captured by the monopolist varies block to block
+        return cost, gain
 
 
 class B2ProposerBot(MevAgent):

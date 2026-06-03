@@ -21,7 +21,13 @@ def _run_single(
     net:      Dict[str, List[float]] = {a.name: [] for a in agents}
 
     for phi_idx, phi in enumerate(phi_values):
-        seed = RANDOM_SEED + seed_offset + phi_idx * 1000
+        # Common random numbers across phi: the SAME seed for every phi within a
+        # run (independent of phi_idx) means every phi replays the identical block
+        # sequence and agent draws, so the only thing varying along the curve is
+        # the deterministic phi-dependent reservation cost. This removes the
+        # spurious point-to-point jitter while keeping each run genuinely sampled;
+        # independent runs (different seed_offset) still give honest CIs.
+        seed = RANDOM_SEED + seed_offset
         random.seed(seed)
         np.random.seed(seed)
         pool = AMMPool(1_000.0)

@@ -284,7 +284,7 @@ def plot_profit_by_gas(phi_vals, out_path, n_blocks=N_BLOCKS):
     active = set()
     for gp, _label, alpha in gp_levels:
         _, net, _, _ = run_sweep(phi_values=list(phi_vals), n_blocks=n_blocks,
-                                 gas_gwei=gp, verbose=False)
+                                 gas_gwei=gp, verbose=False, n_reps=20)
         for name in net:
             if name in _INFEASIBLE:
                 continue
