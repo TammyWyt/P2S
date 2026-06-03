@@ -27,8 +27,10 @@ ks = d["K_sweep"]; fs = d["fanout_sweep"]
 # Figure (a): latency vs block size K
 fig, ax = plt.subplots(figsize=(7, 6))
 K = [r["K"] for r in ks]
-ax.plot(K, [r["pos_lat_s"] * 1000 for r in ks], color=POS_C, lw=LW, marker="o", ms=MS, label="Ethereum PoS")
-ax.plot(K, [r["p2s_lat_s"] * 1000 for r in ks], color=P2S_C, lw=LW, marker="s", ms=MS, label="P2S")
+ax.errorbar(K, [r["pos_lat_s"] * 1000 for r in ks], yerr=[r.get("pos_ci", 0) * 1000 for r in ks],
+            color=POS_C, lw=LW, marker="o", ms=MS, capsize=4, label="Ethereum PoS")
+ax.errorbar(K, [r["p2s_lat_s"] * 1000 for r in ks], yerr=[r.get("p2s_ci", 0) * 1000 for r in ks],
+            color=P2S_C, lw=LW, marker="s", ms=MS, capsize=4, label="P2S")
 ax.set_xlabel("Block size $K$ (txs/slot)", fontsize=FS_LABEL, fontweight="bold")
 ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL, fontweight="bold")
 ax.tick_params(labelsize=FS_TICK)
@@ -42,8 +44,10 @@ print("wrote", out)
 # Figure (b): latency vs GossipSub fanout D
 fig, ax = plt.subplots(figsize=(7, 6))
 D = [r["fanout"] for r in fs]
-ax.plot(D, [r["pos_lat_s"] * 1000 for r in fs], color=POS_C, lw=LW, marker="o", ms=MS, label="Ethereum PoS")
-ax.plot(D, [r["p2s_lat_s"] * 1000 for r in fs], color=P2S_C, lw=LW, marker="s", ms=MS, label="P2S")
+ax.errorbar(D, [r["pos_lat_s"] * 1000 for r in fs], yerr=[r.get("pos_ci", 0) * 1000 for r in fs],
+            color=POS_C, lw=LW, marker="o", ms=MS, capsize=4, label="Ethereum PoS")
+ax.errorbar(D, [r["p2s_lat_s"] * 1000 for r in fs], yerr=[r.get("p2s_ci", 0) * 1000 for r in fs],
+            color=P2S_C, lw=LW, marker="s", ms=MS, capsize=4, label="P2S")
 ax.set_xlabel("GossipSub fanout $D$", fontsize=FS_LABEL, fontweight="bold")
 ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL, fontweight="bold")
 ax.tick_params(labelsize=FS_TICK)

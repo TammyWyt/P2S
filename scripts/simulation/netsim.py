@@ -200,7 +200,7 @@ def p2s_slot(net, K, pht_b=77, mt_b=371, agreement="bls"):
     }
 
 
-def run(N_list=(10, 50, 100, 250, 500, 1000), K=150, seeds=20):
+def run(N_list=(10, 25, 50, 75, 100, 150, 250, 400, 600, 800, 1000), K=150, seeds=100):
     out = {"K": K, "seeds": seeds, "fanout": FANOUT, "bw_mbps": BW_BPS / 1e6, "rows": []}
     print(f"network-env simulation: K={K} txs/block, {seeds} seeds, GossipSub D={FANOUT}, {BW_BPS/1e6:.0f} Mbps")
     print(f"{'N':>5} {'PoS lat':>9} {'P2S lat':>9} {'overhead':>9} {'agree(bls)':>11} "
@@ -245,7 +245,12 @@ def _mean(xs):
     return st.mean(xs) if xs else 0.0
 
 
-def sweep_K(N=500, Ks=(50, 150, 300, 600, 1000), seeds=10):
+def _ci(xs):
+    """95% confidence half-width of the mean (1.96 * SEM)."""
+    return 1.96 * st.pstdev(xs) / math.sqrt(len(xs)) if len(xs) > 1 else 0.0
+
+
+def sweep_K(N=500, Ks=(50, 100, 150, 250, 400, 600, 800, 1000), seeds=100):
     """Robustness to block size K (txs/slot) at fixed committee N."""
     rows = []
     for K in Ks:
@@ -256,11 +261,12 @@ def sweep_K(N=500, Ks=(50, 150, 300, 600, 1000), seeds=10):
             pos_l.append(p["latency_s"]); p2s_l.append(q["latency_s"])
             pos_mb.append(p["bytes"] / 1e6); p2s_mb.append(q["bytes"] / 1e6)
         rows.append({"K": K, "pos_lat_s": _mean(pos_l), "p2s_lat_s": _mean(p2s_l),
+                     "pos_ci": _ci(pos_l), "p2s_ci": _ci(p2s_l),
                      "pos_mb": _mean(pos_mb), "p2s_mb": _mean(p2s_mb)})
     return rows
 
 
-def sweep_fanout(N=500, K=150, Ds=(4, 8, 16, 32), seeds=10):
+def sweep_fanout(N=500, K=150, Ds=(4, 6, 8, 12, 16, 24, 32), seeds=100):
     """Robustness to GossipSub mesh degree D at fixed N, K."""
     rows = []
     for D in Ds:
@@ -269,7 +275,8 @@ def sweep_fanout(N=500, K=150, Ds=(4, 8, 16, 32), seeds=10):
             net = Net(N, seed=11 * s + D, fanout=D)
             pos_l.append(pos_slot(net, K)["latency_s"])
             p2s_l.append(p2s_slot(net, K, agreement="bls")["latency_s"])
-        rows.append({"fanout": D, "pos_lat_s": _mean(pos_l), "p2s_lat_s": _mean(p2s_l)})
+        rows.append({"fanout": D, "pos_lat_s": _mean(pos_l), "p2s_lat_s": _mean(p2s_l),
+                     "pos_ci": _ci(pos_l), "p2s_ci": _ci(p2s_l)})
     return rows
 
 
