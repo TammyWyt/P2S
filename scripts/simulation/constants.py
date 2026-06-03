@@ -46,6 +46,6 @@ PRIORITY_FEE_GWEI = 1.5
 # Uniform spacing on the log axis gives a smooth line when plotted on a log scale.
 # φ > 1 is economically incoherent (F_res > full execution cost).
 # At empirical mainnet gas (~34.5 gwei base + 1.5 gwei tip = 36 gwei):
-#   φ*_stuffer ≈ 0.00054  (BlockStufferBot deactivates — transition fully captured)
+#   φ*_stuffer ≈ 0.107   (BlockStufferBot deactivates at median 36 gwei; ~0.066–0.154 across 20–58.6 gwei)
 #   BlindPlanterBot and CrossBlockArbBot: never profitable at any φ (exec cost >> E[gain])
 PHI_SWEEP = [0.0] + list(np.logspace(-4, 0, 20))

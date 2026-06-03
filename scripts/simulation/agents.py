@@ -9,8 +9,8 @@ Agent taxonomy:
   SandwichBot      — info-blocked by P2S; structurally inactive at all φ
   FrontrunBot      — info-blocked by P2S; structurally inactive at all φ
   BlindPlanterBot  — info-blocked (speculative PHTs not profitable at ≥58 gwei)
-  BlockStufferBot  — deactivates at any φ > 0 (F_res scales with declared gas)
-  B2ProposerBot    — primary residual; deactivates at φ ≥ φ* ≈ 0.052
+  BlockStufferBot  — fee-binding residual; deactivates at φ ≥ φ*_stuffer ≈ 0.107 (median gas)
+  B2ProposerBot    — deterred structurally (same proposer builds B1+B2, earns tips), not by fee
   CrossBlockArbBot — info-blocked; not profitable at empirical gas prices
 """
 
