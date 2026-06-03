@@ -147,7 +147,7 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
                         "gain":     v["gain_eth"],
                     })
             atk = b["p2s"]["attack"]
-            if atk["success"]:
+            if atk.get("success"):   # current P2S ledger records no per-block attack (eliminated); points come from the live agent sim below
                 records.append({
                     "Strategy": STRATEGY_LABELS.get(atk["strategy"], atk["strategy"]),
                     "cost":     atk["cost_eth"],
@@ -162,7 +162,7 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
     from scripts.simulation.environment import AMMPool, build_txpool
     from scripts.simulation.constants import RANDOM_SEED
 
-    _PHI, _N, _GP = 0.10, 1000, 36.0   # 36 gwei ≈ mainnet median (34.5 base + 1.5 tip)
+    _PHI, _N, _GP = 0.20, 1000, 36.0   # recommended phi_rec; 36 gwei ≈ mainnet median (34.5 base + 1.5 tip)
     _rng.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     _pool = AMMPool(1_000.0)

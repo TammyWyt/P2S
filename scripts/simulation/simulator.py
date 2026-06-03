@@ -145,7 +145,7 @@ class MEVAttackStrategies:
     # F_res = PHT_RESERVATION_PHI * g_limit * g_base (burned at B1 inclusion).
     # Scales linearly with g_limit, so over-declaring g_limit costs proportionally
     # more in burned fees — regardless of MT reveal.
-    PHT_RESERVATION_PHI = 0.10  # 10 % of the equivalent full-execution gas cost
+    PHT_RESERVATION_PHI = 0.20  # recommended phi_rec (2x the median stuffer breakeven ~0.107)
 
     # ── B2 proposer ordering attack ─────────────────────────────────────────
     # INFEASIBLE: P2S protocol structurally prevents B2 from reordering committed
