@@ -265,6 +265,60 @@ def plot_stuffer_net(phi_vals, out_path):
     print(f"Saved {out_path}")
 
 
+# ── Combined: net profit vs φ, colour = bot, shade = gas price ───────────────
+
+def plot_profit_by_gas(phi_vals, out_path, n_blocks=N_BLOCKS):
+    """One plot subsuming the per-bot profit curve and the per-gas stuffer curve:
+    net profit/block vs φ, where COLOUR encodes the bot and SHADE (alpha) encodes
+    the gas-price level (low/median/high). Each active bot gets three lines."""
+    from matplotlib.lines import Line2D
+
+    phi_arr, hist, n, gp_levels = _gas_params_data(phi_vals)
+    phi_a = np.array(phi_vals, dtype=float)
+
+    sns.set_theme(style="ticks")
+    fig, ax = plt.subplots(figsize=(11, 6))
+
+    # Only BlockStuffer has a non-zero residual surface; BlindPlanter and
+    # Arbitrage earn zero at every gas level and are omitted.
+    active = set()
+    for gp, _label, alpha in gp_levels:
+        _, net, _, _ = run_sweep(phi_values=list(phi_vals), n_blocks=n_blocks,
+                                 gas_gwei=gp, verbose=False)
+        for name in net:
+            if name in _INFEASIBLE:
+                continue
+            vals = np.array(net[name], dtype=float)
+            if np.nanmax(np.abs(vals)) < 1e-9:
+                continue
+            active.add(name)
+            col = AGENT_COLORS.get(name, "#555")
+            ax.plot(phi_a, vals, color=col, alpha=alpha, lw=2.4, marker="o", ms=4)
+
+    ax.set_xscale("symlog", linthresh=1e-4)
+    ax.set_xlim(left=0)
+    ax.set_ylim(bottom=0)
+    ax.set_xlabel("Reservation fee ratio φ", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Net profit / block (ETH)", fontsize=FS_LABEL, fontweight="bold")
+    ax.tick_params(labelsize=FS_TICK)
+    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
+    ax.set_axisbelow(True)
+
+    # Single legend: shade → gas price (only BlockStuffer is plotted; stated in
+    # the caption rather than a one-entry bot legend).
+    stuffer_col = AGENT_COLORS["BlockStufferBot"]
+    gas_handles = [Line2D([0], [0], color=stuffer_col, lw=3.2, alpha=a,
+                          label=f"{lab} ({gp:.0f} gwei)")
+                   for gp, lab, a in gp_levels]
+    ax.legend(handles=gas_handles, loc="upper right", fontsize=FS_LEGEND - 2)
+
+    sns.despine(ax=ax)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {out_path}")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 def main():
