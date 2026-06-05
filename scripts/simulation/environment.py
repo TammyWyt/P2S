@@ -86,6 +86,39 @@ def gas_eth(gp_gwei: float, gas_units: int) -> float:
     return (gp_gwei * GWEI_PER_ETH * gas_units) / WEI_PER_ETH
 
 
+# ── EIP-1559 dynamic base fee ────────────────────────────────────────────────
+# Mainnet block parameters and the base-fee update rule, used by the sustained
+# block-stuffing (DDoS) experiment in stuffing_duration.py.
+GAS_LIMIT_BLOCK = 30_000_000     # mainnet block gas limit
+GAS_TARGET      = 15_000_000     # EIP-1559 target = half the gas limit
+BASE_FEE_FLOOR  = 1.0            # gwei; matches the cache flooring in load_gas_prices
+BASE_FEE_DENOM  = 8              # EIP-1559: max ±1/8 = ±12.5% change per block
+
+
+def next_base_fee(base_fee_gwei: float, gas_used: float,
+                  target: float = GAS_TARGET,
+                  floor: float = BASE_FEE_FLOOR) -> float:
+    """One EIP-1559 base-fee update.
+
+        base_fee_{n+1} = base_fee_n * (1 + (gas_used - target) / target / 8)
+
+    clamped below at `floor`. A full block (gas_used = 2*target) raises the base
+    fee by the maximal +12.5%; an empty block (gas_used = 0) lowers it by -12.5%.
+    Reference: EIP-1559 (https://eips.ethereum.org/EIPS/eip-1559).
+    """
+    delta = (gas_used - target) / target / BASE_FEE_DENOM
+    return max(base_fee_gwei * (1.0 + delta), floor)
+
+
+def median_base_fee() -> float:
+    """Median historical mainnet base fee (gwei) from the block cache, used as
+    the starting point for the sustained-stuffing experiments."""
+    from .constants import PRIORITY_FEE_GWEI
+    eff  = load_gas_prices(1005)
+    base = sorted(max(g - PRIORITY_FEE_GWEI, BASE_FEE_FLOOR) for g in eff)
+    return base[len(base) // 2]
+
+
 def load_gas_prices(n: int) -> List[float]:
     """
     Load per-block effective gas prices (base_fee + PRIORITY_FEE_GWEI) from the

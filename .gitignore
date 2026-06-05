@@ -9,6 +9,7 @@ build/
 
 # Data outputs (regenerable)
 data/simulation_*.json
+data/revert_receipts_cache.json
 
 # IDE
 .cursorrules

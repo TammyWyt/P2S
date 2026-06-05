@@ -18,6 +18,10 @@ Steps:
     4. Run MEV comparison plot (plot_mev_comparison.py)
        → writes figures/mev_totals_by_type.pdf, cumulative_mev.pdf,
                   cost_gain_comparison.pdf
+    5. Run network latency plots (plot_latency.py)
+    6. Run sustained block-stuffing / DDoS plots (plot_stuffing_duration.py)
+       → writes figures/stuffing_duration_by_budget.pdf,
+                  stuffing_basefee_trajectory.pdf
 """
 
 import os
@@ -87,12 +91,21 @@ print("Step 4 done.")
 
 # ── Step 5: Latency analysis ──────────────────────────────────────────────────
 
-step("Step 5/5 — Generating network latency figures")
+step("Step 5/6 — Generating network latency figures")
 
 import plots.plot_latency as latency
 
 latency.main()
 print("Step 5 done.")
+
+# ── Step 6: Sustained block-stuffing (DDoS) ──────────────────────────────────
+
+step("Step 6/6 — Generating sustained block-stuffing figures")
+
+import plots.plot_stuffing_duration as stuffing
+
+stuffing.main()
+print("Step 6 done.")
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 
