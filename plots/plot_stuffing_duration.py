@@ -61,18 +61,17 @@ def plot_duration_by_budget(payload, out_path):
         ax.plot(budgets, np.array(blocks[regime]), label=label,
                 color=col, lw=2.6, linestyle=ls, marker=mk, ms=6)
 
-    # Linear axes: the flat-phi regime is a literal straight line (duration linear
-    # in budget); the two deterred regimes are ~3 orders of magnitude smaller and
-    # collapse onto the axis, so a zoomed inset recovers their logarithmic shape.
-    ax.set_xlim(left=0)
-    ax.set_ylim(bottom=0)
+    # Log-log axes: the flat-phi regime is a straight unit-slope line (duration
+    # linear in budget) while the two deterred regimes flatten out (duration
+    # logarithmic in budget), so all three are legible on a single panel.
+    ax.set_xscale("log")
+    ax.set_yscale("log")
     ax.set_xlabel("Attacker budget (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Blocks sustained", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND, loc="lower right", frameon=False)
-    ax.grid(True, alpha=0.18, linestyle="--", color="gray")
+    ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
+    ax.grid(True, which="both", alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
-    ax.yaxis.get_offset_text().set_fontsize(FS_TICK - 4)
 
     # Right-hand axis: blocks -> wall-clock hours at one slot per block.
     secax = ax.secondary_yaxis(
@@ -82,20 +81,6 @@ def plot_duration_by_budget(payload, out_path):
     )
     secax.set_ylabel("Wall-clock (hours)", fontsize=FS_LABEL - 2, fontweight="bold")
     secax.tick_params(labelsize=FS_TICK - 2)
-
-    # Inset: zoom to the two deterred regimes (Ethereum and dynamic-phi), whose
-    # logarithmic-in-budget curvature is invisible on the main linear axes.
-    axin = ax.inset_axes([0.30, 0.46, 0.46, 0.44])
-    for regime in ("ethereum", "p2s_dynamic"):
-        label, col, ls, mk = REGIME_STYLE[regime]
-        axin.plot(budgets, np.array(blocks[regime]),
-                  color=col, lw=2.2, linestyle=ls, marker=mk, ms=4)
-    axin.set_xlim(left=0)
-    axin.set_ylim(0, 55)
-    axin.tick_params(labelsize=FS_TICK - 6)
-    axin.grid(True, alpha=0.18, linestyle="--", color="gray")
-    axin.set_axisbelow(True)
-    axin.set_title("zoom: deterred regimes", fontsize=FS_LEGEND - 3)
 
     sns.despine(ax=ax, right=False)
     plt.tight_layout()
@@ -120,7 +105,7 @@ def plot_basefee_trajectory(payload, out_path):
     ax.set_xlabel("Block of sustained attack", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Cost per block (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND, loc="center left", frameon=False)
+    ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
     sns.despine(ax=ax)
