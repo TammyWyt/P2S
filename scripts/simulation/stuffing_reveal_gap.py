@@ -1,20 +1,22 @@
 """
-Reveal-gap reservation fee: sustained-stuffing test with an ADAPTIVE stuffer.
+Utilization-gap reservation fee: sustained-stuffing test with an ADAPTIVE stuffer.
 
 Replaces the occupancy-keyed dynamic reservation base fee with one keyed on the
-UNREVEALED-GAS FRACTION u_t (reserved gas whose MT never appears / total
-reserved gas), with a benign no-show target u*:
+UTILIZATION GAP u_t: the fraction of B1 reserved gas that goes unexecuted in B2
+(no-shows count in full; revealed MTs count their unused remainder), with a
+benign under-utilization target u*:
 
     bf_res(t+1) = bf_res(t) * (1 + 0.125 * (u_t - u*) / (1 - u*))
 
-Pure stuffer (u=1) escalates +12.5%/block exactly as the occupancy-keyed rule,
-so the headline duration numbers are unchanged.  The new question this module
-answers is EVASION: a stuffer that reveals a fraction r of its dummy
-reservations to suppress u_t must execute that gas in B2, feeding the ordinary
-EIP-1559 execution base fee.  With the execution target at half the limit, the
-execution fee escalates for r > 0.5 while the reservation fee escalates for
-r < 1 - u*; the regions overlap, so for every r at least one fee grows
-geometrically and duration stays logarithmic in the budget.
+Merely revealing changes nothing — only EXECUTED gas lowers u_t — so revealing
+cheap dummy MTs that use ~zero gas is not an evasion.  Pure stuffer (u=1)
+escalates +12.5%/block exactly as the occupancy-keyed rule, so the headline
+duration numbers are unchanged.  The question this module answers is EVASION:
+a stuffer that executes a fraction r of its reserved gas to suppress u_t feeds
+the ordinary EIP-1559 execution base fee.  With the execution target at half
+the limit, the execution fee escalates for r > 0.5 while the reservation fee
+escalates for r < 1 - u*; the regions overlap, so for every r at least one fee
+grows geometrically and duration stays logarithmic in the budget.
 
 Run:  python -m scripts.simulation.stuffing_reveal_gap
 """

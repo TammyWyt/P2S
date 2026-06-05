@@ -25,21 +25,22 @@ but differ in what gas signal drives it and what the attacker pays per block:
                 gets CHEAPER every block.  Duration grows ~LINEARLY in the budget:
                 P2S is strictly worse than Ethereum against sustained stuffing.
 
-  p2s_dynamic — the proposed fix.  A reservation base fee bf_res follows EIP-1559
-                dynamics keyed on the REVEAL GAP: the fraction u of reserved gas
-                whose MT never appears in B2, against a benign no-show target u*.
-                A pure stuffer (u = 1) raises bf_res +12.5%/block, so the
-                reservation cost grows geometrically and duration returns to
-                LOGARITHMIC in the budget — while benign congestion (full B1,
-                everyone reveals, u ~ u*) never escalates the fee.
-
-  p2s_adaptive— the evasion attack on p2s_dynamic.  The stuffer reveals a
-                fraction r of its dummy reservations to suppress u = 1 - r, but
-                must then EXECUTE that gas in B2, feeding the ordinary execution
-                base fee: it escalates for r > 0.5 while the reservation fee
-                escalates for r < 1 - u*.  The regions overlap, so every r leaves
-                at least one fee growing geometrically; the sweep takes the
-                worst case (max duration) over a grid of r per budget.
+  p2s_dynamic — the proposed fix.  A reservation base fee bf_res keyed on the
+                UTILIZATION GAP: the fraction u of B1 reserved gas that goes
+                UNEXECUTED in B2 (no-shows count in full; revealed MTs count
+                their unused remainder g_limit - g_used), against a benign
+                under-utilization target u*, with slope MAX_CHANGE = 0.50
+                (4x EIP-1559 — affordable because it binds only on the attack
+                signature u > u*, never on benign congestion).  Merely revealing
+                changes nothing — only executed gas lowers u.  A pure stuffer
+                (u = 1) faces +50%/block, steeper than Ethereum's +12.5%; an
+                evader that EXECUTES a fraction r of its reserved gas to
+                suppress u = 1 - r feeds the ordinary execution base fee
+                (escalates for r > 0.5) while the reservation fee escalates for
+                r < 1 - u*; every r leaves at least one fee growing
+                geometrically.  Durations are reported as the WORST CASE (max)
+                over a grid of r — the best any stuffer, pure or evading, can
+                do — and stay LOGARITHMIC in the budget.
 
 Run directly to (re)generate data/stuffing_duration.json:
     python -m scripts.simulation.stuffing_duration
@@ -60,19 +61,23 @@ from .environment import (
 # Recommended reservation-fee ratio from the parametric analysis.
 PHI_REC      = 0.20
 SLOT_SECONDS = 12          # Ethereum slot time; blocks -> wall-clock seconds
-REGIMES      = ("ethereum", "p2s_static", "p2s_dynamic", "p2s_adaptive")
+REGIMES      = ("ethereum", "p2s_static", "p2s_dynamic")
 
-# Reveal-gap reservation fee parameters.
-U_TARGET   = 0.10                                 # benign no-show target u*
-MAX_CHANGE = 0.125                                # per-block bound (EIP-1559 family)
-ADAPTIVE_R_GRID  = (0.0, 0.25, 0.5, 0.6, 0.75, 0.9, 1.0)   # evader reveal fractions
-ADAPTIVE_R_WORST = 0.6     # large-budget worst case, used for the cost trajectory
+# Utilization-gap reservation fee parameters.
+U_TARGET   = 0.10          # benign under-utilization target u*
+# Reservation-fee slope: 4x EIP-1559's 0.125.  Affordable because the term
+# binds only when u > u* (the attack signature), which benign load never
+# triggers; a pure stuffer faces +50%/block, steeper than Ethereum's +12.5%.
+MAX_CHANGE = 0.50
+ADAPTIVE_R_GRID  = (0.0, 0.25, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 1.0)
+ADAPTIVE_R_WORST = 0.78    # large-budget optimum ~ crossing point r-dagger
 
 
 def next_reservation_fee(bf_res: float, u: float,
                          u_target: float = U_TARGET,
                          floor: float = BASE_FEE_FLOOR) -> float:
-    """Reveal-gap update: escalate when the unrevealed fraction u exceeds u*."""
+    """Utilization-gap update: escalate when the unexecuted fraction u of B1
+    reserved gas exceeds u*.  Revealing without executing does not lower u."""
     delta = MAX_CHANGE * (u - u_target) / (1.0 - u_target)
     return max(floor, bf_res * (1.0 + delta))
 
@@ -130,17 +135,17 @@ def simulate_duration(budget_eth: float, regime: str, phi: float = PHI_REC,
     return blocks
 
 
-def simulate_adaptive(budget_eth: float, reveal_fraction: float,
+def simulate_adaptive(budget_eth: float, executed_fraction: float,
                       phi: float = PHI_REC, bf0: float = None,
                       max_blocks: int = 1_000_000) -> int:
-    """Blocks a stuffer revealing fraction r of its dummy reservations sustains.
+    """Blocks a stuffer executing fraction r of its reserved gas sustains.
 
     Per-block cost  = reservation fee on the fully-reserved B1
-                    + (base + tip) execution cost on the revealed r*G gas.
+                    + (base + tip) execution cost on the executed r*G gas.
     Fee advancement: execution base fee sees r*G executed gas;
-                     reservation base fee sees u = 1 - r unrevealed.
+                     reservation base fee sees the utilization gap u = 1 - r.
     """
-    r = reveal_fraction
+    r = executed_fraction
     if bf0 is None:
         bf0 = median_base_fee()
     bf, bf_res = bf0, bf0
@@ -162,15 +167,15 @@ def sweep_budgets(budgets_eth: List[float], phi: float = PHI_REC,
                   bf0: float = None) -> Dict[str, List[int]]:
     """{regime -> [blocks sustained per budget]} over a budget sweep.
 
-    p2s_adaptive reports the WORST CASE (max duration) over the reveal-fraction
-    grid at each budget: the best the evading stuffer can possibly do."""
+    p2s_dynamic reports the WORST CASE (max duration) over the executed-fraction
+    grid at each budget — the best any stuffer, pure (r=0) or evading, can do."""
     if bf0 is None:
         bf0 = median_base_fee()
     out = {
         regime: [simulate_duration(b, regime, phi=phi, bf0=bf0) for b in budgets_eth]
-        for regime in REGIMES if regime != "p2s_adaptive"
+        for regime in REGIMES if regime != "p2s_dynamic"
     }
-    out["p2s_adaptive"] = [
+    out["p2s_dynamic"] = [
         max(simulate_adaptive(b, r, phi=phi, bf0=bf0) for r in ADAPTIVE_R_GRID)
         for b in budgets_eth
     ]
@@ -199,9 +204,9 @@ def base_fee_trajectory(n_blocks: int, phi: float = PHI_REC,
         for _ in range(n_blocks):
             # The fee that actually prices the attacker's per-block cost.
             fee_series.append(bf if regime in ("ethereum", "p2s_static") else bf_res)
-            if regime == "p2s_adaptive":
-                # Evader at the worst-case reveal fraction r: reservation fee on
-                # the full B1 plus execution cost on the revealed r*G gas.
+            if regime == "p2s_dynamic":
+                # The attacker's best strategy (executed fraction r ~ r-dagger):
+                # reservation fee on the full B1 plus execution on the r*G gas.
                 cost_series.append(phi * gas_eth(bf_res, GAS_LIMIT_BLOCK)
                                    + gas_eth(bf + PRIORITY_FEE_GWEI,
                                              int(r * GAS_LIMIT_BLOCK)))
