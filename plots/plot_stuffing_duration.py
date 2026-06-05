@@ -43,11 +43,12 @@ FS_LEGEND = 17
 _DEEP = sns.color_palette("deep")
 REGIME_STYLE = {
     # regime -> (label, colour, linestyle, marker)
-    "ethereum":    ("Ethereum (execute)",        _DEEP[7], "-",  "o"),   # gray baseline
-    "p2s_static":  ("P2S, flat $\\varphi$",       _DEEP[3], "--", "s"),   # red — the hole
-    "p2s_dynamic": ("P2S, dynamic $\\varphi$",    _DEEP[2], "-",  "^"),   # green — the fix
+    "ethereum":     ("Ethereum (execute)",                       _DEEP[7], "-",  "o"),  # gray baseline
+    "p2s_static":   ("P2S, flat $\\varphi$ (no escalation)",      _DEEP[3], "--", "s"),  # red — the hole
+    "p2s_dynamic":  ("P2S, dynamic $\\varphi$ (ours)",            _DEEP[2], "-",  "^"),  # green — the fix
+    "p2s_adaptive": ("P2S, dynamic $\\varphi$ (best evasion)",    _DEEP[1], ":",  "D"),  # orange — the pincer
 }
-_ORDER = ["ethereum", "p2s_static", "p2s_dynamic"]
+_ORDER = ["ethereum", "p2s_static", "p2s_dynamic", "p2s_adaptive"]
 
 
 def plot_duration_by_budget(payload, out_path):
