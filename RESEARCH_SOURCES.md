@@ -176,6 +176,64 @@ The critical correction from PBS reviewer feedback:
 - Flashbots FRP-10: "Distributed Blockbuilding Networks via Secure Knapsack Auctions" (2023) — proposes commitment deposits in distributed building
 - Roughgarden (2021) §5 on mechanism design for fee burning
 
+### 5.1 Refund Design for Benign Reverts (Experiment E1 follow-up)
+
+*Data: `data/revert_cost_analysis.json` (low-fee) and `data/revert_cost_highfee.json`
+(congestion). Reproduce: `python3 scripts/revert_refund_design.py`. Figure:
+`figures/revert_refund_design.pdf`.*
+
+**Corrected Ethereum baseline.** A slippage revert is often loosely described as
+"the tx reverts and some base fee is returned." Precisely, post-London (EIP-1559),
+when a swap trips its slippage bound *after inclusion*: (1) the tx is included and
+charged `gas_used × eff_price`, `eff_price = min(maxFee, baseFee + priorityFee)`;
+(2) gas consumed up to the `require` failure is **forfeited**; (3) the base-fee
+portion (`gas_used × baseFee`) is **burned**, the tip goes to the validator; (4)
+the only thing returned is the fee on **unused** gas, which was never spent. So the
+honest baseline is `cost_today = gas_used × eff_price`, base burned. (EIP-3529
+removed most op-level refunds; EIP-3978 *proposes* restoring revert gas refunds but
+is **not** live on mainnet.)
+
+**Three cost models for a reverted user:**
+
+| model | reverted user pays |
+|---|---|
+| Ethereum today | `gas_used × eff_price` (base burned) |
+| P2S, current paper | `F_res + gas_used × eff_price` |
+| P2S, refund design (proposed) | `F_res` only |
+
+The refund design changes only **B2**: on a *revealed-but-reverted* MT, refund the
+entire B2 execution gas, since a user who revealed and executed is demonstrably not
+blind-stuffing. `F_res` stays burned (non-refundable) as the stuffing deterrent.
+Benign user pays less than Ethereum today whenever `φ·(g_limit/g_used) <
+(baseFee+prio)/baseFee`.
+
+**Empirical results** (USD: low-fee at $1,755; congestion at May-2022 ~$2,800):
+
+| regime | cohort | n | refund ratio med/p90/p99 | % paying **less** than ETH | median Δ |
+|---|---|---|---|---|---|
+| low-fee | slippage | 265 | 0.34 / 0.69 / 1.11 | 98% | saves $0.05 |
+| low-fee | slippage+in-block | 1071 | 0.36 / 0.69 / 1.41 | 98% | saves $0.03 |
+| low-fee | all DEX | 1337 | 0.37 / 5.39 / 6.33 | 86% | saves $0.03 |
+| congestion | slippage | 264 | 0.26 / 3.14 / 4.79 | 75% | saves $37.22 |
+| congestion | slippage+in-block | 632 | 0.28 / 2.73 / 4.48 | 68% | saves $30.60 |
+| congestion | all DEX | 1031 | 0.58 / 3.03 / 6.25 | 55% | saves $10.22 |
+
+The refund design flips the benign-user story: under the *current* design the
+reverted user always pays more than Ethereum (overhead median 1.26–1.34×); under the
+refund design the median benign slippage user pays 0.26–0.34× (66–74% cheaper). The
+cost falls on heavy `g_limit` padders (`F_res ∝ declared limit`), who are opt-out by
+tightening the limit. The stuffing deterrent is intact: a stuffer who never reveals
+still loses `F_res` entirely.
+
+**Open tension to quantify** (tracked in §11): refunding *all* B2 gas lets a
+revealed-but-reverting MT occupy B2 blockspace for only `F_res` — size the griefing
+risk and the burn/validator accounting before adopting. Natural middle ground: cap
+the refund at `F_res`, or refund only the base-fee portion.
+
+**Source:**
+- Ethereum.org EIP-1559 FAQ; EIP-3529 (op-level refund removal); EIP-3978 (proposed revert refund, not live)
+- MetaMask / Uniswap support docs on reverted-swap gas charging
+
 ---
 
 ## 6. Network Parameters
@@ -294,6 +352,8 @@ The critical correction from PBS reviewer feedback:
 4. **Multi-dimensional gas (EIP-4844 blobs):** Extend Greedy-FD to a 2D knapsack (execution gas + blob gas). Based on Babel et al. (arXiv:2504.15438, 2025), this is NP-hard to approximate closely, so the greedy gap would widen.
 
 5. **Slippage tolerance:** Model victim transactions with heterogeneous slippage tolerance (tight vs loose). Tight-tolerance victims reject attacked execution; loose-tolerance victims accept. This would show which user types are most protected by P2S.
+
+6. **B2 refund griefing (from §5.1):** Quantify whether `F_res = 0.2·g_limit·g_base` is a high-enough gate against an attacker who reveals deliberately-reverting dummy MTs to consume B2 gas at cost `F_res` each. Test the capped-refund variant (refund B2 gas up to `F_res`, or base-fee portion only) as a sensitivity row.
 
 ---
 
