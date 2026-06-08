@@ -116,6 +116,74 @@ def plot_basefee_trajectory(payload, out_path):
     print(f"Saved {out_path}")
 
 
+def plot_mechanism_tradeoff(payload, out_path):
+    """Two panels telling the reservation-fee design tradeoff at 1000 ETH:
+
+    (a) Worst-case stuffing duration vs escalation slope.  Raising the
+        utilization-gap slope plateaus *above* Ethereum (the evader retreats into
+        the execution-fee regime, where the reservation slope is irrelevant);
+        the occupancy-keyed fee, which cannot be evaded by executing, drops below
+        Ethereum.
+
+    (b) The price of that: the reservation fee a *benign* swapper pays over a
+        sustained honest-congestion episode.  The gap fee never escalates (it
+        keys on the unexecuted gap, which benign load does not produce); the
+        occupancy fee, unable to tell benign congestion from a stuffer, taxes the
+        honest user geometrically."""
+    sns.set_theme(style="ticks")
+    fig, (axL, axR) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # ── (a) tuning insensitivity ────────────────────────────────────────────
+    ss = payload["slope_sweep"]
+    slopes = np.array(ss["slopes"])
+    axL.plot(slopes, ss["gap"], color=_DEEP[2], lw=2.6, marker="^", ms=7,
+             label="P2S, gap-keyed $\\varphi$ (worst case)")
+    axL.plot(slopes, ss["occupancy"], color=_DEEP[0], lw=2.6, marker="D", ms=7,
+             label="P2S, occupancy-keyed $\\varphi$ (worst case)")
+    axL.axhline(ss["ethereum"], color=_DEEP[7], lw=2.4, ls=":",
+                label=f"Ethereum ({ss['ethereum']} blocks)")
+    axL.set_xlabel("Reservation-fee slope $s$", fontsize=FS_LABEL, fontweight="bold")
+    axL.set_ylabel("Worst-case blocks sustained", fontsize=FS_LABEL, fontweight="bold")
+    axL.set_yscale("log")
+    axL.tick_params(labelsize=FS_TICK)
+    axL.legend(fontsize=FS_LEGEND - 1, loc="upper right", frameon=False)
+    axL.grid(True, which="both", alpha=0.18, linestyle="--", color="gray")
+    axL.set_axisbelow(True)
+    axL.set_title(f"(a) Worst-case duration at "
+                  f"{payload['tuning_ref_budget_eth']:.0f} ETH",
+                  fontsize=FS_LEGEND + 2)
+
+    # ── (b) benign congestion surcharge ──────────────────────────────────────
+    bs = payload["benign_surcharge"]
+    usd = 3000.0
+    # Cap the panel at a realistic congestion horizon: a benign demand spike lasts
+    # a handful of blocks before EIP-1559 self-corrects, so plotting the full
+    # trajectory would reach economically meaningless values.
+    horizon = min(21, len(bs["gap"]))
+    x = np.arange(horizon)
+    axR.plot(x, np.array(bs["gap"][:horizon]) * usd, color=_DEEP[2], lw=2.6,
+             marker="^", ms=6, markevery=3, label="gap-keyed $\\varphi$")
+    axR.plot(x, np.array(bs["occupancy"][:horizon]) * usd, color=_DEEP[0], lw=2.6,
+             marker="D", ms=6, markevery=3, label="occupancy-keyed $\\varphi$")
+    axR.set_xlabel("Block of sustained congestion", fontsize=FS_LABEL, fontweight="bold")
+    axR.set_ylabel("Benign swap $F_{\\mathsf{res}}$ (USD)",
+                   fontsize=FS_LABEL, fontweight="bold")
+    axR.set_yscale("log")
+    axR.tick_params(labelsize=FS_TICK)
+    axR.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
+    axR.grid(True, which="both", alpha=0.18, linestyle="--", color="gray")
+    axR.set_axisbelow(True)
+    axR.set_title(f"(b) Honest-user cost ($g^{{\\mathsf{{limit}}}}$"
+                  f"={bs['g_limit']//1000}k, ETH=\\${usd:.0f})",
+                  fontsize=FS_LEGEND + 2)
+
+    sns.despine(fig=fig)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {out_path}")
+
+
 def main():
     os.makedirs(FIGURES_DIR, exist_ok=True)
     print("Running sustained block-stuffing experiment …")
@@ -124,6 +192,8 @@ def main():
         payload, os.path.join(FIGURES_DIR, "stuffing_duration_by_budget.pdf"))
     plot_basefee_trajectory(
         payload, os.path.join(FIGURES_DIR, "stuffing_basefee_trajectory.pdf"))
+    plot_mechanism_tradeoff(
+        payload, os.path.join(FIGURES_DIR, "stuffing_mechanism_tradeoff.pdf"))
 
 
 if __name__ == "__main__":

@@ -71,6 +71,22 @@ U_TARGET   = 0.10          # benign under-utilization target u*
 MAX_CHANGE = 0.50
 ADAPTIVE_R_GRID  = (0.0, 0.25, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 1.0)
 ADAPTIVE_R_WORST = 0.78    # large-budget optimum ~ crossing point r-dagger
+# Fine grid used to locate the worst-case (longest-lasting) evading stuffer when
+# sweeping the slope/phi: the optimal executed fraction shifts with the slope, so
+# a coarse grid would understate the worst case.
+R_GRID_FINE = tuple(i / 100.0 for i in range(101))
+
+# ── Occupancy-keyed reservation fee (the alternative evaluated in
+# sec:phi-experiments) ───────────────────────────────────────────────────────
+# The utilization-gap fee above escalates only on the *unexecuted* fraction, so a
+# stuffer evades it by executing most of its reserved gas (see sweep_slope).  The
+# alternative keys escalation on B1 *reserved occupancy* above the gas target --
+# the censorship signal itself -- which a stuffer cannot suppress by executing,
+# since holding the chain requires reserving the whole block regardless.  The
+# cost is that a content-agnostic protocol cannot tell an attacker's full block
+# from a benign congested one, so this fee also escalates under honest
+# congestion (quantified by benign_congestion_surcharge).
+OCC_SLOPE = 0.50           # escalation slope on the reserved-occupancy gap
 
 
 def next_reservation_fee(bf_res: float, u: float,
@@ -80,6 +96,20 @@ def next_reservation_fee(bf_res: float, u: float,
     reserved gas exceeds u*.  Revealing without executing does not lower u."""
     delta = MAX_CHANGE * (u - u_target) / (1.0 - u_target)
     return max(floor, bf_res * (1.0 + delta))
+
+def next_occupancy_fee(bf_res: float, reserved_fraction: float,
+                       slope: float = OCC_SLOPE,
+                       target_fraction: float = 0.5,
+                       floor: float = BASE_FEE_FLOOR) -> float:
+    """Occupancy-keyed update: escalate on B1 reserved gas above the gas target,
+    regardless of how much of it executes.  ``reserved_fraction`` is the share of
+    the block-gas-limit reserved in B1; ``target_fraction`` is the EIP-1559 target
+    as a share of that limit (0.5).  A fully-reserved block (fraction 1.0) drives
+    the fee up at the maximal ``slope`` whether or not the matching MTs execute,
+    so the stuffer cannot suppress it by revealing."""
+    delta = slope * (reserved_fraction - target_fraction) / target_fraction
+    return max(floor, bf_res * (1.0 + delta))
+
 
 _DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "data")
 
@@ -163,6 +193,117 @@ def simulate_adaptive(budget_eth: float, executed_fraction: float,
     return blocks
 
 
+def simulate_occupancy(budget_eth: float, executed_fraction: float,
+                       phi: float = PHI_REC, occ_slope: float = OCC_SLOPE,
+                       bf0: float = None, max_blocks: int = 1_000_000) -> int:
+    """Blocks a stuffer sustains under the occupancy-keyed reservation fee.
+
+    Identical attacker model to ``simulate_adaptive`` (reserve the whole block,
+    execute a fraction ``r``), but the reservation base fee escalates on the
+    reserved occupancy (always the full block for a stuffer) rather than on the
+    unexecuted gap, so executing more gas no longer suppresses it."""
+    r = executed_fraction
+    if bf0 is None:
+        bf0 = median_base_fee()
+    bf, bf_res = bf0, bf0
+    budget = budget_eth
+    blocks = 0
+    while blocks < max_blocks:
+        cost = (phi * gas_eth(bf_res, GAS_LIMIT_BLOCK)
+                + gas_eth(bf + PRIORITY_FEE_GWEI, int(r * GAS_LIMIT_BLOCK)))
+        if cost > budget:
+            break
+        budget -= cost
+        blocks += 1
+        bf = next_base_fee(bf, r * GAS_LIMIT_BLOCK)
+        # Reserved occupancy is the full block regardless of r: censoring every
+        # other transaction requires reserving the whole block.
+        bf_res = next_occupancy_fee(bf_res, 1.0, slope=occ_slope)
+    return blocks
+
+
+def worst_case_duration(budget_eth: float, mechanism: str, phi: float = PHI_REC,
+                        slope: float = None, bf0: float = None) -> int:
+    """Longest duration any stuffing strategy achieves at ``budget_eth`` under a
+    given reservation-fee ``mechanism`` ('gap' = utilization-gap, 'occupancy' =
+    occupancy-keyed), maximised over the executed-fraction grid.  ``slope``
+    overrides the mechanism's escalation slope (defaults to MAX_CHANGE / OCC_SLOPE)."""
+    global MAX_CHANGE  # the gap update reads the module-level slope
+    if bf0 is None:
+        bf0 = median_base_fee()
+    if mechanism == "gap":
+        saved = MAX_CHANGE
+        MAX_CHANGE = saved if slope is None else slope
+        try:
+            return max(simulate_adaptive(budget_eth, r, phi=phi, bf0=bf0)
+                       for r in R_GRID_FINE)
+        finally:
+            MAX_CHANGE = saved
+    if mechanism == "occupancy":
+        s = OCC_SLOPE if slope is None else slope
+        return max(simulate_occupancy(budget_eth, r, phi=phi, occ_slope=s, bf0=bf0)
+                   for r in R_GRID_FINE)
+    raise ValueError(f"unknown mechanism: {mechanism}")
+
+
+def sweep_slope(budget_eth: float, slopes: List[float], phi: float = PHI_REC,
+                bf0: float = None) -> Dict[str, List[int]]:
+    """Worst-case stuffing duration vs escalation slope, for both reservation-fee
+    mechanisms, at a fixed budget.  Shows that raising the *utilization-gap* slope
+    cannot push the worst case below Ethereum (the evader retreats into the
+    execution-fee regime where the reservation slope is irrelevant), whereas the
+    occupancy-keyed fee does, because it cannot be evaded by executing."""
+    if bf0 is None:
+        bf0 = median_base_fee()
+    eth = simulate_duration(budget_eth, "ethereum", phi=phi, bf0=bf0)
+    return {
+        "slopes": list(slopes),
+        "ethereum": eth,
+        "gap":       [worst_case_duration(budget_eth, "gap", phi=phi, slope=s, bf0=bf0)
+                      for s in slopes],
+        "occupancy": [worst_case_duration(budget_eth, "occupancy", phi=phi, slope=s, bf0=bf0)
+                      for s in slopes],
+    }
+
+
+def sweep_phi(budget_eth: float, phis: List[float], bf0: float = None) -> Dict[str, List[int]]:
+    """Worst-case utilization-gap duration vs the fee *level* phi, at a fixed
+    budget and the default slope.  Like sweep_slope, demonstrates that raising the
+    level cannot push the worst case below Ethereum either."""
+    if bf0 is None:
+        bf0 = median_base_fee()
+    return {
+        "phis": list(phis),
+        "ethereum": simulate_duration(budget_eth, "ethereum", bf0=bf0),
+        "gap": [worst_case_duration(budget_eth, "gap", phi=p, bf0=bf0) for p in phis],
+    }
+
+
+def benign_congestion_surcharge(n_blocks: int, g_limit: int = 150_000,
+                                phi: float = PHI_REC, occ_slope: float = OCC_SLOPE,
+                                bf0: float = None) -> Dict[str, List[float]]:
+    """Reservation fee F_res (ETH) a benign user with declared gas ``g_limit``
+    pays per block over a sustained *honest* congestion episode (full blocks whose
+    reservations all execute), under each mechanism.
+
+    Under the utilization-gap fee the benign user executes, so u <= u* and the
+    reservation base fee never escalates -- F_res stays flat.  Under the
+    occupancy-keyed fee the same full blocks escalate the reservation base fee,
+    because a content-agnostic protocol cannot distinguish benign congestion from
+    a stuffer's reserved occupancy -- so the honest user is taxed for congestion."""
+    if bf0 is None:
+        bf0 = median_base_fee()
+    gap_fee, occ_fee = [], []
+    bf_gap, bf_occ = bf0, bf0
+    for _ in range(n_blocks):
+        gap_fee.append(phi * gas_eth(bf_gap, g_limit))
+        occ_fee.append(phi * gas_eth(bf_occ, g_limit))
+        # Benign congestion: B1 is full and every reservation executes (u ~ 0).
+        bf_gap = next_reservation_fee(bf_gap, 0.0)          # u below u* -> no rise
+        bf_occ = next_occupancy_fee(bf_occ, 1.0, slope=occ_slope)  # full occupancy -> rises
+    return {"gap": gap_fee, "occupancy": occ_fee, "g_limit": g_limit}
+
+
 def sweep_budgets(budgets_eth: List[float], phi: float = PHI_REC,
                   bf0: float = None) -> Dict[str, List[int]]:
     """{regime -> [blocks sustained per budget]} over a budget sweep.
@@ -225,6 +366,17 @@ def run(phi: float = PHI_REC, n_budgets: int = 25, traj_blocks: int = 60) -> dic
     budgets = list(np.logspace(0, 3, n_budgets))   # 1 ETH .. 1000 ETH
     durations = sweep_budgets(budgets, phi=phi, bf0=bf0)
     fee_traj, cost_traj = base_fee_trajectory(traj_blocks, phi=phi, bf0=bf0)
+
+    # Tuning sweeps at 1000 ETH: neither raising the utilization-gap slope nor
+    # raising phi pushes the worst case below Ethereum; the occupancy-keyed fee
+    # does.  Reported in sec:phi-experiments alongside the benign-cost tradeoff.
+    ref_budget = 1000.0
+    slope_grid = [0.125, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
+    phi_grid   = [0.2, 0.4, 0.6, 1.0, 1.5, 2.0]
+    slope_sweep   = sweep_slope(ref_budget, slope_grid, phi=phi, bf0=bf0)
+    phi_sweep_st  = sweep_phi(ref_budget, phi_grid, bf0=bf0)
+    surcharge     = benign_congestion_surcharge(traj_blocks, phi=phi, bf0=bf0)
+
     return {
         "phi": phi,
         "base_fee_start_gwei": bf0,
@@ -235,6 +387,10 @@ def run(phi: float = PHI_REC, n_budgets: int = 25, traj_blocks: int = 60) -> dic
                               for r, blks in durations.items()},
         "trajectory_gwei": fee_traj,
         "cost_trajectory_eth": cost_traj,
+        "tuning_ref_budget_eth": ref_budget,
+        "slope_sweep": slope_sweep,
+        "phi_sweep_static": phi_sweep_st,
+        "benign_surcharge": surcharge,
     }
 
 
