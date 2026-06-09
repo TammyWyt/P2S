@@ -184,6 +184,65 @@ def plot_mechanism_tradeoff(payload, out_path):
     print(f"Saved {out_path}")
 
 
+def plot_tradeoff_duration(payload, out_path):
+    """Panel (a) of the reservation-fee tradeoff, as a standalone subfigure.
+
+    Worst-case stuffing duration vs escalation slope. No in-plot title: the
+    LaTeX subcaption carries the label."""
+    sns.set_theme(style="ticks")
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ss = payload["slope_sweep"]
+    slopes = np.array(ss["slopes"])
+    ax.plot(slopes, ss["gap"], color=_DEEP[2], lw=2.6, marker="^", ms=7,
+            label="gap-keyed $\\varphi$")
+    ax.plot(slopes, ss["occupancy"], color=_DEEP[0], lw=2.6, marker="D", ms=7,
+            label="occupancy-keyed $\\varphi$")
+    ax.axhline(ss["ethereum"], color=_DEEP[7], lw=2.4, ls=":",
+               label=f"Ethereum ({ss['ethereum']} blocks)")
+    ax.set_xlabel("Reservation-fee slope $s$", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Worst-case blocks sustained", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_yscale("log")
+    ax.tick_params(labelsize=FS_TICK)
+    ax.legend(fontsize=FS_LEGEND, loc="upper right", frameon=False)
+    ax.grid(True, which="both", alpha=0.18, linestyle="--", color="gray")
+    ax.set_axisbelow(True)
+    sns.despine(ax=ax)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {out_path}")
+
+
+def plot_tradeoff_cost(payload, out_path):
+    """Panel (b) of the reservation-fee tradeoff, as a standalone subfigure.
+
+    Benign-user reservation fee over a sustained honest-congestion episode.
+    No in-plot title: the LaTeX subcaption carries the label."""
+    sns.set_theme(style="ticks")
+    fig, ax = plt.subplots(figsize=(8, 6))
+    bs = payload["benign_surcharge"]
+    usd = 3000.0
+    horizon = min(21, len(bs["gap"]))
+    x = np.arange(horizon)
+    ax.plot(x, np.array(bs["gap"][:horizon]) * usd, color=_DEEP[2], lw=2.6,
+            marker="^", ms=6, markevery=3, label="gap-keyed $\\varphi$")
+    ax.plot(x, np.array(bs["occupancy"][:horizon]) * usd, color=_DEEP[0], lw=2.6,
+            marker="D", ms=6, markevery=3, label="occupancy-keyed $\\varphi$")
+    ax.set_xlabel("Block of sustained congestion", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel("Benign swap $F_{\\mathsf{res}}$ (USD)",
+                  fontsize=FS_LABEL, fontweight="bold")
+    ax.set_yscale("log")
+    ax.tick_params(labelsize=FS_TICK)
+    ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
+    ax.grid(True, which="both", alpha=0.18, linestyle="--", color="gray")
+    ax.set_axisbelow(True)
+    sns.despine(ax=ax)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close()
+    print(f"Saved {out_path}")
+
+
 def main():
     os.makedirs(FIGURES_DIR, exist_ok=True)
     print("Running sustained block-stuffing experiment …")
@@ -194,6 +253,10 @@ def main():
         payload, os.path.join(FIGURES_DIR, "stuffing_basefee_trajectory.pdf"))
     plot_mechanism_tradeoff(
         payload, os.path.join(FIGURES_DIR, "stuffing_mechanism_tradeoff.pdf"))
+    plot_tradeoff_duration(
+        payload, os.path.join(FIGURES_DIR, "stuffing_tradeoff_duration.pdf"))
+    plot_tradeoff_cost(
+        payload, os.path.join(FIGURES_DIR, "stuffing_tradeoff_cost.pdf"))
 
 
 if __name__ == "__main__":
