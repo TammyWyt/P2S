@@ -136,7 +136,9 @@ def plot(out):
         ax.set_axisbelow(True)
         sns.despine(ax=ax)
         plt.tight_layout()
-        for base in ["figures", "/Users/tammy/Code/P2S_Overleaf/Figures"]:
+        _here = os.path.dirname(os.path.abspath(__file__))
+        for base in [os.path.join(_here, "..", "figures"),
+                     os.path.join(_here, "..", "..", "P2S_Overleaf", "Figures")]:
             os.makedirs(base, exist_ok=True)
             p = os.path.join(base, fname)
             plt.savefig(p, dpi=300, bbox_inches="tight")

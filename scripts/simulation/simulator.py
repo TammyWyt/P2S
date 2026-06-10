@@ -145,7 +145,7 @@ class MEVAttackStrategies:
     _POOL_NOISE          = 0.04          # per-block reserve shock (std, fraction of r)
 
     # ── Attack success rates ─────────────────────────────────────────────────
-    # Sandwich  ~35 %: Torres (2024) arXiv:2512.17602 Table 2.
+    # Sandwich  ~35 %: Chi et al. (2024) arXiv:2405.17944.
     # Front-run ~50 %: competitive bot landscape; Daian et al. (2020) PGA model.
     # Arbitrage ~9 %: 15 % cross-DEX opportunity * 60 % execution rate.
     #                 Qin et al. (2021) arXiv:2101.05511.
@@ -324,7 +324,7 @@ class MEVAttackStrategies:
         Sandwich: front-buy → victim buys at worse price → back-sell.
         Requires visible mempool (Ethereum PoS only; not possible in P2S B1).
         Gas premium: front leg 1.3×, back leg 1.1× (standard bot bid pattern).
-        Success rate 35 %: Torres et al. (2024) arXiv:2512.17602 Table 2.
+        Success rate 35 %: Chi et al. (2024) arXiv:2405.17944.
         Gain: AMM-realized sandwich profit on the block's simulated victim swap.
         s_j = m_j (victim's extra slippage funds the attacker; money conserved).
         """

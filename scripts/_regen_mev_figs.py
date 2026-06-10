@@ -1,7 +1,8 @@
 import sys, os, shutil, importlib, time
 os.environ['MPLBACKEND'] = 'Agg'
-sys.path.insert(0, '/Users/tammy/Code/P2S')
-os.chdir('/Users/tammy/Code/P2S')
+_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root (parent of scripts/)
+sys.path.insert(0, _REPO)
+os.chdir(_REPO)
 import matplotlib
 matplotlib.use('Agg')
 
@@ -27,7 +28,7 @@ for mod in ['plots.plot_welfare', 'plots.plot_mev_comparison', 'plots.plot_attac
     except Exception as e:
         print('PLOT', mod, 'FAIL', repr(e), flush=True)
 
-dst = '/Users/tammy/Code/P2S_Overleaf/Figures'
+dst = os.path.join(_REPO, '..', 'P2S_Overleaf', 'Figures')
 for f in ['mev_totals_by_type', 'cumulative_mev', 'cost_gain_comparison', 'welfare_cdf']:
     src = 'figures/%s.pdf' % f
     if os.path.exists(src):

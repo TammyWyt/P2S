@@ -11,7 +11,7 @@ with citations to peer-reviewed papers and on-chain empirical data.
 | Parameter | Value | Justification |
 |-----------|-------|---------------|
 | Blocks per run (main simulation) | 1,000 | Standard in MEV measurement studies (e.g. Flashbots monthly reports use ≥ 1,000 blocks per measurement period) |
-| Blocks per parametric sweep | 1,000 | Log-normal gains (σ=1.5) have CoV≈1.4; N=1,000 gives CoV-of-mean≈4 % for sandwich (200 targeted attempts per point at 20 % target rate). N=300 gave ≈11 % — too noisy for smooth lines. |
+| Blocks per parametric sweep | 3,000 | Heavy-tailed log-normal gains (σ=2.85) need a large N per grid point for smooth φ-sweep lines; `N_BLOCKS = 3000` in `constants.py`. |
 | Blocks in ledger trace | 100 | Sufficient for per-block tracing; ledger is diagnostic, not statistical |
 | Real Ethereum block cache | 1,005 blocks | Pulled via Blockscout API; provides realistic gas prices and tx-count distributions |
 
@@ -44,7 +44,7 @@ Gas prices in our block cache average ~20 gwei (post-EIP-4844, low-activity era)
 ### 2.1 Gas Limit
 
 - **Value used:** 30,000,000 gas (Ethereum mainnet standard post-EIP-1559)
-- **Source:** [Ethereum EIPs – EIP-1559](https://eips.ethereum.org/EIPS/eip-1559); Roughgarden, "Transaction Fee Mechanism Design for the Ethereum Blockchain", arXiv:2106.01340 (2021)
+- **Source:** [Ethereum EIPs – EIP-1559](https://eips.ethereum.org/EIPS/eip-1559); Roughgarden, "Transaction Fee Mechanism Design for the Ethereum Blockchain: An Economic Analysis of EIP-1559", arXiv:2012.00854 (2020)
 
 ### 2.2 Base Fee (EIP-1559)
 
@@ -66,15 +66,13 @@ Gas prices in our block cache average ~20 gwei (post-EIP-4844, low-activity era)
 
 **All targeted attacks use a shared log-normal distribution** calibrated to empirical MEV data. Log-normal is the empirically correct shape: many small attacks, rare large ones (heavy right tail).
 
-`gain ~ LogNormal(μ, σ)`, capped at 2.0 ETH
+`gain ~ LogNormal(μ, σ)`, capped at 50 ETH (`MEV_CAP`; see `scripts/simulation/constants.py`)
 
-**Calibration from Torres et al. (2024):**
-- Sandwich median: $16.35 ≈ 0.0082 ETH at $2000/ETH → μ = ln(0.0082) = −4.8
-- IQR: $7.47–$43.05 → σ ≈ 0.88 from IQR endpoints
+**Calibration:**
+- **Median** anchored to our own on-chain detection: 55 real Uniswap V2/V3 sandwiches over 400 sampled mainnet blocks, median **0.00056 ETH** → `MEV_MU = ln(0.00056)`. See `real/data/sandwiches.json`.
+- **Spread σ = 2.85** set from the published MEV literature (Qin et al. 2021; Torres et al. 2024), not from that small low-fee sample, which under-counts whales. This gives mean `E[gain]` ≈ 0.033 ETH, ~1 % of sandwiches above 0.5 ETH, and rare whale sandwiches reaching tens of ETH (capped at 50 ETH).
 
-**Gas-price era adjustment:**  Torres data spans high-fee periods (80–200 gwei); our block cache reflects ~20 gwei. At 20 gwei, sandwich gas cost ≈ 0.009 ETH. Break-even requires E[gain] > 0.009/0.35 = 0.026 ETH. We set median = 0.015 ETH, σ = 1.5, giving E[gain] = 0.015 × exp(1.125) ≈ 0.046 ETH — consistent with profitable bots at lower gas prices. Absolute ETH values shift with gas regime; relative P2S vs PoS comparison is gas-price invariant.
-
-**Blind insert uses a narrower distribution** (μ = ln(0.004), σ = 0.8): without seeing target tx content, the attacker cannot select the best opportunity, so gains are smaller and less variable.
+**Blind insert uses a different distribution** (`BLIND_MU = ln(0.0003)`, `BLIND_SIG = 2.5`): without seeing target tx content, the attacker cannot select the best opportunity, so it draws the worse of two such samples.
 
 ### 3.2 Rational Bot Cost Model
 
@@ -90,8 +88,8 @@ This matches real searcher behaviour: bots monitor the mempool passively and onl
 
 | Parameter | Value | Empirical Basis |
 |-----------|-------|-----------------|
-| Gain distribution | LogNormal(ln(0.015), 1.5), cap 2.0 ETH | Torres (2024); era-adjusted for 20 gwei gas regime |
-| Success rate | 35 % | Torres (2024) arXiv:2512.17602: empirical success rate across 3M sandwich attacks |
+| Gain distribution | LogNormal(ln(0.00056), 2.85), cap 50 ETH | Torres (2024); era-adjusted for 20 gwei gas regime |
+| Success rate | 35 % | Chi et al. (2024) arXiv:2405.17944: empirical success rate across 3M sandwich attacks |
 | Target visibility prob. | 20 % of blocks | ~20 % of blocks contain sandwich-eligible DeFi txs (Flashbots MEV-Explore) |
 | Front-run gas premium | 1.3 × gas price | Searcher bids ~10–30 % above victim to secure ordering |
 | Back-run gas premium | 1.1 × gas price | Back-run must be above base to stay in same block |
@@ -102,7 +100,7 @@ This matches real searcher behaviour: bots monitor the mempool passively and onl
 
 | Parameter | Value | Empirical Basis |
 |-----------|-------|-----------------|
-| Gain distribution | LogNormal(ln(0.015), 1.5), cap 2.0 ETH | Same opportunity pool as sandwich (same DEX transactions targeted) |
+| Gain distribution | LogNormal(ln(0.00056), 2.85), cap 50 ETH | Same opportunity pool as sandwich (same DEX transactions targeted) |
 | Success rate | 50 % | Daian et al. (2020) PGA model: competitive bots converge to ~50 % success; no back-run needed |
 | Gas premium | 1.2 × gas price | Single-leg: smaller priority premium than sandwich |
 | Victim slippage | s_j = m_j | Victim pays attacker's gain as worse execution price |
@@ -111,13 +109,13 @@ This matches real searcher behaviour: bots monitor the mempool passively and onl
 
 | Parameter | Value | Empirical Basis |
 |-----------|-------|-----------------|
-| Gain distribution | LogNormal(ln(0.015), 1.5), cap 2.0 ETH | Cross-DEX arb: comparable opportunity to sandwich on same pool pairs |
+| Gain distribution | LogNormal(ln(0.00056), 2.85), cap 50 ETH | Cross-DEX arb: comparable opportunity to sandwich on same pool pairs |
 | Opportunity rate | 15 % of blocks | Qin et al. (2021): cross-DEX discrepancies in ~15 % of blocks |
 | Execution success | 60 % (given opportunity) | Bot competition; combined: 15 % × 60 % = 9 % overall |
 | Victim slippage | s_j = 0 | Pure arbitrage: no single victim; profits from stale prices |
 
 **Sources:**
-- Torres, C.F. et al. arXiv:2512.17602 (2024): 3,016,971 sandwich attacks; median profit $16.35, mean victim loss $137.47
+- Chi, T., He, N., Hu, X., Wang, H. "Remeasuring the Arbitrage and Sandwich Attacks of Maximal Extractable Value in Ethereum." arXiv:2405.17944 (2024): 3,016,971 sandwich attacks; median profit $16.35, mean victim loss $137.47
 - Qin, K. et al. arXiv:2101.05511 (2021): arbitrage frequency and cross-DEX opportunity model
 - Daian, P. et al. "Flash Boys 2.0." IEEE S&P 2020
 
@@ -150,7 +148,7 @@ The critical correction from PBS reviewer feedback:
 **Empirical consistency:** Torres (2024) report mean victim loss $137.47 vs mean attacker profit $106.95. The difference ($30.52) is the attacker's gas cost — consistent with s_j = m_j + gas_j ≈ m_j at typical gas prices. The simulation sets s_j = m_j and accounts for gas separately.
 
 **Source:**
-- Torres et al. arXiv:2512.17602 (2024)
+- Chi et al. arXiv:2405.17944 (2024)
 - Angeris, G. et al. "An analysis of Uniswap markets." Cryptoeconomic Systems (2021)
 
 ---
@@ -289,7 +287,7 @@ the refund at `F_res`, or refund only the base-fee portion.
 
 **Sources:**
 - Heimbach, L. et al. "A First Look at the Ethereum Blob Revolution." arXiv:2411.03892 (2024)
-- Azouvi, S. & Hicks, A. "Blockchains, MEV and the Knapsack Problem." arXiv:2403.19077 (2024)
+- Mohan, V. & Khezr, P. "Blockchains, MEV and the Knapsack Problem: A Primer." arXiv:2403.19077 (2024)
 - Flashbots. "New Block Building Algorithms for Flashbots' Builder." Flashbots Collective (2023)
 
 ---
@@ -323,7 +321,7 @@ the refund at `F_res`, or refund only the base-fee portion.
 
 **Source for 90 % MEV reduction via commit-reveal:**
 - Flashbots "MEV-SGX" and "MEV-Share" reports (2023): information hiding reduces exploitable MEV by 85–95 %
-- Ethereum "MEV-Burn" proposal (EIP-7623): discusses similar order-flow hiding as MEV mitigation
+- Ethereum MEV-burn proposal (consensus-layer; not an EIP number): discusses redistributing/burning MEV as mitigation
 
 ---
 
@@ -331,8 +329,8 @@ the refund at `F_res`, or refund only the base-fee portion.
 
 | File | What it shows | Key claim supported |
 |------|--------------|---------------------|
-| `mev_profit_comparison.pdf` | Rational attacker profit per block by strategy: PoS vs P2S at φ=0 and φ=0.10 | F_res eliminates P2S attack profitability at φ=0.10; PoS attacks remain unaffected |
-| `block_latency_vs_congestion.pdf` | Block finality latency vs congestion | P2S two-phase overhead is bounded; $B_1$+$B_2$ latency quantified |
+| `mev_totals_by_type.pdf` | Total MEV by attack type: PoS vs P2S (`plot_mev_comparison.py`) | front-running / sandwich / atomic-arbitrage eliminated under P2S |
+| `welfare_cdf.pdf` | Per-block victim welfare-loss CCDF: PoS vs P2S (`plot_welfare.py`) | P2S removes content-dependent sandwich loss (0 in all blocks) |
 
 **Removed plots (not informative):**
 - `proposer_gini_vs_validators.pdf` — Gini trivially converges for both protocols with equal-weight proposers; no mechanism difference to show.
@@ -363,16 +361,16 @@ the refund at `F_res`, or refund only the base-fee portion.
 |---|----------|
 | 1 | Daian, P. et al. "Flash Boys 2.0: Frontrunning in Decentralized Exchanges, Miner Extractable Value, and Consensus Instability." IEEE S&P 2020 |
 | 2 | Qin, K. et al. "Quantifying Blockchain Extractable Value." arXiv:2101.05511 (2021) |
-| 3 | Torres, C.F. et al. "Sandwich Attacks in Decentralized Exchanges." arXiv:2512.17602 (2024) |
-| 4 | Roughgarden, T. "Transaction Fee Mechanism Design for the Ethereum Blockchain." arXiv:2106.01340 (2021) |
+| 3 | Chi, T., He, N., Hu, X., Wang, H. "Remeasuring the Arbitrage and Sandwich Attacks of Maximal Extractable Value in Ethereum." arXiv:2405.17944 (2024) |
+| 4 | Roughgarden, T. "Transaction Fee Mechanism Design for the Ethereum Blockchain: An Economic Analysis of EIP-1559." arXiv:2012.00854 (2020) |
 | 5 | Heimbach, L. et al. "A First Look at the Ethereum Blob Revolution." arXiv:2411.03892 (2024) |
-| 6 | Azouvi, S. & Hicks, A. "Blockchains, MEV and the Knapsack Problem." arXiv:2403.19077 (2024) |
-| 7 | Babel, K. et al. "Does Your Blockchain Need Multidimensional Transaction Fees?" arXiv:2504.15438 (2025) |
-| 8 | Yang, S. et al. "Who Wins Ethereum Block Building Auctions and Why?" arXiv:2407.13931 (2024) |
+| 6 | Mohan, V. & Khezr, P. "Blockchains, MEV and the Knapsack Problem: A Primer." arXiv:2403.19077 (2024) |
+| 7 | Lavee, N., Nisan, N., Pai, M., Resnick, M. "Does Your Blockchain Need Multidimensional Transaction Fees?" arXiv:2504.15438 (2025) |
+| 8 | Öz, B., Sui, D., Thiery, T., Matthes, F. "Who Wins Ethereum Block Building Auctions and Why?" AFT 2024, doi:10.4230/LIPIcs.AFT.2024.22 |
 | 9 | Flashbots. "New Block Building Algorithms for Flashbots' Builder." Flashbots Collective (2023) |
 | 10 | Flashbots. "FRP-10: Distributed Blockbuilding via Secure Knapsack Auctions." Flashbots Collective (2023) |
-| 11 | Angeris, G. et al. "An Analysis of Uniswap Markets." Cryptoeconomic Systems (2021) |
+| 11 | Angeris, G., Kao, H.-T., Chiang, R., Noyes, C., Chitra, T. "An Analysis of Uniswap Markets." Cryptoeconomic Systems (2021), doi:10.21428/58320208.c9738e64 |
 | 12 | Pioplat. "Pioplat: Fast and Low-Latency Block Propagation." arXiv:2412.08367 (2024) |
 | 13 | Ben Eliezer, O. & Nisan, N. "Online Block Packing." arXiv:2507.12357 (2025) |
-| 14 | Schlegel, J. & Sui, X. "Searcher Competition in Block Building." arXiv:2407.07474 (2024) |
+| 14 | Mamageishvili, A., Schlegel, C., Sudakov, B., Sui, D. "Searcher Competition in Block Building." AFT 2024, doi:10.4230/LIPIcs.AFT.2024.21 |
 | 15 | Flashbots. rbuilder (open-source block builder). GitHub: flashbots/rbuilder (2024) |
