@@ -57,21 +57,43 @@ def main():
 
     sns.set_theme(style="ticks")
 
-    # ── CDF of per-block victim welfare loss ──────────────────────────────────
+    # ── CCDF (survival) of per-block victim welfare loss ──────────────────────
+    # Sandwich loss is a rare, heavy-tailed per-block event under measured
+    # calibration: only a minority of blocks carry any loss, and P2S removes it
+    # entirely. A complementary CDF on log axes shows both the affected fraction
+    # (where the Ethereum curve meets the y-axis) and the tail, and avoids the
+    # empty frame a linear CDF leaves when most blocks sit at zero.
     fig, ax = plt.subplots(figsize=(7, 6))
-    for vals, label, col in [(pos_welfare, "Ethereum PoS", C_POS),
-                              (p2s_welfare, "P2S",          C_P2S)]:
-        sorted_v = np.sort(vals)
-        cdf      = np.arange(1, len(sorted_v) + 1) / len(sorted_v)
-        ax.plot(sorted_v, cdf, color=col, lw=2.2, label=label)
 
-    ax.set_xlabel("Victim welfare loss / block (ETH)", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("CDF", fontsize=FS_LABEL, fontweight="bold")
+    pos_sorted = np.sort(pos_welfare)
+    n = len(pos_sorted)
+    ccdf = 1.0 - np.arange(n) / n              # P(loss >= x)
+    pos_mask = pos_sorted > 0
+    affected = pos_mask.mean()                  # fraction of blocks with any loss
+    ax.step(pos_sorted[pos_mask], ccdf[pos_mask], where="post",
+            color=C_POS, lw=2.6, label="Ethereum PoS")
+
+    # P2S: identically zero across all blocks (content-dependent loss eliminated).
+    ax.plot([], [], color=C_P2S, lw=2.6, label="P2S (0 in all blocks)")
+
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_xlabel("Per-block victim loss (ETH)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_ylabel(r"$\Pr[\,\mathrm{loss} \geq x\,]$", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
-    ax.set_ylim(bottom=0)
-    ax.legend(fontsize=FS_LEGEND, loc="lower right", frameon=False)
+    ax.set_ylim(0.5 / n, 1.0)
+    ax.legend(fontsize=FS_LEGEND, loc="upper right", frameon=False)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
+
+    ax.annotate(f"{affected*100:.0f}% of blocks\ncarry any loss",
+                xy=(pos_sorted[pos_mask][0], affected),
+                xytext=(0.06, 0.42), textcoords="axes fraction",
+                fontsize=FS_ANNOT, color=C_POS,
+                arrowprops=dict(arrowstyle="->", color=C_POS, lw=1.4))
+    ax.text(0.5, 0.10, "P2S: content-dependent\nloss eliminated",
+            transform=ax.transAxes, fontsize=FS_ANNOT, color=C_P2S,
+            ha="center", va="center")
     sns.despine(ax=ax)
 
     plt.tight_layout()

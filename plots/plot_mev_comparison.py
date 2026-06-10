@@ -22,9 +22,9 @@ DATA_DIR = "data"
 FIGURES_DIR = "figures"
 
 # Shared font sizes (match across all plot scripts)
-FS_LABEL  = 24
-FS_TICK   = 20
-FS_LEGEND = 18
+FS_LABEL  = 20
+FS_TICK   = 17
+FS_LEGEND = 16
 
 # vlag: index -2 = warm red (Ethereum, more MEV); index 1 = cool blue (P2S, less MEV)
 _VLAG     = sns.color_palette("vlag", n_colors=10)
@@ -68,8 +68,8 @@ def _plot_dumbbell(labels, eth_values, p2s_values, xlabel, out_path,
     """
     sns.set_theme(style="ticks")
     n = len(labels)
-    fig_h = max(3.5, 0.95 * n + 1.6)
-    fig, ax = plt.subplots(figsize=(10, fig_h))
+    fig_h = max(3.0, 0.6 * n + 1.4)
+    fig, ax = plt.subplots(figsize=(4.5, fig_h))
 
     y = np.arange(n)
     # connecting segments (drawn under the dots)

@@ -38,9 +38,9 @@ COLOR_ETH = _VLAG[-2]   # warm red  — Ethereum PoS
 COLOR_P2S = _VLAG[1]    # cool blue — P2S
 
 # Shared font sizes (match across all plot scripts)
-FS_LABEL  = 24
-FS_TICK   = 20
-FS_LEGEND = 18
+FS_LABEL  = 30
+FS_TICK   = 26
+FS_LEGEND = 24
 
 STRATEGY_LABELS = {
     "front_run":        "Front-Run (PoS)",
@@ -113,12 +113,16 @@ def _panel_cumulative(ax, pos_series, p2s_series):
     ax.plot(blocks, cum_p2s, color=COLOR_P2S, lw=2.0, label="P2S")
     ax.fill_between(blocks, cum_p2s, cum_pos, alpha=0.12, color=COLOR_P2S)
 
+    # Local font sizes (this panel sits at ~half column width, side by side, so it
+    # needs larger fonts than the standalone cost-gain figure that shares FS_*).
+    _FL, _FT, _FLG = 20, 17, 16
     ax.set_xlim(0, n)
     ax.set_ylim(0)
-    ax.set_xlabel("Block", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Cumulative MEV (ETH)", fontsize=FS_LABEL, fontweight="bold")
-    ax.tick_params(labelsize=FS_TICK)
-    ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
+    ax.set_xlabel("Block", fontsize=_FL, fontweight="bold")
+    ax.set_ylabel("Cumulative MEV (ETH)", fontsize=_FL, fontweight="bold")
+    ax.yaxis.set_label_coords(-0.135, 0.42)   # nudge the long y-label down so it does not overflow the top
+    ax.tick_params(labelsize=_FT)
+    ax.legend(fontsize=_FLG, loc="upper left", frameon=False)
     sns.despine(ax=ax)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
     ax.set_axisbelow(True)
@@ -131,87 +135,83 @@ def _panel_cumulative(ax, pos_series, p2s_series):
 def _panel_cost_gain(ax, block_ledger, p2s_agents):
     import pandas as pd
     import matplotlib.lines as mlines
-    import random as _rng
 
-    Y_CLIP = 0.60   # ETH — axis hard limit; points above are simply outside ylim
-
-    # ── ETH PoS attacks from block ledger ────────────────────────────────────
+    # Per-strategy, per-block (cost, gain) from the latest simulation results.
+    # cost = the gas to mount the attack in THIS block (its gas units priced at the
+    # block's own gas price, which varies 28-60 gwei across the cache), so cost
+    # spreads horizontally instead of collapsing to one value per strategy; gain =
+    # the realized per-block profit (heavy-tailed). Points on/above the dashed
+    # gain=cost line are profitable, below it loss-making. Under P2S the content-
+    # dependent strategies are structurally absent; only blind insertion remains,
+    # and it sits well below break-even.
+    repo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    if repo not in sys.path:
+        sys.path.insert(0, repo)
+    from scripts.simulation.environment import load_gas_prices
+    results = sorted(glob.glob(os.path.join(repo, "data", "simulation_*.json")))
     records = []
-    if block_ledger:
-        for b in block_ledger.get("blocks", []):
-            for strat, v in b["ethereum_pos"]["attack"].get("all_strategies", {}).items():
-                if v["success"]:
-                    records.append({
-                        "Strategy": STRATEGY_LABELS.get(strat, strat),
-                        "cost":     v["cost_eth"],
-                        "gain":     v["gain_eth"],
-                    })
-            atk = b["p2s"]["attack"]
-            if atk.get("success"):   # current P2S ledger records no per-block attack (eliminated); points come from the live agent sim below
-                records.append({
-                    "Strategy": STRATEGY_LABELS.get(atk["strategy"], atk["strategy"]),
-                    "cost":     atk["cost_eth"],
-                    "gain":     atk["gain_eth"],
-                })
-
-    # ── P2S agent simulation (Block Stuffer, Cross-Block Arb) ────────────────
-    _repo = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    if _repo not in sys.path:
-        sys.path.insert(0, _repo)
-    from scripts.simulation.agents import BlockStufferBot, CrossBlockArbBot
-    from scripts.simulation.environment import AMMPool, build_txpool
-    from scripts.simulation.constants import RANDOM_SEED
-
-    _PHI, _N, _GP = 0.20, 1000, 36.0   # recommended phi_rec; 36 gwei ≈ mainnet median (34.5 base + 1.5 tip)
-    _rng.seed(RANDOM_SEED)
-    np.random.seed(RANDOM_SEED)
-    _pool = AMMPool(1_000.0)
-    _p2s = {"Block Stuffer (P2S)": BlockStufferBot(),
-            "Arbitrage (P2S)":      CrossBlockArbBot()}
-    for _ in range(_N):
-        _txpool = build_txpool(_rng.randint(50, 200))
-        for a in _p2s.values():
-            a.step(_PHI, _pool, _txpool, _GP)
-        _pool.step()
-
-    for name, agent in _p2s.items():
-        for c, g in zip(agent._costs, agent._gains):
-            if g > 0:
-                records.append({"Strategy": name, "cost": c, "gain": g})
+    if results:
+        with open(results[-1]) as f:
+            R = json.load(f)
+        sample = next(iter(R.get("attack_strategies", {}).values()), {})
+        n_blocks = len(sample.get("per_block_gain_eth", [])) or 1000
+        gp = load_gas_prices(n_blocks)                 # effective gwei per block
+        mean_gp = sum(gp) / len(gp)
+        for group in ("attack_strategies", "attack_strategies_p2s"):
+            for strat, v in R.get(group, {}).items():
+                label = STRATEGY_LABELS.get(strat)
+                if label is None:
+                    continue  # g-limit stuffing has no profit axis; see the stuffing figures
+                cost0 = v.get("cost_per_attempt_eth", 0.0)  # gas units x mean gas price
+                gains = v.get("per_block_gain_eth", [])
+                for i, g in enumerate(gains):
+                    if g > 0:
+                        cost_i = cost0 * gp[i] / mean_gp     # this block's gas price
+                        records.append({"Strategy": label, "cost": cost_i, "gain": g})
 
     df = pd.DataFrame(records)
-    X_MAX = df["cost"].max() * 1.10
+    if df.empty:
+        ax.text(0.5, 0.5, "no profitable attacks", transform=ax.transAxes,
+                ha="center", va="center", fontsize=FS_LEGEND)
+        return
 
-    # ── Scatter — all points; ylim clips anything above Y_CLIP naturally ─────
+    x_max = df["cost"].max() * 1.15
+    y_max = df["gain"].max() * 1.15
+
+    present = list(df["Strategy"].unique())
     sns.scatterplot(
-        data=df,
-        x="cost", y="gain",
-        hue="Strategy",
-        palette=STRATEGY_COLORS,
-        alpha=0.65, s=60,
-        ax=ax,
-        legend=False,
+        data=df, x="cost", y="gain", hue="Strategy",
+        palette={k: STRATEGY_COLORS[k] for k in present},
+        alpha=0.6, s=55, ax=ax, legend=False,
     )
 
-    # ── Legend: PoS/P2S sections, stripped names, outside axes, no frame ────
+    # Gains are heavy-tailed (small common sandwiches up to rare whales of ~1 ETH),
+    # so the gain axis is logarithmic; the break-even line gain=cost is drawn over
+    # the observed cost range.
+    xs = np.linspace(df["cost"].min() * 0.8, x_max, 60)
+    ax.plot(xs, xs, "--", color="gray", lw=1.4)
+
     def _circle(color, label):
         return mlines.Line2D([], [], marker="o", linestyle="None",
-                             color=color, markersize=8, alpha=0.75, label=label)
+                             color=color, markersize=8, alpha=0.8, label=label)
     def _header(text):
         return mlines.Line2D([], [], color="none", linestyle="None", label=text)
 
-    handles = []
-    current_section = None
+    handles, current_section = [], None
     for section, name, key in _LEGEND_ENTRIES:
+        if key not in present:
+            continue
         if section != current_section:
             handles.append(_header(f"{section}:"))
             current_section = section
         handles.append(_circle(STRATEGY_COLORS[key], f"  {name}"))
-    ax.legend(handles=handles, fontsize=FS_LEGEND, loc="upper left",
-              bbox_to_anchor=(1.02, 1), borderaxespad=0, frameon=False)
+    handles.append(mlines.Line2D([], [], color="gray", linestyle="--", label="gain = cost"))
+    ax.legend(handles=handles, fontsize=FS_LEGEND - 4, loc="upper right",
+              borderaxespad=0.4, frameon=False, labelspacing=0.3, handletextpad=0.3)
 
-    ax.set_xlim(0, X_MAX)
-    ax.set_ylim(0, Y_CLIP)
+    ax.set_yscale("log")
+    ax.set_xlim(0, x_max)
+    ax.set_ylim(df["gain"].min() * 0.6, y_max * 1.4)
     ax.set_xlabel("Cost per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Gain per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.tick_params(labelsize=FS_TICK)
@@ -229,12 +229,12 @@ def main():
     data_dir    = os.path.join(repo_root, DATA_DIR)
     figures_dir = os.path.join(repo_root, FIGURES_DIR)
 
-    pos_series, p2s_series, p2s_agents = _load_mev_series(data_dir)
+    # Per-block MEV series from the recalibrated block simulation (measured
+    # magnitudes), so the cumulative panel shares one calibration with the rest.
+    with open(os.path.join(data_dir, "mev_comparison.json")) as f:
+        _pbg = json.load(f)["per_block_gain_eth"]
+    pos_series, p2s_series, p2s_agents = _pbg["ethereum"], _pbg["p2s"], {}
     block_ledger = _load_block_ledger(data_dir)
-
-    if pos_series is None:
-        print("Missing p2s_mev_attacks.json. Run simulation scripts first.", file=sys.stderr)
-        sys.exit(1)
     if block_ledger is None:
         print("No block_ledger_*.json found — cost/gain scatter will use only aggregate means.",
               file=sys.stderr)
@@ -243,7 +243,7 @@ def main():
     sns.set_theme(style="ticks")
 
     # Figure (a): Cumulative MEV
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(4.5, 3.8))
     _panel_cumulative(ax, pos_series, p2s_series)
     plt.tight_layout()
     out_a = os.path.join(figures_dir, "cumulative_mev.pdf")

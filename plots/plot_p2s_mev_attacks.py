@@ -52,7 +52,7 @@ import numpy as np
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.abspath(os.path.join(_HERE, ".."))
 sys.path.insert(0, _ROOT)
-from scripts.simulation.constants import GWEI_PER_ETH, WEI_PER_ETH  # noqa: E402
+from scripts.simulation.constants import GWEI_PER_ETH, WEI_PER_ETH, sample_mev_gain  # noqa: E402
 
 DATA_DIR    = os.path.join(_ROOT, "data")
 CACHE_PATH  = os.path.join(DATA_DIR, "ethereum_blocks_cache.json")
@@ -122,9 +122,12 @@ class AMMPool:
         self.r  = reserve_eth
 
     def sandwich_profit(self, victim_trade_eth: float) -> float:
+        # Heavy-tailed MEV draw (median anchored to measurement, tail from the
+        # literature; see constants.py). The trade guard is retained so "no swap
+        # this block" still yields zero.
         if victim_trade_eth <= 0 or self.r <= 0:
             return 0.0
-        return min((math.sqrt(self.r + victim_trade_eth) - math.sqrt(self.r)) ** 2, GAIN_CAP)
+        return sample_mev_gain(random)
 
     def next_block(self) -> None:
         shock  = random.gauss(0, self.NOISE_STD) * self.r

@@ -6,14 +6,25 @@ import numpy as np
 WEI_PER_ETH  = 1e18
 GWEI_PER_ETH = 1e9
 
-# MEV gain distribution — calibrated to our own on-chain sandwich detection
-# (real/data/sandwiches.json): 55 real Uniswap V2/V3 sandwiches over 400 sampled
-# mainnet blocks, profit = WETH_out - WETH_in at the attacked pools' real reserves,
-# median 0.00056 ETH, mean 0.00192 ETH. Log-normal fit reproduces both moments.
-MEV_MU,   MEV_SIG,   MEV_CAP   = math.log(0.00056), 1.57, 0.05
-BLIND_MU, BLIND_SIG             = math.log(0.0003), 0.8
-E_MEV_GAIN   = min(math.exp(MEV_MU   + MEV_SIG**2   / 2), MEV_CAP)  # ≈ 0.00192 ETH
-E_BLIND_GAIN = min(math.exp(BLIND_MU + BLIND_SIG**2 / 2), MEV_CAP)  # ≈ 0.00041 ETH
+# MEV gain distribution — heavy-tailed log-normal. The MEDIAN is anchored to our
+# own on-chain sandwich detection (real/data/sandwiches.json: 55 real Uniswap
+# V2/V3 sandwiches, median 0.00056 ETH ~ $1.7). The TAIL (sigma) is set from the
+# published MEV literature, not from that small low-fee sample, which under-counts
+# whales: real sandwich profit is heavy-tailed, so the mean is tail-driven. With
+# sigma = 2.85 the mean is ~0.033 ETH (~$100, in the Qin/Torres range), ~1% of
+# sandwiches exceed 0.5 ETH, and rare whale sandwiches reach tens of ETH, bounded
+# at a realistic single-event maximum (MEV_CAP = 50 ETH). Blind planters cannot
+# pick the best opportunity, so they draw the worse of two such samples.
+MEV_MU,   MEV_SIG,   MEV_CAP   = math.log(0.00056), 2.85, 50.0
+BLIND_MU, BLIND_SIG             = math.log(0.0003), 2.5
+E_MEV_GAIN   = min(math.exp(MEV_MU   + MEV_SIG**2   / 2), MEV_CAP)  # ≈ 0.033 ETH (mean, tail-driven)
+E_BLIND_GAIN = min(math.exp(BLIND_MU + BLIND_SIG**2 / 2), MEV_CAP)  # ≈ 0.0068 ETH
+
+
+def sample_mev_gain(rng):
+    """One realized content-dependent MEV gain (ETH): heavy-tailed log-normal,
+    median anchored to measurement, tail from the literature, capped at MEV_CAP."""
+    return min(rng.lognormvariate(MEV_MU, MEV_SIG), MEV_CAP)
 
 # Gas limits per operation (units)
 GAS_FRONTRUN      = 200_000
