@@ -19,11 +19,11 @@ The tables below list all simulation constants used in the paper's evaluation, w
 | Parameter | Value | Description | Source |
 |---|---|---|---|
 | **MEV gain distributions** | | | |
-| `μ_MEV` | ln(0.015) | LogNormal median, standard MEV | Calibrated ‡ |
-| `σ_MEV` | 1.5 | LogNormal spread | Calibrated ‡ |
-| `cap_MEV` | 2.0 ETH | Distribution cap | Calibrated |
-| `μ_blind` | ln(0.004) | LogNormal median, blind PHT gain | Calibrated ‡ |
-| `σ_blind` | 0.8 | LogNormal spread, blind PHT gain | Calibrated |
+| `MEV_MU` | ln(0.00056) | LogNormal median, standard MEV (≈ measured median) | Calibrated ‡ |
+| `MEV_SIG` | 2.85 | LogNormal spread (tail) | Literature ‡ |
+| `MEV_CAP` | 50.0 ETH | Single-event cap | Literature |
+| `BLIND_MU` | ln(0.0003) | LogNormal median, blind PHT gain | Calibrated ‡ |
+| `BLIND_SIG` | 2.5 | LogNormal spread, blind PHT gain | Literature |
 | **BlindPlanterBot** | | | |
 | `BLIND_FIT` | 0.10 | Blind PHT alignment rate per block | Calibrated † |
 | `BLIND_SUCCESS` | 0.50 | Success given alignment | Calibrated † |
@@ -35,7 +35,7 @@ The tables below list all simulation constants used in the paper's evaluation, w
 | `STUFF_N_PHTS` | 10 | Dummy PHTs per stuffing attempt | Calibrated |
 | `STUFF_GAS` | 1.2M gas | Declared gas per dummy PHT | Calibrated |
 | **Gas and network** | | | |
-| `ḡ` | 58.6 gwei | Median base fee (1,005 mainnet blocks) | Blockscout |
+| `ḡ` | 45.1 gwei | Median base fee (1,005 mainnet blocks) | Blockscout |
 | Priority fee | 1.5 gwei | Median priority fee (post-Merge) | Blockscout |
 | `N_p` | 5 | Proposers in test committee | Design |
 | **Sweep configuration** | | | |
@@ -45,7 +45,7 @@ The tables below list all simulation constants used in the paper's evaluation, w
 
 † `BLIND_FIT` and `BLIND_SUCCESS` represent the information asymmetry of a blind attacker; not directly observable from public data. The paper's sensitivity analysis (11 × 11 grid sweep) bounds the residual uncertainty.
 
-‡ Empirically calibrated: the distribution shape (σ) is fit from on-chain sandwich detection in this work (55 attacks over 400 sampled mainnet blocks, σ ≈ 1.6), and the scale is anchored to the measurements of Qin et al. (2021) and Torres et al. (2024); our detection corroborates the scale as a lower bound.
+‡ The **median** (0.00056 ETH) is anchored to our own on-chain sandwich detection (55 real Uniswap V2/V3 attacks over 400 sampled mainnet blocks; see `real/data/sandwiches.json`). The **spread σ and the tail** are set from the published MEV literature (Qin et al. 2021; Torres et al. 2024), not from that small low-fee sample, which under-counts whales; the resulting mean is ≈0.033 ETH (≈$100 at ETH=$3,000), with rare whale sandwiches reaching tens of ETH.
 
 ### Block-level simulation parameters (P2S vs. Ethereum PoS comparison)
 
@@ -68,8 +68,18 @@ The tables below list all simulation constants used in the paper's evaluation, w
 
 The two evaluation axes use distinct artifacts:
 
-- **Network-environment figures** (latency, bandwidth, block-size, and fan-out sweeps): discrete-event simulator run over 100 random seeds from a fixed master seed.
-- **Agent-based MEV and φ-sweep figures**: agent simulator and sweep driver under a fixed seed of 42.
+- **Network-environment figures** (latency, bandwidth, block-size, and fan-out sweeps): discrete-event simulator (`scripts/simulation/netsim.py`) run over 100 seeds from a fixed master seed; deterministic.
+- **Agent-based MEV and φ-sweep figures**: agent simulator (`scripts/simulation/agents.py`) and sweep driver (`plots/plot_phi_sweep.py`).
+- **Block-level welfare / MEV-totals figures**: block simulator (`scripts/simulation/simulator.py`), seeded (`random.seed(42)`); deterministic.
 
 The protocol logic itself — the salted-hash commitment, the expool, the two-block orchestration, the BLS set-union agreement, and the reservation-fee accounting — is implemented as a Go prototype with unit tests; the network simulator drives this logic to obtain the latency and bandwidth measurements.
+
+### Figure provenance (paper figure → generating code)
+
+- **Figure 1** (P2S workflow): `Figures/p2s_workflow.drawio.pdf` — hand-drawn, not code-generated.
+- **Figure 2** (latency, gossip-peer sweep): `plots/plot_netsim.py`, `plots/plot_netsim_sweeps.py`
+- **Figure 3** (MEV totals, cumulative MEV): `plots/plot_mev_comparison.py`, `plots/plot_attack_success_cost_reward.py`
+- **Figure 4** (block-stuffing duration): `plots/plot_stuffing_duration.py`
+- **Figure 5** (cost vs. gain): `plots/plot_attack_success_cost_reward.py`
+- **Figure 6** (revert refund): `scripts/revert_refund_design.py`
 

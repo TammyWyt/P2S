@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Figures: network-sim robustness sweeps. Each panel is one figure.
 (a) per-slot latency vs block size K (N=500).
-(b) per-slot latency vs GossipSub fanout D (N=500, K=150).
+(b) per-slot latency vs gossip peers D (N=500, K=150).
 Shows the P2S-vs-PoS gap is stable across operating points, not a single-point
 artifact. Reads data/netsim_sweeps.json, writes figures/netsim_sweep_blocksize.pdf
-and figures/netsim_sweep_fanout.pdf."""
+and figures/netsim_sweep_peers.pdf."""
 import json, os
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -48,12 +48,12 @@ ax.errorbar(D, [r["pos_lat_s"] * 1000 for r in fs], yerr=[r.get("pos_ci", 0) * 1
             color=POS_C, lw=LW, marker="o", ms=MS, capsize=4, label="Ethereum PoS")
 ax.errorbar(D, [r["p2s_lat_s"] * 1000 for r in fs], yerr=[r.get("p2s_ci", 0) * 1000 for r in fs],
             color=P2S_C, lw=LW, marker="s", ms=MS, capsize=4, label="P2S")
-ax.set_xlabel("GossipSub fanout $D$", fontsize=FS_LABEL, fontweight="bold")
+ax.set_xlabel("Gossip peers $D$", fontsize=FS_LABEL, fontweight="bold")
 ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL, fontweight="bold")
 ax.tick_params(labelsize=FS_TICK)
 ax.legend(frameon=False, fontsize=FS_LEGEND, loc="upper right")
 sns.despine()
 fig.tight_layout()
-out = os.path.join(HERE, "..", "figures", "netsim_sweep_fanout.pdf")
+out = os.path.join(HERE, "..", "figures", "netsim_sweep_peers.pdf")
 fig.savefig(out, bbox_inches="tight")
 print("wrote", out)

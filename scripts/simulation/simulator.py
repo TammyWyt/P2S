@@ -220,27 +220,26 @@ class MEVAttackStrategies:
         """
         P2S-only: Blind insert with optional no-reveal after B1.
 
-        Cost breakdown (B1 step):
-          - Normal gas for PHT inclusion (always paid)
-          - Reservation fee F_res = φ · g_limit · g_base (burned, always paid)
-        Both are charged at B1 regardless of whether the MT is revealed in B2.
-        If the attacker does not reveal: only these B1 costs apply.
-        If they reveal and succeed: gain is realised in B2.
+        Fee model (matches Formalization §fee-structure and agents.py BlindPlanterBot):
+          - F_res = φ · g_limit · g_base is burned at B1 whether or not the MT is revealed.
+          - B2 execution gas is charged ONLY if the MT is revealed and executes.
+        An unrevealed PHT therefore forfeits exactly F_res (no B2 gas on a tx that
+        never executes).  If revealed and successful, gain is realised in B2.
         """
         gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
         execution_cost = self.gas_cost_eth(gas_price, self.GAS_BLIND_INSERT)
-        # F_res = φ · g_limit · g_base (burned at B1)
+        # F_res = φ · g_limit · g_base, burned at B1 regardless of reveal.
         f_res = self.PHT_RESERVATION_PHI * execution_cost
-        cost = execution_cost + f_res  # total B1 cost always paid
         # After B1 commits, attacker learns enough to decide whether to reveal.
         # P2S_ATTACK_FITS_RATE: fraction of blocks where the blind PHT happens to
         # match a profitable opportunity once B1 is confirmed.
         attack_fits = random.random() < self.P2S_ATTACK_FITS_RATE
         if not attack_fits:
-            return (cost, 0.0, False)  # no reveal → tx dropped, B1 costs already burned
+            return (f_res, 0.0, False)  # no reveal → forfeit exactly F_res, no B2 gas
+        # Revealed and executed in B2: F_res (B1) plus execution gas (B2).
         success = random.random() < self.P2S_ATTACK_SUCCESS_RATE
         gain = (self._sample_blind_gain() if success else 0.0)
-        return (cost, gain, success)
+        return (f_res + execution_cost, gain, success)
 
     def run_b2_proposer_ordering_attack(self, block_idx: int) -> Tuple[float, float, int]:
         """
@@ -264,14 +263,16 @@ class MEVAttackStrategies:
 
         Returns (cost_eth, gain_eth=0, success=False) — no monetary gain;
         this is a block space denial-of-service. F_res makes it costly.
+
+        The dummy PHT reserves the inflated g_limit but is never revealed, so it
+        forfeits exactly F_res = φ · g_limit · g_base and pays NO B2 execution gas
+        (consistent with the no-reveal rule in run_blind_insert_p2s_no_reveal).
         """
         gas_price = self.block_gas_prices[block_idx % len(self.block_gas_prices)]
         inflated_gas = int(self.GAS_BLIND_INSERT * inflation_factor)
-        execution_cost = self.gas_cost_eth(gas_price, inflated_gas)
-        f_res = self.PHT_RESERVATION_PHI * execution_cost  # φ · g_limit · g_base
-        cost = execution_cost + f_res
-        # No gain: attacker does not extract value, only consumes block space
-        return (cost, 0.0, False)
+        # F_res on the inflated declared limit; no execution gas (never revealed).
+        f_res = self.PHT_RESERVATION_PHI * self.gas_cost_eth(gas_price, inflated_gas)
+        return (f_res, 0.0, False)
 
     def _glimit_overdecl_result(self, num_blocks: int, inflation_factor: float) -> Dict[str, AttackStrategyResult]:
         """Return a single AttackStrategyResult for a g_limit over-declaration attempt over num_blocks."""
@@ -508,6 +509,7 @@ class P2SSimulator:
     """Simulator: 1000 blocks, no stake (one node = one node), Ethereum mainnet gas and benign tx."""
 
     def __init__(self):
+        random.seed(42)  # deterministic block ledger / MEV-totals across runs
         self.network_latency_base = 0.1
         self.network_jitter = 0.05
         self.base_gas_price_gwei = 20  # fallback gwei (Ethereum mainnet typical range)
@@ -1055,8 +1057,8 @@ class P2SSimulator:
         self.results['attack_strategies_p2s_note'] = (
             "In P2S only blind insert (and g_limit over-declaration) are applicable. "
             "Front-run, sandwich, arbitrage are not applicable (B1 has only PHTs; cannot target). "
-            "Blind insert: execution gas + F_res = φ·g_limit·g_base burned at B1; "
-            "if attacker does not reveal, only B1 costs apply. "
+            "Blind insert: F_res = φ·g_limit·g_base burned at B1; if the attacker does "
+            "not reveal, it forfeits exactly F_res (B2 execution gas is paid only on reveal). "
             "g_limit over-declaration: inflating g_limit multiplies F_res proportionally."
         )
 
