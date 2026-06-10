@@ -34,6 +34,24 @@ _GAS_RANGES = {
 _TRADE_MU, _TRADE_SIG, _TRADE_CAP = math.log(5.5), 1.2, 200.0
 
 
+# Realized sandwich profits bootstrapped from our on-chain detection
+# (real/data/sandwiches.json; 55 real attacks, median 0.00056 ETH, mean 0.00192 ETH).
+def _load_empirical_sandwich_profits() -> List[float]:
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "real", "data", "sandwiches.json")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            profits = [p for p in json.load(fh).get("all_profits_eth", []) if p > 0]
+        if profits:
+            return profits
+    except (OSError, ValueError):
+        pass
+    rng = random.Random(RANDOM_SEED)
+    return [rng.lognormvariate(math.log(0.00056), 1.57) for _ in range(1000)]
+
+
+_EMPIRICAL_SANDWICH_PROFITS = _load_empirical_sandwich_profits()
+
+
 class AMMPool:
     """
     Constant-product AMM.
@@ -49,9 +67,13 @@ class AMMPool:
         self.r  = reserve
 
     def sandwich_profit(self, trade: float) -> float:
+        # Recalibrated to measured: realized profit is bootstrapped from on-chain
+        # sandwich detection rather than the closed-form price impact, which
+        # understates real shallow-pool extraction. The trade/reserve guard is
+        # retained so "no opportunity this block" still yields zero.
         if trade <= 0 or self.r <= 0:
             return 0.0
-        return min((math.sqrt(self.r + trade) - math.sqrt(self.r)) ** 2, MEV_CAP)
+        return min(random.choice(_EMPIRICAL_SANDWICH_PROFITS), MEV_CAP)
 
     def step(self) -> None:
         shock  = random.gauss(0, self.NOISE) * self.r

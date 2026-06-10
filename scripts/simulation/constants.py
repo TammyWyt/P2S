@@ -6,11 +6,14 @@ import numpy as np
 WEI_PER_ETH  = 1e18
 GWEI_PER_ETH = 1e9
 
-# MEV gain distribution — Torres et al. 2024 / Weintraub et al. 2022 calibration
-MEV_MU,   MEV_SIG,   MEV_CAP   = math.log(0.015), 1.5, 2.0
-BLIND_MU, BLIND_SIG             = math.log(0.004), 0.8
-E_MEV_GAIN   = min(math.exp(MEV_MU   + MEV_SIG**2   / 2), MEV_CAP)  # ≈ 0.0462 ETH
-E_BLIND_GAIN = min(math.exp(BLIND_MU + BLIND_SIG**2 / 2), MEV_CAP)  # ≈ 0.0055 ETH
+# MEV gain distribution — calibrated to our own on-chain sandwich detection
+# (real/data/sandwiches.json): 55 real Uniswap V2/V3 sandwiches over 400 sampled
+# mainnet blocks, profit = WETH_out - WETH_in at the attacked pools' real reserves,
+# median 0.00056 ETH, mean 0.00192 ETH. Log-normal fit reproduces both moments.
+MEV_MU,   MEV_SIG,   MEV_CAP   = math.log(0.00056), 1.57, 0.05
+BLIND_MU, BLIND_SIG             = math.log(0.0003), 0.8
+E_MEV_GAIN   = min(math.exp(MEV_MU   + MEV_SIG**2   / 2), MEV_CAP)  # ≈ 0.00192 ETH
+E_BLIND_GAIN = min(math.exp(BLIND_MU + BLIND_SIG**2 / 2), MEV_CAP)  # ≈ 0.00041 ETH
 
 # Gas limits per operation (units)
 GAS_FRONTRUN      = 200_000

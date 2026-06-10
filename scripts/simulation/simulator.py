@@ -26,6 +26,32 @@ WEI_PER_ETH = 1e18
 GWEI_PER_ETH = 1e9
 DEFAULT_NUM_BLOCKS = 1000
 
+
+# ── Empirical sandwich-profit sample (recalibration to measured) ──────────────
+# Realized targeted-attack gains are bootstrapped from our own on-chain sandwich
+# detection rather than an assumed deep pool: real/data/sandwiches.json holds the
+# per-attack profits (WETH_out - WETH_in, computed at the attacked pools' real
+# reserves) of 55 real Uniswap V2/V3 sandwiches over 400 sampled mainnet blocks,
+# median 0.00056 ETH, mean 0.00192 ETH. Real sandwiches hit shallow long-tail
+# pools (median reserve 5.8 ETH), which the earlier 2,000-ETH major-pair model
+# overstated by ~24x.
+def _load_empirical_sandwich_profits() -> List[float]:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "..", "real", "data", "sandwiches.json")
+    try:
+        with open(path, encoding="utf-8") as fh:
+            profits = [p for p in json.load(fh).get("all_profits_eth", []) if p > 0]
+        if profits:
+            return profits
+    except (OSError, ValueError):
+        pass
+    # Fallback: log-normal fit to the measured moments (median 0.00056, mean 0.00192).
+    rng = random.Random(42)
+    return [rng.lognormvariate(math.log(0.00056), 1.57) for _ in range(1000)]
+
+
+_EMPIRICAL_SANDWICH_PROFITS_ETH = _load_empirical_sandwich_profits()
+
 # Post-Merge Ethereum economics (EIP-3675):
 #   * Execution-layer block issuance: 0 ETH (no PoW block subsidy)
 #   * Proposer receives EIP-1559 priority fees only (base fee burned)
@@ -118,13 +144,15 @@ class MEVAttackStrategies:
     # the same simulated trade, so P2S differs in attack PROBABILITY, not in gain
     # SIZE given success.  Blind insert draws from a smaller swap distribution
     # (median 2.5 ETH) because the attacker cannot pick the best opportunity.
+    # AMM pool kept for reserve mean-reversion bookkeeping only; realized gains
+    # are now bootstrapped from measured sandwiches (see _sample_mev_gain).
     AMM_POOL_RESERVE_ETH = 2_000.0        # constant-product pool depth (major pair)
-    AMM_TRADE_MU         = math.log(5.5)  # victim swap size: median 5.5 ETH
-    AMM_TRADE_SIGMA      = 1.2            # log-normal swap-size tail
-    AMM_TRADE_CAP        = 200.0         # max single swap (ETH)
-    AMM_BLIND_TRADE_MU   = math.log(2.5)  # blind insert: smaller, non-targeted swap
-    AMM_BLIND_TRADE_SIGMA= 1.0           # narrower tail (can't pick the best swap)
-    MEV_GAIN_MAX         = 2.0           # hard cap on realized profit (ETH)
+    AMM_TRADE_MU         = math.log(5.5)  # (legacy) victim swap size
+    AMM_TRADE_SIGMA      = 1.2            # (legacy) log-normal swap-size tail
+    AMM_TRADE_CAP        = 200.0         # (legacy) max single swap (ETH)
+    AMM_BLIND_TRADE_MU   = math.log(2.5)  # (legacy) blind insert swap size
+    AMM_BLIND_TRADE_SIGMA= 1.0           # (legacy) narrower tail
+    MEV_GAIN_MAX         = 0.05          # hard cap on realized profit (ETH); measured max 0.0188
     _POOL_REVERT         = 0.30          # reserve mean-reversion per block (Qin 2021)
     _POOL_NOISE          = 0.04          # per-block reserve shock (std, fraction of r)
 
@@ -184,18 +212,17 @@ class MEVAttackStrategies:
         )
 
     def _sample_mev_gain(self) -> float:
-        """Realized targeted-attack profit: simulate the victim's DEX swap and
-        compute the AMM sandwich profit, then advance the pool one block."""
-        trade = min(random.lognormvariate(self.AMM_TRADE_MU, self.AMM_TRADE_SIGMA), self.AMM_TRADE_CAP)
-        gain = self._sandwich_profit(trade)
-        self._pool_step()
-        return gain
+        """Realized targeted-attack profit, bootstrapped from our on-chain
+        sandwich measurements (real/data/sandwiches.json; 55 real attacks,
+        median 0.00056 ETH, mean 0.00192 ETH)."""
+        return min(random.choice(_EMPIRICAL_SANDWICH_PROFITS_ETH), self.MEV_GAIN_MAX)
 
     def _sample_blind_gain(self) -> float:
-        """Realized blind-insert profit: the attacker cannot pick the best
-        opportunity, so the victim swap is drawn from a smaller distribution."""
-        trade = min(random.lognormvariate(self.AMM_BLIND_TRADE_MU, self.AMM_BLIND_TRADE_SIGMA), self.AMM_TRADE_CAP)
-        return self._sandwich_profit(trade)
+        """Blind insert cannot pick the best opportunity: take the worse of two
+        independent draws from the empirical sandwich-profit sample."""
+        a = random.choice(_EMPIRICAL_SANDWICH_PROFITS_ETH)
+        b = random.choice(_EMPIRICAL_SANDWICH_PROFITS_ETH)
+        return min(a, b, self.MEV_GAIN_MAX)
 
     def run_blind_insert(self, block_idx: int) -> Tuple[float, float, bool]:
         """Blindly insert attack tx without mempool visibility. Returns (cost_eth, gain_eth, success)."""
