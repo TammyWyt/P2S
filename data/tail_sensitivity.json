@@ -1,0 +1,88 @@
+{
+  "params": {
+    "mu": -7.487573774235079,
+    "median_gain_eth": 0.0005600000000000002,
+    "n_blocks": 1000,
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "eth_usd": 3000.0,
+    "content_dependent": [
+      "front_run",
+      "sandwich",
+      "arbitrage"
+    ]
+  },
+  "sigma_sweep_cap50": [
+    {
+      "sigma": 2.5,
+      "cap": 50.0,
+      "removed_eth_mean": 2.198169145666217,
+      "removed_eth_ci95": 0.5453287139548135,
+      "analytic_mean_gain_eth": 0.01262234742089451,
+      "median_gain_eth": 0.0005600000000000002
+    },
+    {
+      "sigma": 2.7,
+      "cap": 50.0,
+      "removed_eth_mean": 3.257795444561036,
+      "removed_eth_ci95": 0.9284010820368966,
+      "analytic_mean_gain_eth": 0.020671561135956938,
+      "median_gain_eth": 0.0005600000000000002
+    },
+    {
+      "sigma": 2.85,
+      "cap": 50.0,
+      "removed_eth_mean": 4.421352779240967,
+      "removed_eth_ci95": 1.3852838843638704,
+      "analytic_mean_gain_eth": 0.030024167441732086,
+      "median_gain_eth": 0.0005600000000000002
+    },
+    {
+      "sigma": 3.0,
+      "cap": 50.0,
+      "removed_eth_mean": 6.048689804255581,
+      "removed_eth_ci95": 2.0682735974545863,
+      "analytic_mean_gain_eth": 0.04334745079950959,
+      "median_gain_eth": 0.0005600000000000002
+    },
+    {
+      "sigma": 3.2,
+      "cap": 50.0,
+      "removed_eth_mean": 9.290124592942364,
+      "removed_eth_ci95": 3.5316063919734035,
+      "analytic_mean_gain_eth": 0.06929806594719526,
+      "median_gain_eth": 0.0005600000000000002
+    }
+  ],
+  "cap_sweep_sigma2p85": [
+    {
+      "sigma": 2.85,
+      "cap": 25.0,
+      "removed_eth_mean": 4.421352779240967,
+      "removed_eth_ci95": 1.3852838843638704,
+      "analytic_mean_gain_eth": 0.028733007244409373,
+      "median_gain_eth": 0.0005600000000000002
+    },
+    {
+      "sigma": 2.85,
+      "cap": 50.0,
+      "removed_eth_mean": 4.421352779240967,
+      "removed_eth_ci95": 1.3852838843638704,
+      "analytic_mean_gain_eth": 0.030024167441732086,
+      "median_gain_eth": 0.0005600000000000002
+    },
+    {
+      "sigma": 2.85,
+      "cap": 100.0,
+      "removed_eth_mean": 4.421352779240967,
+      "removed_eth_ci95": 1.3852838843638704,
+      "analytic_mean_gain_eth": 0.03094964815575329,
+      "median_gain_eth": 0.0005600000000000002
+    }
+  ]
+}

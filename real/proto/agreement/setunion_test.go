@@ -103,6 +103,27 @@ func TestValidityAtMaxFaults(t *testing.T) {
 	}
 }
 
+// Censorship-resistance: a Byzantine slot leader (validator 0) tries to drop an
+// honestly-revealed MT `a` by omitting it from its own report. Because inclusion
+// is decided by the f+1-voucher union rule and not by the leader, the f+1=2 other
+// honest validators that saw `a` force it into the decided set. n=4, f=1.
+// This is the formal content of "leader censorship reduces to non-reveal".
+func TestLeaderCannotCensorRevealedMT_n4f1(t *testing.T) {
+	reports := map[int]map[Ref]struct{}{
+		0: set(b),       // Byzantine leader: omits a, hoping to censor it
+		1: set(a, b),    // honest, saw the reveal of a
+		2: set(a, b),    // honest, saw the reveal of a
+		3: set(a, b),    // honest, saw the reveal of a
+	}
+	d := Decide(1, reports)
+	if !has(d, a) {
+		t.Fatal("censorship-resistance broken: leader omission dropped an MT seen by f+1 honest validators")
+	}
+	if !has(d, b) {
+		t.Error("validity: b missing")
+	}
+}
+
 func keys(m map[Ref]struct{}) []Ref {
 	out := make([]Ref, 0, len(m))
 	for r := range m {
