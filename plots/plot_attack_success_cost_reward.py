@@ -188,7 +188,7 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
     # Gains are heavy-tailed (small common sandwiches up to rare whales of ~1 ETH),
     # so the gain axis is logarithmic; the break-even line gain=cost is drawn over
     # the observed cost range.
-    xs = np.linspace(df["cost"].min() * 0.8, x_max, 60)
+    xs = np.linspace(0.002, x_max, 60)
     ax.plot(xs, xs, "--", color="gray", lw=1.4)
 
     def _circle(color, label):
@@ -206,11 +206,13 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
             current_section = section
         handles.append(_circle(STRATEGY_COLORS[key], f"  {name}"))
     handles.append(mlines.Line2D([], [], color="gray", linestyle="--", label="gain = cost"))
-    ax.legend(handles=handles, fontsize=FS_LEGEND - 4, loc="upper right",
-              borderaxespad=0.4, frameon=False, labelspacing=0.3, handletextpad=0.3)
+    # Legend placed OUTSIDE the axes, to the right, so it never overlaps the data.
+    ax.legend(handles=handles, fontsize=FS_LEGEND - 4, loc="upper left",
+              bbox_to_anchor=(1.01, 1.0), borderaxespad=0.0, frameon=False,
+              labelspacing=0.3, handletextpad=0.3)
 
     ax.set_yscale("log")
-    ax.set_xlim(0, x_max)
+    ax.set_xlim(0.002, x_max)
     ax.set_ylim(df["gain"].min() * 0.6, y_max * 1.4)
     ax.set_xlabel("Cost per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
     ax.set_ylabel("Gain per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")

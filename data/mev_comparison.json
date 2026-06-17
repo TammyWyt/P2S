@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-10T13:23:51.073234",
+  "timestamp": "2026-06-17T11:58:38.110071",
   "metadata": {
     "num_blocks": 1000,
     "post_merge_economics": true,
@@ -36,26 +36,6 @@
     }
   },
   "mev_by_type": {
-    "front_running": {
-      "ethereum": {
-        "count": 124,
-        "total": 2.4257491848564032,
-        "avg": 0.019562493426261315,
-        "median": 0.019562493426261315
-      },
-      "p2s": {
-        "count": 0,
-        "total": 0.0,
-        "avg": 0.0,
-        "median": 0.0
-      },
-      "reduction": {
-        "count": 124,
-        "count_pct": 100.0,
-        "total": 2.4257491848564032,
-        "total_pct": 100.0
-      }
-    },
     "arbitrage": {
       "ethereum": {
         "count": 96,
@@ -113,6 +93,26 @@
         "count": 63,
         "count_pct": 100.0,
         "total": 2.6757901188396107,
+        "total_pct": 100.0
+      }
+    },
+    "front_running": {
+      "ethereum": {
+        "count": 124,
+        "total": 2.4257491848564032,
+        "avg": 0.019562493426261315,
+        "median": 0.019562493426261315
+      },
+      "p2s": {
+        "count": 0,
+        "total": 0.0,
+        "avg": 0.0,
+        "median": 0.0
+      },
+      "reduction": {
+        "count": 124,
+        "count_pct": 100.0,
+        "total": 2.4257491848564032,
         "total_pct": 100.0
       }
     },

@@ -62,9 +62,11 @@ func TestContentBlindOrderingAndThreading(t *testing.T) {
 	}
 }
 
-// Reservation fee F_res = phiBps/10000 * gasLimit * baseFee, summed over PHTs,
-// burned at B1 regardless of execution.
-func TestFResBurn(t *testing.T) {
+// Reservation floor F_res = phiBps/10000 * gasLimit * baseFee, prepaid at B1.
+// Both PHTs reveal and execute above the floor (gasUsed 21000 >> phi*gasLimit),
+// so F_res is fully credited against the base fee and nothing is forfeited:
+// the floor is a max(F_res, F_base), not an additive surcharge.
+func TestFResFloor(t *testing.T) {
 	A, _ := execdriver.NewAccount(keyA)
 	B, _ := execdriver.NewAccount(keyB)
 	alloc := map[common.Address]execdriver.AllocAccount{
@@ -80,9 +82,17 @@ func TestFResBurn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("RunSlot: %v", err)
 	}
-	// 1000/10000 * (21000 + 50000) * 1 wei = 0.1 * 71000 = 7100 wei
-	want := big.NewInt(7100)
-	if res.FResBurned.Cmp(want) != 0 {
-		t.Fatalf("F_res burned = %v, want %v", res.FResBurned, want)
+	// reservation prepaid at B1: 0.1 * (21000 + 50000) * 1 wei = 7100 wei
+	if res.FResReserved.Cmp(big.NewInt(7100)) != 0 {
+		t.Fatalf("F_res reserved = %v, want 7100", res.FResReserved)
+	}
+	// both revealed and executed -> nothing forfeited
+	if res.FResForfeited.Sign() != 0 {
+		t.Fatalf("F_res forfeited = %v, want 0 (both executed)", res.FResForfeited)
+	}
+	// gasUsed (21000) * baseFee (1) = 21000 > F_res for each PHT, so the floor
+	// never binds and the full reservation is credited back.
+	if res.ReservationCredited.Cmp(big.NewInt(7100)) != 0 {
+		t.Fatalf("reservation credited = %v, want 7100 (floor absorbed)", res.ReservationCredited)
 	}
 }

@@ -39,12 +39,18 @@ type Submission struct {
 	Nonce     uint64
 }
 
-// SlotResult reports the committed B1 order, the burned reservation fee, and the
-// real-EVM execution of B2.
+// SlotResult reports the committed B1 order, the floor-model reservation-fee
+// accounting, and the real-EVM execution of B2. The reservation fee is a floor
+// on the base fee (max(F_res, F_base)), not an additive surcharge: a revealed
+// transaction that consumes at least phi*gasLimit pays only the ordinary base
+// fee (its F_res is fully credited); a PHT that never reveals forfeits F_res.
 type SlotResult struct {
-	Order       []common.Hash // PHT hashes in committed (B1) order
-	FResBurned  *big.Int      // total reservation fee burned at B1 (wei)
-	Exec        *execdriver.Result
+	Order               []common.Hash      // PHT hashes in committed (B1) order
+	FResReserved        *big.Int           // reservation floor prepaid at B1, summed over all PHTs (wei)
+	FResForfeited       *big.Int           // F_res forfeited by PHTs that never revealed (wei)
+	ReservationCredited *big.Int           // F_res absorbed into the base fee of executed txs, min(F_res,F_base) (wei)
+	TotalBaseBurned     *big.Int           // base burned over B1+B2: sum of max(F_res,F_base) executed + F_res unrevealed (wei)
+	Exec                *execdriver.Result
 }
 
 // RunSlot executes one P2S slot: derive PHTs/MTs from submissions, order
@@ -91,20 +97,23 @@ func RunSlot(subs []*Submission, alloc map[common.Address]execdriver.AllocAccoun
 		return order[i].Hex() > order[j].Hex()
 	})
 
-	// reservation fee burned at B1 (independent of later reveal)
-	gasLimits := make([]uint64, 0, len(order))
+	// --- B1: reservation floor F_res prepaid per PHT (phi*gasLimit*baseFee) ---
+	fResByHash := make(map[common.Hash]*big.Int, len(order))
+	fResReserved := new(big.Int)
 	for _, h := range order {
-		gasLimits = append(gasLimits, bundles[h].pht.GasLimit)
+		r := feeacct.ReservationFee(phiBps, bundles[h].pht.GasLimit, env.BaseFee)
+		fResByHash[h] = r
+		fResReserved.Add(fResReserved, r)
 	}
-	fRes := feeacct.TotalBurned(phiBps, gasLimits, env.BaseFee)
 
 	// --- B2: verify reveals, substitute MTs into the B1 order, execute ---
 	calls := make([]*execdriver.Call, 0, len(order))
+	revealed := make([]common.Hash, 0, len(order)) // revealed PHTs, in call order
 	for _, h := range order {
 		b := bundles[h]
 		mt, ok := pool.MT(h)
 		if !ok {
-			continue // unrevealed PHT: F_res already burned, no execution
+			continue // unrevealed PHT: F_res forfeited (accounted below), no execution
 		}
 		if !commit.VerifyReveal(b.pht.Commitment, b.pht.GasLimit, mt.Recipient, mt.Value, mt.CallData, mt.GasLimit, mt.Salt) {
 			return nil, fmt.Errorf("MT reveal failed verification for %s", h.Hex())
@@ -119,11 +128,51 @@ func RunSlot(subs []*Submission, alloc map[common.Address]execdriver.AllocAccoun
 			GasPrice: b.pht.GasFeeCap,
 			Nonce:    b.pht.Nonce,
 		})
+		revealed = append(revealed, h)
 	}
 
 	exec, err := execdriver.Run(alloc, env, calls)
 	if err != nil {
 		return nil, err
 	}
-	return &SlotResult{Order: order, FResBurned: fRes, Exec: exec}, nil
+
+	// --- Floor reconciliation: total base burned = max(F_res, F_base) per tx ---
+	// (F_base = gasUsed*baseFee). Unrevealed PHTs forfeit the full F_res; an
+	// executed tx pays the larger of F_res and F_base, so the smaller of the two
+	// is credited (refunded) against the reservation already prepaid in B1.
+	revealedSet := make(map[common.Hash]bool, len(revealed))
+	for _, h := range revealed {
+		revealedSet[h] = true
+	}
+	fResForfeited := new(big.Int)
+	for _, h := range order {
+		if !revealedSet[h] {
+			fResForfeited.Add(fResForfeited, fResByHash[h])
+		}
+	}
+	reservationCredited := new(big.Int)
+	totalBaseBurned := new(big.Int).Set(fResForfeited) // unrevealed reservations are burned
+	for j, h := range revealed {
+		fRes := fResByHash[h]
+		fBase := new(big.Int)
+		if j < len(exec.Receipts) {
+			fBase.Mul(env.BaseFee, new(big.Int).SetUint64(uint64(exec.Receipts[j].GasUsed)))
+		}
+		if fRes.Cmp(fBase) >= 0 { // floor binds: pay F_res, credit the unused base
+			totalBaseBurned.Add(totalBaseBurned, fRes)
+			reservationCredited.Add(reservationCredited, fBase)
+		} else { // ordinary fee: pay F_base, credit the full reservation
+			totalBaseBurned.Add(totalBaseBurned, fBase)
+			reservationCredited.Add(reservationCredited, fRes)
+		}
+	}
+
+	return &SlotResult{
+		Order:               order,
+		FResReserved:        fResReserved,
+		FResForfeited:       fResForfeited,
+		ReservationCredited: reservationCredited,
+		TotalBaseBurned:     totalBaseBurned,
+		Exec:                exec,
+	}, nil
 }

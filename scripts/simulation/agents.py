@@ -121,11 +121,12 @@ class FrontrunBot(MevAgent):
 class BlindPlanterBot(MevAgent):
     """
     Plants PHTs speculatively without knowledge of other transactions.
-    Pays F_res = φ · g^limit · g^base at B1 regardless of outcome.
+    The reservation fee is a floor on the base fee: a plant that reveals and
+    executes pays max(F_res, base) + tip (the floor absorbed for full-gas
+    execution), while a plant that never reveals forfeits F_res. Because a blind
+    plant lands only rarely, the planter forfeits F_res on nearly every slot.
 
-    E[net] = P_fit · P_success · E[blind_gain] − exec_pht · (1 + φ)
-
-    At ≥ 58 gwei: exec_pht ≈ 0.0088 ETH >> E[blind_gain] ≈ 0.000275 ETH.
+    At ≥ 58 gwei: F_res ≈ 0.0018 ETH >> E[blind_gain] ≈ 0.000275 ETH.
     Info asymmetry alone makes blind planting irrational at empirical gas prices.
     """
 
@@ -135,7 +136,7 @@ class BlindPlanterBot(MevAgent):
         return e_gain - cost
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
-        f_res     = gas_eth(gp, GAS_PHT_LARGE) * phi   # burned at B1, non-refundable
+        f_res     = gas_eth(gp, GAS_PHT_LARGE) * phi   # reservation floor; forfeited only if not revealed
         exec_cost = gas_eth(gp, GAS_PHT_LARGE)          # paid at B2 only on reveal
         dex = [t for t in txpool if t.is_dex]
         if not dex:
@@ -149,7 +150,7 @@ class BlindPlanterBot(MevAgent):
         gain = pool.sandwich_profit(best)               # realized opportunity captured
         if gain <= exec_cost:
             return f_res, 0.0                            # not worth revealing in B2
-        return f_res + exec_cost, gain
+        return max(f_res, exec_cost), gain  # floor: reveal+execute pays max(F_res, base)+tip
 
 
 class CrossBlockArbBot(MevAgent):
@@ -167,7 +168,7 @@ class CrossBlockArbBot(MevAgent):
         return e_gain - cost
 
     def act(self, phi, pool, txpool, gp) -> Tuple[float, float]:
-        f_res     = gas_eth(gp, GAS_ARB) * phi          # burned at B1, non-refundable
+        f_res     = gas_eth(gp, GAS_ARB) * phi          # reservation floor; forfeited only if not revealed
         exec_cost = gas_eth(gp, GAS_ARB)                 # paid at B2 only on reveal
         dex = [t for t in txpool if t.is_dex]
         if not dex:
@@ -182,7 +183,7 @@ class CrossBlockArbBot(MevAgent):
         gain = ARB_EFF * pool.sandwich_profit(best)
         if gain <= exec_cost:
             return f_res, 0.0                            # not worth executing — do not reveal
-        return f_res + exec_cost, gain
+        return max(f_res, exec_cost), gain  # floor: reveal+execute pays max(F_res, base)+tip
 
 
 # ─────────────────────────────────────────────────────────────────────────────

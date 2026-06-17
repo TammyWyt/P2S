@@ -1,18 +1,22 @@
-// Package feeacct implements P2S reservation-fee accounting. A PHT included in
-// B1 burns an irrecoverable reservation fee
+// Package feeacct implements P2S reservation-fee accounting. The reservation fee
 //
 //	F_res = phi * gasLimit * baseFee
 //
-// charged at B1 inclusion regardless of whether the matching MT is ever
-// revealed. This is what deters block-stuffing and speculative slot reservation
-// (over-declaring gasLimit inflates F_res proportionally). Ground truth:
-// scripts/simulation/simulator.py:753-764. phi is expressed in basis points
-// (phiBps = 1000 => 0.10).
+// is a FLOOR on the base fee, not an additive surcharge. It is prepaid at B1
+// inclusion; on revelation the transaction pays
+//
+//	G = max(F_res, F_base) + F_tip,   F_base = gasUsed*baseFee, F_tip = gasUsed*priorityFee
+//
+// so a transaction that consumes at least phi*gasLimit of gas pays exactly an
+// ordinary EIP-1559 fee (the floor is absorbed). F_res is forfeited only when
+// the matching MT is never revealed (gasUsed = 0), which is what deters
+// block-stuffing and speculative slot reservation (over-declaring gasLimit
+// inflates the floor proportionally). phi is in basis points (phiBps = 1000 => 0.10).
 package feeacct
 
 import "math/big"
 
-// ReservationFee returns F_res (wei) for one PHT: phiBps/10000 * gasLimit * baseFee.
+// ReservationFee returns the floor F_res (wei) for one PHT: phiBps/10000 * gasLimit * baseFee.
 func ReservationFee(phiBps uint64, gasLimit uint64, baseFee *big.Int) *big.Int {
 	if baseFee == nil {
 		return new(big.Int)
@@ -23,9 +27,30 @@ func ReservationFee(phiBps uint64, gasLimit uint64, baseFee *big.Int) *big.Int {
 	return f
 }
 
-// TotalBurned sums the reservation fee over a slot's gas limits (all PHTs pay
-// at the same baseFee within a slot).
-func TotalBurned(phiBps uint64, gasLimits []uint64, baseFee *big.Int) *big.Int {
+// TotalFee returns the user's total fee G = max(F_res, F_base) + F_tip for a
+// revealed-and-executed transaction, with fBase = gasUsed*baseFee and
+// fTip = gasUsed*priorityFee. The reservation acts as a floor on the base
+// component, so a transaction consuming >= phi*gasLimit pays only fBase + fTip.
+func TotalFee(fRes, fBase, fTip *big.Int) *big.Int {
+	base := fBase
+	if fRes != nil && (fBase == nil || fRes.Cmp(fBase) > 0) {
+		base = fRes
+	}
+	out := new(big.Int)
+	if base != nil {
+		out.Set(base)
+	}
+	if fTip != nil {
+		out.Add(out, fTip)
+	}
+	return out
+}
+
+// TotalReserved sums the reservation floor prepaid at B1 over a slot's gas
+// limits (all PHTs pay at the same baseFee within a slot). A PHT that reveals
+// and executes recovers this against its base fee via TotalFee; one that never
+// reveals forfeits it.
+func TotalReserved(phiBps uint64, gasLimits []uint64, baseFee *big.Int) *big.Int {
 	total := new(big.Int)
 	for _, gl := range gasLimits {
 		total.Add(total, ReservationFee(phiBps, gl, baseFee))
