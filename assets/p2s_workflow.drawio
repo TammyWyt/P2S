@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Claude Code">
   <diagram name="Page-1" id="p2s-workflow-v2">
-    <mxGraphModel dx="989" dy="643" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="540" pageHeight="390" math="1" shadow="0">
+    <mxGraphModel dx="577" dy="375" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="540" pageHeight="390" math="1" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -8,7 +8,7 @@
           <mxGeometry height="140" width="115" x="40" y="90" as="geometry" />
         </mxCell>
         <mxCell id="lane-prop" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=none;" value="" vertex="1">
-          <mxGeometry height="280" width="170" x="180" y="90" as="geometry" />
+          <mxGeometry height="280" width="170" x="182" y="90" as="geometry" />
         </mxCell>
         <mxCell id="lane-chain" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=none;" value="" vertex="1">
           <mxGeometry height="280" width="120" x="370" y="90" as="geometry" />
@@ -17,7 +17,7 @@
           <mxGeometry height="18" width="45" x="30" y="82" as="geometry" />
         </mxCell>
         <mxCell id="lbl-prop" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="Proposer" vertex="1">
-          <mxGeometry height="18" width="55" x="180" y="82" as="geometry" />
+          <mxGeometry height="18" width="55" x="182" y="82" as="geometry" />
         </mxCell>
         <mxCell id="lbl-chain" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="Chain" vertex="1">
           <mxGeometry height="18" width="35" x="455" y="82" as="geometry" />
@@ -52,7 +52,7 @@
         <mxCell id="n-buildb2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Build \(B_2\) from \(B_1\)" vertex="1">
           <mxGeometry height="40" width="120" x="208" y="312" as="geometry" />
         </mxCell>
-        <mxCell id="n-final" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="\(B_2\) finalizes slot" vertex="1">
+        <mxCell id="n-final" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="\(B_2\) confirmed" vertex="1">
           <mxGeometry height="40" width="100" x="380" y="312" as="geometry" />
         </mxCell>
         <mxCell id="e-create-order" edge="1" parent="1" source="n-create" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" target="n-order" value="">
