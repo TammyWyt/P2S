@@ -49,8 +49,8 @@
         <mxCell id="n-include" parent="1" vertex="1" value="Include \(MT\) in \(B_2\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
           <mxGeometry x="190" y="248" width="120" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="n-omit" parent="1" vertex="1" value="Omit \(MT\), forfeit \(F_{res}\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="360" y="242" width="130" height="44" as="geometry" />
+        <mxCell id="n-omit" parent="1" vertex="1" value="Delete PHT, burn \(F_{res}\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
+          <mxGeometry x="360" y="242" width="130" height="48" as="geometry" />
         </mxCell>
         <mxCell id="n-buildb2" parent="1" vertex="1" value="Build \(B_2\) from \(B_1\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
           <mxGeometry x="190" y="312" width="120" height="40" as="geometry" />
