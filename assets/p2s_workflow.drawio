@@ -29,65 +29,65 @@
 
         <!-- nodes -->
         <mxCell id="n-selp1" parent="1" vertex="1" value="Select proposer \(P_1\) for \(B_1\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="470" y="58" width="170" height="30" as="geometry" />
+          <mxGeometry x="470" y="58" width="170" height="34" as="geometry" />
         </mxCell>
         <mxCell id="n-create" parent="1" vertex="1" value="Create transactions" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="60" y="106" width="140" height="32" as="geometry" />
+          <mxGeometry x="55" y="108" width="150" height="34" as="geometry" />
         </mxCell>
         <mxCell id="n-order" parent="1" vertex="1" value="Select &amp;amp; Order PHTs" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="255" y="106" width="160" height="32" as="geometry" />
+          <mxGeometry x="255" y="108" width="160" height="34" as="geometry" />
         </mxCell>
-        <mxCell id="n-b1conf" parent="1" vertex="1" value="\(B_1\) confirmed on chain&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;(escrow collateral + burn \(F_{res}\) per PHT)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="465" y="102" width="180" height="44" as="geometry" />
+        <mxCell id="n-b1conf" parent="1" vertex="1" value="\(B_1\) confirmed on chain&lt;br&gt;escrow + burn \(F_{res}\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
+          <mxGeometry x="465" y="104" width="180" height="46" as="geometry" />
         </mxCell>
         <mxCell id="n-reveal" parent="1" vertex="1" value="Reveal \(MT\) for the PHT" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="60" y="190" width="140" height="34" as="geometry" />
+          <mxGeometry x="55" y="192" width="150" height="34" as="geometry" />
         </mxCell>
         <mxCell id="d-revealed" parent="1" vertex="1" value="\(MT\) revealed&lt;br&gt;before deadline?" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=#ffffff;">
-          <mxGeometry x="275" y="182" width="120" height="52" as="geometry" />
+          <mxGeometry x="270" y="182" width="130" height="56" as="geometry" />
         </mxCell>
-        <mxCell id="n-include" parent="1" vertex="1" value="Include \(MT\) in \(B_2\)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;(settle fee from escrow, refund remainder)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="255" y="260" width="160" height="46" as="geometry" />
+        <mxCell id="n-include" parent="1" vertex="1" value="Include \(MT\) in \(B_2\)&lt;br&gt;settle from escrow" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
+          <mxGeometry x="255" y="262" width="160" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="n-omit" parent="1" vertex="1" value="Omit position from \(B_2\)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;\(F_{res}\) stays burned (forfeit, no refund)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="465" y="248" width="180" height="46" as="geometry" />
+        <mxCell id="n-omit" parent="1" vertex="1" value="Omit position from \(B_2\)&lt;br&gt;forfeit \(F_{res}\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
+          <mxGeometry x="465" y="255" width="180" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="n-buildb2" parent="1" vertex="1" value="Build \(B_2\) from \(B_1\)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;(by \(P_1\), else fallback \(P_2\))&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="255" y="336" width="160" height="46" as="geometry" />
+        <mxCell id="n-buildb2" parent="1" vertex="1" value="Build \(B_2\) from \(B_1\)&lt;br&gt;by \(P_1\), else \(P_2\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
+          <mxGeometry x="255" y="340" width="160" height="46" as="geometry" />
         </mxCell>
-        <mxCell id="n-final" parent="1" vertex="1" value="\(B_2\) finalizes the slot&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;(descends from \(B_1\))&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
-          <mxGeometry x="465" y="338" width="180" height="42" as="geometry" />
+        <mxCell id="n-final" parent="1" vertex="1" value="\(B_2\) finalizes the slot&lt;br&gt;descends from \(B_1\)" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;">
+          <mxGeometry x="465" y="340" width="180" height="46" as="geometry" />
         </mxCell>
 
-        <!-- edges -->
-        <mxCell id="e-selp1-order" parent="1" edge="1" source="n-selp1" target="n-order" value="build by \(P_1\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+        <!-- edges (gap labels: transparent; lane labels: lane colour) -->
+        <mxCell id="e-selp1-order" parent="1" edge="1" source="n-selp1" target="n-order" value="build by \(P_1\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=#fff2cc;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="335" y="73" />
+              <mxPoint x="335" y="75" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-create-order" parent="1" edge="1" source="n-create" target="n-order" value="PHT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;">
+        <mxCell id="e-create-order" parent="1" edge="1" source="n-create" target="n-order" value="PHT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=none;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-order-b1" parent="1" edge="1" source="n-order" target="n-b1conf" value="\(B_1\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;">
+        <mxCell id="e-order-b1" parent="1" edge="1" source="n-order" target="n-b1conf" value="\(B_1\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=none;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-b1-reveal" parent="1" edge="1" source="n-b1conf" target="n-reveal" value="Signal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+        <mxCell id="e-b1-reveal" parent="1" edge="1" source="n-b1conf" target="n-reveal" value="Signal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=#fff2cc;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="555" y="162" />
-              <mxPoint x="130" y="162" />
+              <mxPoint x="555" y="166" />
+              <mxPoint x="130" y="166" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-reveal-dec" parent="1" edge="1" source="n-reveal" target="d-revealed" value="\(MT\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;">
+        <mxCell id="e-reveal-dec" parent="1" edge="1" source="n-reveal" target="d-revealed" value="\(MT\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=none;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-dec-include" parent="1" edge="1" source="d-revealed" target="n-include" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+        <mxCell id="e-dec-include" parent="1" edge="1" source="d-revealed" target="n-include" value="Yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=#fff2cc;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-dec-omit" parent="1" edge="1" source="d-revealed" target="n-omit" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;">
+        <mxCell id="e-dec-omit" parent="1" edge="1" source="d-revealed" target="n-omit" value="No" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=none;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e-include-build" parent="1" edge="1" source="n-include" target="n-buildb2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
@@ -96,12 +96,12 @@
         <mxCell id="e-omit-build" parent="1" edge="1" source="n-omit" target="n-buildb2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="555" y="320" />
-              <mxPoint x="435" y="320" />
+              <mxPoint x="555" y="322" />
+              <mxPoint x="435" y="322" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-build-final" parent="1" edge="1" source="n-buildb2" target="n-final" value="\(B_2\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;fontSize=9;">
+        <mxCell id="e-build-final" parent="1" edge="1" source="n-buildb2" target="n-final" value="\(B_2\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;labelBackgroundColor=none;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
 
