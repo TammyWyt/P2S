@@ -69,8 +69,13 @@
         <mxCell id="e-order-b1" parent="1" edge="1" source="n-order" target="n-b1conf" value="\(B_1\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e-b1-reveal" parent="1" edge="1" source="n-b1conf" target="n-reveal" value="Signal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="e-b1-reveal" parent="1" edge="1" source="n-b1conf" target="n-reveal" value="Signal" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="595" y="208" />
+              <mxPoint x="135" y="208" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="e-reveal-dec" parent="1" edge="1" source="n-reveal" target="d-revealed" value="\(MT\)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;">
           <mxGeometry relative="1" as="geometry" />
