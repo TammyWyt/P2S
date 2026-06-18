@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Claude Code">
   <diagram name="Page-1" id="p2s-workflow-v2">
-    <mxGraphModel dx="824" dy="536" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="540" pageHeight="390" math="1" shadow="0">
+    <mxGraphModel dx="989" dy="643" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="540" pageHeight="390" math="1" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -8,70 +8,66 @@
           <mxGeometry height="140" width="115" x="40" y="90" as="geometry" />
         </mxCell>
         <mxCell id="lane-prop" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=none;" value="" vertex="1">
-          <mxGeometry height="310" width="170" x="180" y="60" as="geometry" />
+          <mxGeometry height="280" width="170" x="180" y="90" as="geometry" />
         </mxCell>
         <mxCell id="lane-chain" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=none;" value="" vertex="1">
-          <mxGeometry height="310" width="120" x="370" y="60" as="geometry" />
+          <mxGeometry height="280" width="120" x="370" y="90" as="geometry" />
         </mxCell>
         <mxCell id="lbl-user" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="User" vertex="1">
           <mxGeometry height="18" width="45" x="30" y="82" as="geometry" />
         </mxCell>
         <mxCell id="lbl-prop" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="Proposer" vertex="1">
-          <mxGeometry height="18" width="55" x="180" y="52" as="geometry" />
+          <mxGeometry height="18" width="55" x="180" y="82" as="geometry" />
         </mxCell>
         <mxCell id="lbl-chain" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="Chain" vertex="1">
-          <mxGeometry height="18" width="35" x="450" y="52" as="geometry" />
+          <mxGeometry height="18" width="35" x="455" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="NGMWMwz20FBlKlV4wCaV-3" edge="1" parent="1" source="n-selp1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="n-order">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="n-selp1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Select proposer \(P_1\) for \(B_1\)" vertex="1">
-          <mxGeometry height="44" width="100" x="380" y="90" as="geometry" />
+          <mxGeometry height="40" width="100" x="380" y="104" as="geometry" />
         </mxCell>
         <mxCell id="n-create" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Create transactions" vertex="1">
           <mxGeometry height="40" width="92" x="51.5" y="104" as="geometry" />
         </mxCell>
         <mxCell id="n-order" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Select &amp;amp; Order \(PHT\)s" vertex="1">
-          <mxGeometry height="40" width="120" x="210" y="104" as="geometry" />
+          <mxGeometry height="40" width="100" x="218" y="104" as="geometry" />
         </mxCell>
         <mxCell id="n-b1conf" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="\(B_1\) confirmed, burn \(F_{res}\)" vertex="1">
-          <mxGeometry height="48" width="100" x="380" y="171" as="geometry" />
+          <mxGeometry height="38" width="100" x="380" y="182" as="geometry" />
         </mxCell>
         <mxCell id="n-reveal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Reveal \(MT\) for the \(PHT\)" vertex="1">
           <mxGeometry height="40" width="92" x="51.5" y="176" as="geometry" />
         </mxCell>
         <mxCell id="d-revealed" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.decision;whiteSpace=wrap;fillColor=#ffffff;" value="\(MT\) revealed&lt;br&gt;in time?" vertex="1">
-          <mxGeometry height="54" width="120" x="210" y="170" as="geometry" />
+          <mxGeometry height="54" width="120" x="207" y="169" as="geometry" />
         </mxCell>
         <mxCell id="n-include" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Include \(MT\) in \(B_2\)" vertex="1">
-          <mxGeometry height="40" width="70" x="190" y="250" as="geometry" />
+          <mxGeometry height="40" width="70" x="188" y="250" as="geometry" />
         </mxCell>
         <mxCell id="n-omit" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Delete \(PHT\),&lt;div&gt;burn \(F_{res}\)&lt;/div&gt;" vertex="1">
-          <mxGeometry height="48" width="70" x="270" y="246" as="geometry" />
+          <mxGeometry height="48" width="80" x="266" y="249" as="geometry" />
         </mxCell>
         <mxCell id="n-buildb2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="Build \(B_2\) from \(B_1\)" vertex="1">
-          <mxGeometry height="40" width="120" x="210" y="312" as="geometry" />
+          <mxGeometry height="40" width="120" x="208" y="312" as="geometry" />
         </mxCell>
         <mxCell id="n-final" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fillColor=#ffffff;" value="\(B_2\) finalizes slot" vertex="1">
           <mxGeometry height="40" width="100" x="380" y="312" as="geometry" />
-        </mxCell>
-        <mxCell id="e-selp1-order" edge="1" parent="1" source="n-selp1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;labelBackgroundColor=#fff2cc;" target="n-order" value="build by \(P_1\)">
-          <mxGeometry relative="1" x="0.2233" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points">
-              <mxPoint x="430" y="74" />
-              <mxPoint x="270" y="74" />
-            </Array>
-          </mxGeometry>
         </mxCell>
         <mxCell id="e-create-order" edge="1" parent="1" source="n-create" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" target="n-order" value="">
           <mxGeometry relative="1" x="-0.203" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="e-order-b1" edge="1" parent="1" source="n-order" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" target="n-b1conf" value="">
+        <mxCell id="e-order-b1" edge="1" parent="1" source="n-order" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="n-b1conf" value="">
           <mxGeometry relative="1" x="-0.562" as="geometry">
             <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="435" y="140" />
+              <mxPoint x="270" y="150" />
+              <mxPoint x="435" y="150" />
             </Array>
+            <mxPoint x="330" y="140" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="e-b1-reveal" edge="1" parent="1" source="n-b1conf" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;labelBackgroundColor=#fff2cc;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="n-reveal" value="Signal">
@@ -104,16 +100,16 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="t-pht" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=#ffffff;" value="\(PHT\)" vertex="1">
-          <mxGeometry height="20" width="36" x="150" y="114" as="geometry" />
+          <mxGeometry height="20" width="25" x="155" y="114" as="geometry" />
         </mxCell>
         <mxCell id="t-mt" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=#ffffff;" value="\(MT\)" vertex="1">
-          <mxGeometry height="20" width="34" x="151" y="186" as="geometry" />
+          <mxGeometry height="20" width="20" x="158" y="186" as="geometry" />
         </mxCell>
-        <mxCell id="t-b1" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=#ffffff;" value="\(B_1\)" vertex="1">
-          <mxGeometry height="20" width="34" x="343" y="140" as="geometry" />
+        <mxCell id="t-b1" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=#e1d5e7;" value="\(B_1\)" vertex="1">
+          <mxGeometry height="20" width="17" x="425.5" y="145" as="geometry" />
         </mxCell>
         <mxCell id="t-b2" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=#ffffff;" value="\(B_2\)" vertex="1">
-          <mxGeometry height="20" width="34" x="343" y="322" as="geometry" />
+          <mxGeometry height="20" width="17" x="352" y="322" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
