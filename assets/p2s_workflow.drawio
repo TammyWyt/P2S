@@ -14,13 +14,13 @@
           <mxGeometry height="280" width="120" x="370" y="90" as="geometry" />
         </mxCell>
         <mxCell id="lbl-user" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="User" vertex="1">
-          <mxGeometry height="18" width="45" x="30" y="82" as="geometry" />
+          <mxGeometry height="18" width="45" x="31" y="82" as="geometry" />
         </mxCell>
         <mxCell id="lbl-prop" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="Proposer" vertex="1">
           <mxGeometry height="18" width="55" x="182" y="82" as="geometry" />
         </mxCell>
         <mxCell id="lbl-chain" parent="1" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1" value="Chain" vertex="1">
-          <mxGeometry height="18" width="35" x="455" y="82" as="geometry" />
+          <mxGeometry height="18" width="35" x="453" y="82" as="geometry" />
         </mxCell>
         <mxCell id="NGMWMwz20FBlKlV4wCaV-3" edge="1" parent="1" source="n-selp1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="n-order">
           <mxGeometry relative="1" as="geometry" />
