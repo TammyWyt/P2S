@@ -72,7 +72,7 @@ The two evaluation axes use distinct artifacts:
 - **Agent-based MEV and φ-sweep figures**: agent simulator (`scripts/simulation/agents.py`) and sweep driver (`plots/plot_phi_sweep.py`).
 - **Block-level welfare / MEV-totals figures**: block simulator (`scripts/simulation/simulator.py`), seeded (`random.seed(42)`); deterministic.
 
-The protocol logic itself — the salted-hash commitment, the expool, the two-block orchestration, the BLS set-union agreement, and the reservation-fee accounting — is implemented as a Go prototype with unit tests; the network simulator drives this logic to obtain the latency and bandwidth measurements.
+The protocol logic itself — the salted-hash commitment, the expool, the two-block orchestration, the set-union agreement (`f+1` threshold; BLS-aggregatable availability proofs are specified in the design but not yet in the prototype, which counts unsigned reports), and the reservation-fee accounting — is implemented as a Go prototype with unit tests; the network simulator drives this logic to obtain the latency and bandwidth measurements.
 
 ### Figure provenance (paper figure → generating code)
 
@@ -81,5 +81,6 @@ The protocol logic itself — the salted-hash commitment, the expool, the two-bl
 - **Figure 3** (MEV totals, cumulative MEV): `plots/plot_mev_comparison.py`, `plots/plot_attack_success_cost_reward.py`
 - **Figure 4** (block-stuffing duration): `plots/plot_stuffing_duration.py`
 - **Figure 5** (cost vs. gain): `plots/plot_attack_success_cost_reward.py`
-- **Figure 6** (revert refund): `scripts/revert_refund_design.py`
+
+(The paper contains five figures; `scripts/revert_refund_design.py` produces exploratory revert-refund plots that are **not** used in the paper.)
 

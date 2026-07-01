@@ -11,7 +11,9 @@ GWEI_PER_ETH = 1e9
 # V2/V3 sandwiches, median 0.00056 ETH ~ $1.7). The TAIL (sigma) is set from the
 # published MEV literature, not from that small low-fee sample, which under-counts
 # whales: real sandwich profit is heavy-tailed, so the mean is tail-driven. With
-# sigma = 2.85 the mean is ~0.033 ETH (~$100, in the Qin/Torres range), ~1% of
+# sigma = 2.85 the uncapped mean E[Y] is ~0.033 ETH; after the MEV_CAP truncation
+# the reported mean E[min(Y,c)] is ~0.030 ETH (~$90 at $3k/ETH, in the Qin/Torres
+# range) — this is the value in the paper's tail-sensitivity table. ~1% of
 # sandwiches exceed 0.5 ETH, and rare whale sandwiches reach tens of ETH, bounded
 # at a realistic single-event maximum (MEV_CAP = 50 ETH). Blind planters cannot
 # pick the best opportunity, so they draw the worse of two such samples.
@@ -59,7 +61,7 @@ PRIORITY_FEE_GWEI = 1.5
 # φ sweep: 20 evenly log-spaced points from 10^-4 to 10^0.
 # Uniform spacing on the log axis gives a smooth line when plotted on a log scale.
 # φ > 1 is economically incoherent (F_res > full execution cost).
-# At empirical mainnet gas (~34.5 gwei base + 1.5 gwei tip = 36 gwei):
-#   φ*_stuffer ≈ 0.107   (BlockStufferBot deactivates at median 36 gwei; ~0.066–0.154 across 20–58.6 gwei)
+# At empirical mainnet gas (~45.1 gwei median base + 1.5 gwei tip = 46.6 gwei):
+#   φ*_stuffer ≈ 0.06   (single-block-exclusion breakeven at median ~46.6 gwei; ~0.05–0.14 across 20–59 gwei)
 #   BlindPlanterBot and CrossBlockArbBot: never profitable at any φ (exec cost >> E[gain])
 PHI_SWEEP = [0.0] + list(np.logspace(-4, 0, 20))

@@ -52,11 +52,11 @@ Gas prices in our block cache average ~20 gwei (post-EIP-4844, low-activity era)
 - **Rationale:** Under EIP-1559, the base fee is typically 70–90 % of the total gas price paid by the transaction. The remaining 10–30 % is the priority fee (tip) that goes to the proposer. Using 80 % as a midpoint.
 - **Source:** Roughgarden (2021), §2; Ethereum.org gas documentation
 
-### 2.3 Block Reward
+### 2.3 Proposer Revenue
 
-- **Value used:** 2.0 ETH fixed issuance + 10 % of total gas fees as tip revenue
-- **Rationale:** Ethereum post-Merge issuance is ~1.5–2.5 ETH/block depending on active validator count. Priority-fee tips represent ≈ 10–20 % of total gas paid (rest is burned base fee).
-- **Source:** [Ethereum Beacon Chain Issuance](https://ethereum.org/en/roadmap/merge/); Flashbots MEV-Explore monthly reports
+- **Value used:** No block issuance is modeled. The proposer's revenue is the EIP-1559 priority-fee tip only (both `F_res` and the base fee are burned): `U_P = Σ_j g_used_j · g_priority_j`, with a median tip `PRIORITY_FEE_GWEI = 1.5` gwei (`scripts/simulation/constants.py`).
+- **Rationale:** Under P2S the proposer receives only the priority fee, so block issuance is irrelevant to the incentive analysis and is set to zero; this matches the proposer utility in the paper.
+- **Source:** EIP-1559; post-Merge median tip ~1–3 gwei (Blockscout).
 
 ---
 
@@ -161,14 +161,14 @@ The critical correction from PBS reviewer feedback:
 |-------|---------------|
 | φ = 0.00 | No reservation fee — baseline ($g^{\mathsf{limit}}$ over-declaration is free) |
 | φ = 0.05 | 5 % of execution cost burned at B1 — weak penalty for over-declaration |
-| φ = 0.10 | **Default in simulation** — balances user overhead and over-declaration penalty |
-| φ = 0.20 | Moderate penalty; 5× $g^{\mathsf{limit}}$ inflation costs 100 % of normal execution |
+| φ = 0.10 | Weak penalty; below the single-block-exclusion breakeven at low gas |
+| φ = 0.20 | **Recommended default (`PHI_REC = 0.20`)** — clears the single-block-exclusion breakeven across the empirical gas range; 5× $g^{\mathsf{limit}}$ inflation costs 100 % of normal execution |
 | φ = 0.50 | High penalty; makes blind attacks uneconomical |
 
-**Rationale for φ = 0.10 as default:**
-- EIP-1559 already burns 80 % of the gas price; adding φ = 0.10 burns an additional 10 % of the equivalent execution cost at B1.
-- This means a legitimate user pays only +10 % overhead for the commit step; an attacker inflating g_limit by 10× pays 10× that.
-- Analogous to PBS builder deposits (currently 0.01–0.1 ETH per block bid) as commitment mechanisms.
+**Rationale for φ = 0.20 as default:**
+- The static φ is pinned by single-block exclusion, not blind planting: it must exceed the breakeven φ* = B̄ / (G_stuff · g_base), which runs from ≈ 0.14 (low gas) down to ≈ 0.05 (high gas), so φ ≈ 0.20 clears it across the empirical range.
+- A legitimate revealing swap that consumes ≥ φ·g_limit pays **no** surcharge (the floor is non-additive); the 20 % floor bites only on reserved-but-unexecuted gas, the blind-planting / stuffing signature.
+- Sustained stuffing is handled separately by the dynamic escalation of φ on the utilization gap (see §5, Reservation Fee).
 
 **Source:**
 - Flashbots FRP-10: "Distributed Blockbuilding Networks via Secure Knapsack Auctions" (2023) — proposes commitment deposits in distributed building
