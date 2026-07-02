@@ -81,6 +81,7 @@ The protocol logic itself — the salted-hash commitment, the expool, the two-bl
 - **Figure 3** (MEV totals, cumulative MEV): `plots/plot_mev_comparison.py`, `plots/plot_attack_success_cost_reward.py`
 - **Figure 4** (block-stuffing duration): `plots/plot_stuffing_duration.py`
 - **Figure 5** (cost vs. gain): `plots/plot_attack_success_cost_reward.py`
+- **Figure 6** (per-revert cost, P2S floor fee vs. Ethereum): `plots/plot_revert_compare.py`
 
-(The paper contains five figures; `scripts/revert_refund_design.py` produces exploratory revert-refund plots that are **not** used in the paper.)
+(An earlier full-refund design for reverts — pay only `F_res`, all B2 gas refunded — was explored and **rejected** in favour of the floor-fee model; its script and figures have been removed. See `RESEARCH_SOURCES.md` §5.1.)
 

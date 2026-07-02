@@ -174,11 +174,12 @@ The critical correction from PBS reviewer feedback:
 - Flashbots FRP-10: "Distributed Blockbuilding Networks via Secure Knapsack Auctions" (2023) — proposes commitment deposits in distributed building
 - Roughgarden (2021) §5 on mechanism design for fee burning
 
-### 5.1 Refund Design for Benign Reverts (Experiment E1 follow-up)
+### 5.1 Benign Reverts under the Floor Fee (Experiment E1)
 
 *Data: `data/revert_cost_analysis.json` (low-fee) and `data/revert_cost_highfee.json`
-(congestion). Reproduce: `python3 scripts/revert_refund_design.py`. Figure:
-`figures/revert_refund_design.pdf`.*
+(congestion). Reproduce: `python3 plots/plot_revert_compare.py`. Figure:
+`figures/revert_cost_lowfee.pdf` (paper Fig. 6, `Sections/results.tex`
+§`sec:revert-results`).*
 
 **Corrected Ethereum baseline.** A slippage revert is often loosely described as
 "the tx reverts and some base fee is returned." Precisely, post-London (EIP-1559),
@@ -191,37 +192,29 @@ honest baseline is `cost_today = gas_used × eff_price`, base burned. (EIP-3529
 removed most op-level refunds; EIP-3978 *proposes* restoring revert gas refunds but
 is **not** live on mainnet.)
 
-**Three cost models for a reverted user:**
+**Adopted design — floor, not surcharge.** `F_res` is a *floor* on the base fee,
+charged on the declared limit at B1 and **credited** against the base owed on reveal
+(`eq:total-fee`), not an additive charge. A reverted user therefore pays
+`max(F_res, F_base) + F_tip = cost_today + max(0, F_res − F_base)`, where
+`F_base = gas_used × baseFee`. A revert consuming at least `φ·g_limit` (utilization
+≥ 20 %) meets the floor and pays **exactly** its Ethereum cost — the two are
+indistinguishable. Only the heavy `g_limit`-padding tail (utilization < 20 %, over
+5× declared vs used) pays up to `F_res` extra, a few dollars at median DEX gas,
+avoidable by tightening the limit. **No benign revert pays less than Ethereum**, and
+the stuffing deterrent is untouched (a withheld reveal forfeits the full `F_res`).
+Reverts are 11.54 % of DEX-router txs, ~80 % slippage-type; overhead is median
+1.34× (low-fee) / 1.26× (congestion), with a tail p90 ≈ 3.7–4.1× on padded wallets —
+see `Sections/results.tex` and `../P2S_Overleaf/PLANNING.md` for the per-cohort
+breakdown.
 
-| model | reverted user pays |
-|---|---|
-| Ethereum today | `gas_used × eff_price` (base burned) |
-| P2S, current paper | `F_res + gas_used × eff_price` |
-| P2S, refund design (proposed) | `F_res` only |
-
-The refund design changes only **B2**: on a *revealed-but-reverted* MT, refund the
-entire B2 execution gas, since a user who revealed and executed is demonstrably not
-blind-stuffing. `F_res` stays burned (non-refundable) as the stuffing deterrent.
-Benign user pays less than Ethereum today whenever `φ·(g_limit/g_used) <
-(baseFee+prio)/baseFee`.
-
-**Empirical results** (USD: low-fee at $1,755; congestion at May-2022 ~$2,800):
-
-| regime | cohort | n | refund ratio med/p90/p99 | % paying **less** than ETH | median Δ |
-|---|---|---|---|---|---|
-| low-fee | slippage | 265 | 0.34 / 0.69 / 1.11 | 98% | saves $0.05 |
-| low-fee | slippage+in-block | 1071 | 0.36 / 0.69 / 1.41 | 98% | saves $0.03 |
-| low-fee | all DEX | 1337 | 0.37 / 5.39 / 6.33 | 86% | saves $0.03 |
-| congestion | slippage | 264 | 0.26 / 3.14 / 4.79 | 75% | saves $37.22 |
-| congestion | slippage+in-block | 632 | 0.28 / 2.73 / 4.48 | 68% | saves $30.60 |
-| congestion | all DEX | 1031 | 0.58 / 3.03 / 6.25 | 55% | saves $10.22 |
-
-The refund design flips the benign-user story: under the *current* design the
-reverted user always pays more than Ethereum (overhead median 1.26–1.34×); under the
-refund design the median benign slippage user pays 0.26–0.34× (66–74% cheaper). The
-cost falls on heavy `g_limit` padders (`F_res ∝ declared limit`), who are opt-out by
-tightening the limit. The stuffing deterrent is intact: a stuffer who never reveals
-still loses `F_res` entirely.
+**Rejected variant — full B2 refund.** A refund design (reverted user pays *only*
+`F_res`; all B2 execution gas refunded on a revealed-but-reverted MT) was explored
+on 2026-06-08 and **not adopted**. It made P2S *cheaper* than Ethereum (median
+0.26–0.34× cost, 66–74 % cheaper), but (a) opened a B2-griefing hole — an attacker
+reveals deliberately-reverting dummy MTs to occupy B2 blockspace at cost `F_res`
+each — and (b) broke burn/validator accounting (refunded B2 base fee is no longer
+burned). The floor model above is used instead; it spares 90 %+ of honest swaps
+without the griefing surface. (Griefing quantification tracked in §11.)
 
 **Open tension to quantify** (tracked in §11): refunding *all* B2 gas lets a
 revealed-but-reverting MT occupy B2 blockspace for only `F_res` — size the griefing
