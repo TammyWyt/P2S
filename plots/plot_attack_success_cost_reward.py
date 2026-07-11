@@ -118,8 +118,8 @@ def _panel_cumulative(ax, pos_series, p2s_series):
     _FL, _FT, _FLG = 20, 17, 16
     ax.set_xlim(0, n)
     ax.set_ylim(0)
-    ax.set_xlabel("Block", fontsize=_FL, fontweight="bold")
-    ax.set_ylabel("Cumulative MEV (ETH)", fontsize=_FL, fontweight="bold")
+    ax.set_xlabel("Block", fontsize=_FL)
+    ax.set_ylabel("Cumulative MEV (ETH)", fontsize=_FL)
     ax.yaxis.set_label_coords(-0.135, 0.42)   # nudge the long y-label down so it does not overflow the top
     ax.tick_params(labelsize=_FT)
     ax.legend(fontsize=_FLG, loc="upper left", frameon=False)
@@ -214,8 +214,8 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
     ax.set_yscale("log")
     ax.set_xlim(0.002, x_max)
     ax.set_ylim(df["gain"].min() * 0.6, y_max * 1.4)
-    ax.set_xlabel("Cost per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Gain per attack (ETH)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Cost per attack (ETH)", fontsize=FS_LABEL)
+    ax.set_ylabel("Gain per attack (ETH)", fontsize=FS_LABEL)
     ax.tick_params(labelsize=FS_TICK)
     sns.despine(ax=ax)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")

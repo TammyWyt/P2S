@@ -31,8 +31,8 @@ ax.errorbar(K, [r["pos_lat_s"] * 1000 for r in ks], yerr=[r.get("pos_ci", 0) * 1
             color=POS_C, lw=LW, marker="o", ms=MS, capsize=4, label="Ethereum PoS")
 ax.errorbar(K, [r["p2s_lat_s"] * 1000 for r in ks], yerr=[r.get("p2s_ci", 0) * 1000 for r in ks],
             color=P2S_C, lw=LW, marker="s", ms=MS, capsize=4, label="P2S")
-ax.set_xlabel("Block size $K$ (txs/slot)", fontsize=FS_LABEL, fontweight="bold")
-ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL, fontweight="bold")
+ax.set_xlabel("Block size $K$ (txs/slot)", fontsize=FS_LABEL)
+ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL)
 ax.tick_params(labelsize=FS_TICK)
 ax.legend(frameon=False, fontsize=FS_LEGEND, loc="upper left")
 sns.despine()
@@ -48,8 +48,8 @@ ax.errorbar(D, [r["pos_lat_s"] * 1000 for r in fs], yerr=[r.get("pos_ci", 0) * 1
             color=POS_C, lw=LW, marker="o", ms=MS, capsize=4, label="Ethereum PoS")
 ax.errorbar(D, [r["p2s_lat_s"] * 1000 for r in fs], yerr=[r.get("p2s_ci", 0) * 1000 for r in fs],
             color=P2S_C, lw=LW, marker="s", ms=MS, capsize=4, label="P2S")
-ax.set_xlabel("Gossip peers $D$", fontsize=FS_LABEL, fontweight="bold")
-ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL, fontweight="bold")
+ax.set_xlabel("Gossip peers $D$", fontsize=FS_LABEL)
+ax.set_ylabel("Per-slot latency (ms)", fontsize=FS_LABEL)
 ax.tick_params(labelsize=FS_TICK)
 ax.legend(frameon=False, fontsize=FS_LEGEND, loc="upper right")
 sns.despine()

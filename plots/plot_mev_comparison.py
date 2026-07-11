@@ -98,7 +98,7 @@ def _plot_dumbbell(labels, eth_values, p2s_values, xlabel, out_path,
 
     ax.set_yticks(y)
     ax.set_yticklabels(labels, fontsize=FS_TICK)
-    ax.set_xlabel(xlabel, fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel(xlabel, fontsize=FS_LABEL)
     ax.tick_params(labelsize=FS_TICK)
     if log_x:
         ax.set_xscale("symlog", linthresh=0.01)
@@ -167,7 +167,7 @@ def plot_mev_reduction(comparison_data: dict, out_path: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 7))
     colors = [COLOR_P2S if r > 0 else COLOR_ETH for r in reductions]
     ax.barh(types, reductions, height=0.68, color=colors, edgecolor="white", linewidth=1.2)
-    ax.set_xlabel("Reduction (%)", fontsize=FS_LABEL, fontweight='bold')
+    ax.set_xlabel("Reduction (%)", fontsize=FS_LABEL)
     ax.tick_params(labelsize=FS_LABEL)
     sns.despine(ax=ax)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")

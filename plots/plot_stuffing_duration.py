@@ -67,8 +67,8 @@ def plot_duration_by_budget(payload, out_path):
     # logarithmic in budget), so all three are legible on a single panel.
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("Attacker budget (ETH)", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Blocks sustained", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Attacker budget (ETH)", fontsize=FS_LABEL)
+    ax.set_ylabel("Blocks sustained", fontsize=FS_LABEL)
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
     ax.grid(True, which="both", alpha=0.18, linestyle="--", color="gray")
@@ -80,7 +80,7 @@ def plot_duration_by_budget(payload, out_path):
         functions=(lambda b: b * SLOT_SECONDS / 3600.0,
                    lambda h: h * 3600.0 / SLOT_SECONDS),
     )
-    secax.set_ylabel("Wall-clock (hours)", fontsize=FS_LABEL - 2, fontweight="bold")
+    secax.set_ylabel("Wall-clock (hours)", fontsize=FS_LABEL - 2)
     secax.tick_params(labelsize=FS_TICK - 2)
 
     sns.despine(ax=ax, right=False)
@@ -103,8 +103,8 @@ def plot_basefee_trajectory(payload, out_path):
                 color=col, lw=2.6, linestyle=ls, marker=mk, ms=5, markevery=5)
 
     ax.set_yscale("log")
-    ax.set_xlabel("Block of sustained attack", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Cost per block (ETH)", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Block of sustained attack", fontsize=FS_LABEL)
+    ax.set_ylabel("Cost per block (ETH)", fontsize=FS_LABEL)
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
     ax.grid(True, alpha=0.18, linestyle="--", color="gray")
@@ -142,8 +142,8 @@ def plot_mechanism_tradeoff(payload, out_path):
              label="P2S, occupancy-keyed $\\varphi$ (worst case)")
     axL.axhline(ss["ethereum"], color=_DEEP[7], lw=2.4, ls=":",
                 label=f"Ethereum ({ss['ethereum']} blocks)")
-    axL.set_xlabel("Reservation-fee slope $s$", fontsize=FS_LABEL, fontweight="bold")
-    axL.set_ylabel("Worst-case blocks sustained", fontsize=FS_LABEL, fontweight="bold")
+    axL.set_xlabel("Reservation-fee slope $s$", fontsize=FS_LABEL)
+    axL.set_ylabel("Worst-case blocks sustained", fontsize=FS_LABEL)
     axL.set_yscale("log")
     axL.tick_params(labelsize=FS_TICK)
     axL.legend(fontsize=FS_LEGEND - 1, loc="upper right", frameon=False)
@@ -165,9 +165,9 @@ def plot_mechanism_tradeoff(payload, out_path):
              marker="^", ms=6, markevery=3, label="gap-keyed $\\varphi$")
     axR.plot(x, np.array(bs["occupancy"][:horizon]) * usd, color=_DEEP[0], lw=2.6,
              marker="D", ms=6, markevery=3, label="occupancy-keyed $\\varphi$")
-    axR.set_xlabel("Block of sustained congestion", fontsize=FS_LABEL, fontweight="bold")
+    axR.set_xlabel("Block of sustained congestion", fontsize=FS_LABEL)
     axR.set_ylabel("Benign swap $F_{\\mathsf{res}}$ (USD)",
-                   fontsize=FS_LABEL, fontweight="bold")
+                   fontsize=FS_LABEL)
     axR.set_yscale("log")
     axR.tick_params(labelsize=FS_TICK)
     axR.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
@@ -199,8 +199,8 @@ def plot_tradeoff_duration(payload, out_path):
             label="occupancy-keyed $\\varphi$")
     ax.axhline(ss["ethereum"], color=_DEEP[7], lw=2.4, ls=":",
                label=f"Ethereum ({ss['ethereum']} blocks)")
-    ax.set_xlabel("Reservation-fee slope $s$", fontsize=FS_LABEL, fontweight="bold")
-    ax.set_ylabel("Worst-case blocks sustained", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Reservation-fee slope $s$", fontsize=FS_LABEL)
+    ax.set_ylabel("Worst-case blocks sustained", fontsize=FS_LABEL)
     ax.set_yscale("log")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper right", frameon=False)
@@ -228,9 +228,9 @@ def plot_tradeoff_cost(payload, out_path):
             marker="^", ms=6, markevery=3, label="gap-keyed $\\varphi$")
     ax.plot(x, np.array(bs["occupancy"][:horizon]) * usd, color=_DEEP[0], lw=2.6,
             marker="D", ms=6, markevery=3, label="occupancy-keyed $\\varphi$")
-    ax.set_xlabel("Block of sustained congestion", fontsize=FS_LABEL, fontweight="bold")
+    ax.set_xlabel("Block of sustained congestion", fontsize=FS_LABEL)
     ax.set_ylabel("Benign swap $F_{\\mathsf{res}}$ (USD)",
-                  fontsize=FS_LABEL, fontweight="bold")
+                  fontsize=FS_LABEL)
     ax.set_yscale("log")
     ax.tick_params(labelsize=FS_TICK)
     ax.legend(fontsize=FS_LEGEND, loc="upper left", frameon=False)
