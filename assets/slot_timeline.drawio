@@ -1,0 +1,142 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="P2S slot timeline" id="p2s-slot-timeline">
+    <mxGraphModel dx="1100" dy="640" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="480" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ============ Phase group containers (drawn first = behind) ============ -->
+        <mxCell id="g1" value="Step 1&#10;0&#8211;4 s" style="rounded=1;dashed=1;fillColor=none;strokeColor=#9AA7B0;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontStyle=1;fontSize=14;fontColor=#1A7F8E;" vertex="1" parent="1">
+          <mxGeometry x="20" y="40" width="320" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="g2" value="Reveal + Attest&#10;4&#8211;8 s" style="rounded=1;dashed=1;fillColor=none;strokeColor=#9AA7B0;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontStyle=1;fontSize=14;fontColor=#1A7F8E;" vertex="1" parent="1">
+          <mxGeometry x="360" y="40" width="320" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="g3" value="Step 2&#10;8&#8211;12 s" style="rounded=1;dashed=1;fillColor=none;strokeColor=#9AA7B0;verticalAlign=top;align=left;spacingLeft=10;spacingTop=6;fontStyle=1;fontSize=14;fontColor=#1A7F8E;" vertex="1" parent="1">
+          <mxGeometry x="700" y="40" width="380" height="350" as="geometry" />
+        </mxCell>
+
+        <!-- inner "local, no vote" box in Step 2 -->
+        <mxCell id="localbox" value="formed locally &#183; no proposal or vote" style="rounded=1;dashed=1;fillColor=none;strokeColor=#E07B39;verticalAlign=top;align=center;spacingTop=4;fontSize=10;fontColor=#E07B39;" vertex="1" parent="1">
+          <mxGeometry x="860" y="80" width="200" height="300" as="geometry" />
+        </mxCell>
+
+        <!-- ============ Phase 1 nodes ============ -->
+        <mxCell id="pool" value="PHT pool" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#DEEBF7;strokeColor=#3B6EA5;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="55" y="100" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="prop" value="Proposer&#10;(agent)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6C4A9C;strokeColor=#4A2E75;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="45" y="250" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a_v1" value="V1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="255" y="95" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="a_v2" value="V2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="255" y="190" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="a_v3" value="V3" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="255" y="285" width="52" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- ============ Phase 2 nodes ============ -->
+        <mxCell id="senders" value="Senders" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="400" y="100" width="70" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="b_v1" value="V1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="95" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="b_v2" value="V2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="190" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="b_v3" value="V3" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="600" y="285" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="agg" value="Aggregator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="395" y="285" width="100" height="52" as="geometry" />
+        </mxCell>
+
+        <!-- ============ Phase 3 nodes ============ -->
+        <mxCell id="eset" value="Reveal set E" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#E1D5E7;strokeColor=#8E5FA8;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="725" y="185" width="90" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c_v1" value="V1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="885" y="100" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c_v2" value="V2" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="885" y="195" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="c_v3" value="V3" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="885" y="290" width="52" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="s2a" value="S2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDE3C4;strokeColor=#E07B39;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="985" y="106" width="60" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="s2b" value="S2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDE3C4;strokeColor=#E07B39;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="985" y="201" width="60" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="s2c" value="S2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDE3C4;strokeColor=#E07B39;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="985" y="296" width="60" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ============ Phase 1 edges ============ -->
+        <mxCell id="e_pool_prop" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="pool" target="prop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_prop_v1" value="S1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=11;" edge="1" parent="1" source="prop" target="a_v1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_prop_v2" value="S1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=11;" edge="1" parent="1" source="prop" target="a_v2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_prop_v3" value="S1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=11;" edge="1" parent="1" source="prop" target="a_v3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============ Phase 2 edges ============ -->
+        <mxCell id="e_s_v1" value="MT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=11;" edge="1" parent="1" source="senders" target="b_v1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s_v2" value="MT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=11;" edge="1" parent="1" source="senders" target="b_v2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s_v3" value="MT" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=11;" edge="1" parent="1" source="senders" target="b_v3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v1_agg" value="attest S1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3B6EA5;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#3B6EA5;fontSize=10;" edge="1" parent="1" source="b_v1" target="agg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v2_agg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3B6EA5;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="b_v2" target="agg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v3_agg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3B6EA5;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="b_v3" target="agg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============ Phase 3 edges ============ -->
+        <mxCell id="e_e_v1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#8E5FA8;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="eset" target="c_v1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_e_v2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#8E5FA8;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="eset" target="c_v2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_e_v3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#8E5FA8;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="eset" target="c_v3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v1_s2" value="form S2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;fontColor=#E07B39;fontSize=10;" edge="1" parent="1" source="c_v1" target="s2a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v2_s2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c_v2" target="s2b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_v3_s2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#E07B39;strokeWidth=1.5;endArrow=block;endFill=1;" edge="1" parent="1" source="c_v3" target="s2c">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============ caption ============ -->
+        <mxCell id="cap" value="P2S slot: three per-phase snapshots within Ethereum's unchanged 12-second schedule. Only S1 is proposed and attested; reveals and attestations flow in parallel; S2 is a local, deterministic completion needing no further vote." style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#1A7F8E;" vertex="1" parent="1">
+          <mxGeometry x="40" y="405" width="1020" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
