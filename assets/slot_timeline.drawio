@@ -1,59 +1,106 @@
 <mxfile host="app.diagrams.net" agent="Claude Code">
   <diagram name="P2S slot timeline" id="p2s-slot-timeline">
-    <mxGraphModel dx="360" dy="480" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="340" pageHeight="456" math="1" shadow="0">
+    <mxGraphModel dx="360" dy="480" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="400" pageHeight="456" math="1" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
         <!-- ===== phase headers ===== -->
         <mxCell id="h-a" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=12;fontColor=#555555;" value="Step 1 &#183; 0&#8211;4 s" vertex="1">
-          <mxGeometry x="8" y="10" width="180" height="16" as="geometry" />
+          <mxGeometry x="8" y="10" width="220" height="16" as="geometry" />
         </mxCell>
         <mxCell id="h-b" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=12;fontColor=#555555;" value="Reveal + Attest &#183; 4&#8211;8 s" vertex="1">
-          <mxGeometry x="8" y="216" width="180" height="16" as="geometry" />
+          <mxGeometry x="8" y="216" width="220" height="16" as="geometry" />
         </mxCell>
         <mxCell id="h-c" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=12;fontColor=#555555;" value="Step 2 &#183; 8&#8211;12 s" vertex="1">
-          <mxGeometry x="8" y="362" width="180" height="16" as="geometry" />
+          <mxGeometry x="8" y="362" width="220" height="16" as="geometry" />
         </mxCell>
 
-        <!-- ===== actor tags (left) ===== -->
-        <mxCell id="t1" parent="1" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="User" vertex="1">
-          <mxGeometry x="4" y="47" width="60" height="18" as="geometry" />
+        <!-- ===== actor figures + tags (left gutter) ===== -->
+        <!-- row 1: User -->
+        <mxCell id="f1" parent="1" style="shape=actor;html=1;strokeWidth=1.5;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
+          <mxGeometry x="14" y="41" width="22" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="t2" parent="1" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Proposer" vertex="1">
-          <mxGeometry x="4" y="111" width="60" height="18" as="geometry" />
+        <mxCell id="t1" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="User" vertex="1">
+          <mxGeometry x="42" y="47" width="58" height="18" as="geometry" />
         </mxCell>
-        <mxCell id="t3" parent="1" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Chain" vertex="1">
-          <mxGeometry x="4" y="175" width="60" height="18" as="geometry" />
+
+        <!-- row 2: Proposer -->
+        <mxCell id="f2" parent="1" style="shape=actor;html=1;strokeWidth=1.5;fillColor=#fff2cc;strokeColor=#d6b656;" value="" vertex="1">
+          <mxGeometry x="14" y="105" width="22" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="t4" parent="1" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="User" vertex="1">
-          <mxGeometry x="4" y="257" width="60" height="18" as="geometry" />
+        <mxCell id="t2" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Proposer" vertex="1">
+          <mxGeometry x="42" y="111" width="58" height="18" as="geometry" />
         </mxCell>
-        <mxCell id="t5" parent="1" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Chain" vertex="1">
-          <mxGeometry x="4" y="321" width="60" height="18" as="geometry" />
+
+        <!-- row 3: Chain / validators (crowd of three) -->
+        <mxCell id="f3a" parent="1" style="shape=actor;html=1;strokeWidth=1.2;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=60;" value="" vertex="1">
+          <mxGeometry x="6" y="173" width="16" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="t6" parent="1" style="text;html=1;align=right;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Chain" vertex="1">
-          <mxGeometry x="4" y="406" width="60" height="18" as="geometry" />
+        <mxCell id="f3c" parent="1" style="shape=actor;html=1;strokeWidth=1.2;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=60;" value="" vertex="1">
+          <mxGeometry x="30" y="173" width="16" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="f3b" parent="1" style="shape=actor;html=1;strokeWidth=1.5;fillColor=#e1d5e7;strokeColor=#9673a6;" value="" vertex="1">
+          <mxGeometry x="17" y="169" width="22" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t3" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Chain" vertex="1">
+          <mxGeometry x="50" y="175" width="50" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- row 4: User -->
+        <mxCell id="f4" parent="1" style="shape=actor;html=1;strokeWidth=1.5;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="" vertex="1">
+          <mxGeometry x="14" y="251" width="22" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t4" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="User" vertex="1">
+          <mxGeometry x="42" y="257" width="58" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- row 5: Chain / validators -->
+        <mxCell id="f5a" parent="1" style="shape=actor;html=1;strokeWidth=1.2;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=60;" value="" vertex="1">
+          <mxGeometry x="6" y="319" width="16" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="f5c" parent="1" style="shape=actor;html=1;strokeWidth=1.2;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=60;" value="" vertex="1">
+          <mxGeometry x="30" y="319" width="16" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="f5b" parent="1" style="shape=actor;html=1;strokeWidth=1.5;fillColor=#e1d5e7;strokeColor=#9673a6;" value="" vertex="1">
+          <mxGeometry x="17" y="315" width="22" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t5" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Chain" vertex="1">
+          <mxGeometry x="50" y="321" width="50" height="18" as="geometry" />
+        </mxCell>
+
+        <!-- row 6: Chain / validators -->
+        <mxCell id="f6a" parent="1" style="shape=actor;html=1;strokeWidth=1.2;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=60;" value="" vertex="1">
+          <mxGeometry x="6" y="404" width="16" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="f6c" parent="1" style="shape=actor;html=1;strokeWidth=1.2;fillColor=#e1d5e7;strokeColor=#9673a6;opacity=60;" value="" vertex="1">
+          <mxGeometry x="30" y="404" width="16" height="22" as="geometry" />
+        </mxCell>
+        <mxCell id="f6b" parent="1" style="shape=actor;html=1;strokeWidth=1.5;fillColor=#e1d5e7;strokeColor=#9673a6;" value="" vertex="1">
+          <mxGeometry x="17" y="400" width="22" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="t6" parent="1" style="text;html=1;align=left;verticalAlign=middle;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#333333;" value="Chain" vertex="1">
+          <mxGeometry x="50" y="406" width="50" height="18" as="geometry" />
         </mxCell>
 
         <!-- ===== nodes (tinted by actor) ===== -->
-        <mxCell id="n1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#dae8fc;" value="Submit \(PHT\)&lt;br&gt;(intent hidden)" vertex="1">
-          <mxGeometry x="74" y="36" width="232" height="40" as="geometry" />
+        <mxCell id="n1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Submit \(PHT\)&lt;br&gt;(intent hidden)" vertex="1">
+          <mxGeometry x="110" y="36" width="256" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="n2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#fff2cc;" value="Order \(PHT\)s,&lt;br&gt;build \(S_1\)" vertex="1">
-          <mxGeometry x="74" y="100" width="232" height="40" as="geometry" />
+        <mxCell id="n2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#fff2cc;strokeColor=#d6b656;" value="Order \(PHT\)s,&lt;br&gt;build \(S_1\)" vertex="1">
+          <mxGeometry x="110" y="100" width="256" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="n3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#e1d5e7;" value="Attest \(S_1\):&lt;br&gt;order fixed (only vote)" vertex="1">
-          <mxGeometry x="74" y="164" width="232" height="40" as="geometry" />
+        <mxCell id="n3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Attest \(S_1\):&lt;br&gt;order fixed (only vote)" vertex="1">
+          <mxGeometry x="110" y="164" width="256" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="n4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#dae8fc;" value="Reveal \(MT\)&lt;br&gt;(open commitment)" vertex="1">
-          <mxGeometry x="74" y="246" width="232" height="40" as="geometry" />
+        <mxCell id="n4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Reveal \(MT\)&lt;br&gt;(open commitment)" vertex="1">
+          <mxGeometry x="110" y="246" width="256" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="n5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#e1d5e7;" value="Collect \(E\),&lt;br&gt;aggregate attestations" vertex="1">
-          <mxGeometry x="74" y="310" width="232" height="40" as="geometry" />
+        <mxCell id="n5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Collect \(E\),&lt;br&gt;aggregate attestations" vertex="1">
+          <mxGeometry x="110" y="310" width="256" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="n6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#e1d5e7;" value="Form \(S_2 = f(B_0, S_1, E)\)&lt;br&gt;locally (no new vote)" vertex="1">
-          <mxGeometry x="74" y="392" width="232" height="46" as="geometry" />
+        <mxCell id="n6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;absoluteArcSize=1;arcSize=14;strokeWidth=2;fontSize=12;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Form \(S_2 = f(B_0, S_1, E)\)&lt;br&gt;locally (no new vote)" vertex="1">
+          <mxGeometry x="110" y="392" width="256" height="46" as="geometry" />
         </mxCell>
 
         <!-- ===== flow edges (vertical spine) ===== -->
