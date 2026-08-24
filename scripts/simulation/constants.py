@@ -46,7 +46,7 @@ B2_MATCH_PROB = 0.20   # probability a pre-committed PHT matches a victim MT
 B2_N_PHTS     = 5      # PHTs pre-committed per proposer slot
 
 # Block stuffer
-STUFF_N_PHTS    = 10
+STUFF_N_PHTS    = 25     # 25 x 1.2M declared = 30M, a full block: monopolising the slot
 STUFF_E_BENEFIT = E_MEV_GAIN   # monopolist captures full uncontested MEV opportunity
 
 # Simulation defaults
@@ -62,6 +62,6 @@ PRIORITY_FEE_GWEI = 1.5
 # Uniform spacing on the log axis gives a smooth line when plotted on a log scale.
 # φ > 1 is economically incoherent (F_res > full execution cost).
 # At empirical mainnet gas (~45.1 gwei median base + 1.5 gwei tip = 46.6 gwei):
-#   φ*_stuffer ≈ 0.06   (single-block-exclusion breakeven at median ~46.6 gwei; ~0.05–0.14 across 20–59 gwei)
+#   φ*_stuffer ≈ 0.02   (single-block-exclusion breakeven at median ~46.6 gwei; ~0.02–0.06 across 20–59 gwei)
 #   BlindPlanterBot and CrossBlockArbBot: never profitable at any φ (exec cost >> E[gain])
 PHI_SWEEP = [0.0] + list(np.logspace(-4, 0, 20))
