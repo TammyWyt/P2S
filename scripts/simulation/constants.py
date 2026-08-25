@@ -1,6 +1,7 @@
 """Shared simulation constants — calibrated to empirical Ethereum data."""
 
 import math
+import random as _random
 import numpy as np
 
 WEI_PER_ETH  = 1e18
@@ -20,7 +21,21 @@ GWEI_PER_ETH = 1e9
 MEV_MU,   MEV_SIG,   MEV_CAP   = math.log(0.00056), 2.85, 50.0
 BLIND_MU, BLIND_SIG             = math.log(0.0003), 2.5
 E_MEV_GAIN   = min(math.exp(MEV_MU   + MEV_SIG**2   / 2), MEV_CAP)  # ≈ 0.033 ETH (mean, tail-driven)
-E_BLIND_GAIN = min(math.exp(BLIND_MU + BLIND_SIG**2 / 2), MEV_CAP)  # ≈ 0.0068 ETH
+
+
+def _e_blind_gain(n: int = 200_000) -> float:
+    """Mean payoff available to a blind plant: the worse of two draws from the
+    MEV distribution, the model stated above. Evaluated once here so that the
+    rationality gate (MevAgent.e_net) and the realized payoff
+    (AMMPool.blind_profit) rest on the same distribution; a closed form does not
+    exist for the min of two capped log-normals. Uses a private RNG so the
+    global stream, and therefore every seeded simulation, is untouched."""
+    rng = _random.Random(0)
+    draw = lambda: min(rng.lognormvariate(MEV_MU, MEV_SIG), MEV_CAP)
+    return sum(min(draw(), draw()) for _ in range(n)) / n
+
+
+E_BLIND_GAIN = _e_blind_gain()   # ≈ 0.0014 ETH; see AMMPool.blind_profit
 
 
 def sample_mev_gain(rng):

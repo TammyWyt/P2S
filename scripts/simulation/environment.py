@@ -56,6 +56,18 @@ class AMMPool:
             return 0.0
         return sample_mev_gain(random)
 
+    def blind_profit(self, trade: float) -> float:
+        # Payoff available to a BLIND plant, whose position in S_1 is fixed
+        # before its sender knows anything, so it cannot be placed adjacent to a
+        # victim. P2S removes sandwiching structurally, so crediting a plant with
+        # sandwich_profit() overstates it. constants.py states the intended
+        # model: "Blind planters cannot pick the best opportunity, so they draw
+        # the worse of two such samples." This is that model. Mean ~0.0014 ETH
+        # against ~0.030 ETH for a placed sandwich.
+        if trade <= 0 or self.r <= 0:
+            return 0.0
+        return min(sample_mev_gain(random), sample_mev_gain(random))
+
     def step(self) -> None:
         shock  = random.gauss(0, self.NOISE) * self.r
         self.r = max(self.r + self.REVERT * (self.r0 - self.r) + shock, 10.0)

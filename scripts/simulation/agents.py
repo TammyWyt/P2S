@@ -147,7 +147,7 @@ class BlindPlanterBot(MevAgent):
         if random.random() >= BLIND_FIT or random.random() >= BLIND_SUCCESS:
             return f_res, 0.0                            # missed — only F_res burned
         best = max(dex, key=lambda t: t.trade_eth).trade_eth
-        gain = pool.sandwich_profit(best)               # realized opportunity captured
+        gain = pool.blind_profit(best)                  # realized opportunity captured
         if gain <= exec_cost:
             return f_res, 0.0                            # not worth revealing in B2
         return max(f_res, exec_cost), gain  # floor: reveal+execute pays max(F_res, base)+tip

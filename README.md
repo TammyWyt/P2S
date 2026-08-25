@@ -43,7 +43,7 @@ The tables below list all simulation constants used in the paper's evaluation, w
 | Reps | 3 | Seeds per (φ, rep) point | |
 | Blocks/pt | 3,000 | Blocks per grid point | |
 
-† `BLIND_FIT` and `BLIND_SUCCESS` represent the information asymmetry of a blind attacker; not directly observable from public data. The paper's sensitivity analysis (11 × 11 grid sweep) bounds the residual uncertainty.
+† `BLIND_FIT` and `BLIND_SUCCESS` represent the information asymmetry of a blind attacker; not directly observable from public data. `scripts/blind_grid.py` sweeps both on an 11 × 11 grid (`BLIND_FIT` 0.00–0.50, `BLIND_SUCCESS` 0.00–1.00) and reports, per cell, the reservation fraction φ_plant at which the attack stops paying; results in `data/blind_grid.json`. The sweep is run against two real base-fee regimes: the 2023 cache above, and 12 × 1024-block windows sampled across the past year via `scripts/fetch_basefee_windows.py` (`data/basefee_windows.json`).
 
 ‡ The **median** (0.00056 ETH) is anchored to our own on-chain sandwich detection (55 real Uniswap V2/V3 attacks over 400 sampled mainnet blocks; see `real/data/sandwiches.json`). The **spread σ and the tail** are set from the published MEV literature (Qin et al. 2021; Chi et al. 2024, arXiv:2405.17944; Torres et al. 2024), not from that small low-fee sample, which under-counts whales; the resulting mean is ≈0.033 ETH (≈$99 at ETH=$3,000), with rare whale sandwiches reaching tens of ETH.
 
