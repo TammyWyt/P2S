@@ -58,10 +58,12 @@ N_BLOCKS    = 3_000
 # Calibrated to Ethereum mainnet post-Merge median tip (~1–3 gwei in normal conditions).
 PRIORITY_FEE_GWEI = 1.5
 
-# φ sweep: 20 evenly log-spaced points from 10^-4 to 10^0.
-# Uniform spacing on the log axis gives a smooth line when plotted on a log scale.
-# φ > 1 is economically incoherent (F_res > full execution cost).
+# φ sweep: 20 evenly log-spaced points from 10^-3 to 10^0.
+# The informative band is the stuffer breakeven φ* ~ 0.02-0.06; starting at 10^-3
+# keeps one decade below it as a sanity margin and spends the rest of the points
+# where the transition happens.  φ > 1 is economically incoherent
+# (F_res > full execution cost).
 # At empirical mainnet gas (~45.1 gwei median base + 1.5 gwei tip = 46.6 gwei):
 #   φ*_stuffer ≈ 0.02   (single-block-exclusion breakeven at median ~46.6 gwei; ~0.02–0.06 across 20–59 gwei)
 #   BlindPlanterBot and CrossBlockArbBot: never profitable at any φ (exec cost >> E[gain])
-PHI_SWEEP = [0.0] + list(np.logspace(-4, 0, 20))
+PHI_SWEEP = [0.0] + list(np.logspace(-3, 0, 20))

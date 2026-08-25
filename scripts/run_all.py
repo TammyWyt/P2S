@@ -63,13 +63,17 @@ sim.save_mev_comparison_json("data/mev_comparison.json")
 print("Step 1 done.")
 
 # ── Step 2: φ sweep ───────────────────────────────────────────────────────────
-
-step("Step 2/4 — Running φ sweep (3 reps × 21 φ values × 3000 blocks each)")
-
-import plots.plot_phi_sweep as phi_sweep
-
-phi_sweep.main()
-print("Step 2 done.")
+# Disabled: plots/plot_phi_sweep.py does not exist, so this step raised
+# ModuleNotFoundError and aborted the run.  No figure in the write-up comes from
+# the φ sweep; the sweep driver itself still lives in scripts/simulation/sweep.py
+# and can be called directly.  Restore this step if that plot script is written.
+#
+# step("Step 2/4 — Running φ sweep (3 reps × 21 φ values × 3000 blocks each)")
+#
+# import plots.plot_phi_sweep as phi_sweep
+#
+# phi_sweep.main()
+# print("Step 2 done.")
 
 # ── Step 3: Welfare CDF ───────────────────────────────────────────────────────
 
