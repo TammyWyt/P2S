@@ -76,6 +76,32 @@ _LEGEND_ENTRIES = [
 # Data loaders
 # ─────────────────────────────────────────────────────────────────────────────
 
+
+# Real mainnet heights in the shipped cache (data/ethereum_blocks_cache.json).
+# The retired synthetic cache used heights near 1.65e8, which no real chain reaches.
+_REAL_HEIGHT_LO, _REAL_HEIGHT_HI = 1.8e7, 3.0e7
+
+
+def _uses_real_block_cache(path):
+    """True if this simulation run recorded real mainnet block heights."""
+    def heights(o):
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == "block_number" and isinstance(v, (int, float)):
+                    yield v
+                else:
+                    yield from heights(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from heights(v)
+    try:
+        with open(path) as fh:
+            hs = list(heights(json.load(fh)))
+    except (OSError, ValueError):
+        return False
+    return bool(hs) and _REAL_HEIGHT_LO < min(hs) < _REAL_HEIGHT_HI
+
+
 def _load_mev_series(data_dir: str):
     """Return (pos_series, p2s_series, p2s_agents_dict) from p2s_mev_attacks.json."""
     path = os.path.join(data_dir, "p2s_mev_attacks.json")
@@ -148,7 +174,18 @@ def _panel_cost_gain(ax, block_ledger, p2s_agents):
     if repo not in sys.path:
         sys.path.insert(0, repo)
     from scripts.simulation.environment import load_gas_prices
-    results = sorted(glob.glob(os.path.join(repo, "data", "simulation_*.json")))
+    # Select only runs built on the REAL mainnet block cache.  data/ still holds
+    # 677 runs from the pre-2026-06-15 synthetic cache (fabricated heights around
+    # 165M; the real cache is 18,748,996-18,750,000), and picking "whichever
+    # filename sorts last" would silently source this figure from fabricated data
+    # if a run ever lands an earlier-sorting name.  Filter on the block heights the
+    # run actually recorded, so the rule fails correctly whatever is in the dir.
+    results = [f for f in sorted(glob.glob(os.path.join(repo, "data", "simulation_*.json")))
+               if _uses_real_block_cache(f)]
+    if not results:
+        raise SystemExit(
+            "no simulation_*.json built on the real mainnet block cache; "
+            "rerun scripts/simulation/simulator.py before plotting")
     records = []
     if results:
         with open(results[-1]) as f:

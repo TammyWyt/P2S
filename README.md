@@ -32,14 +32,14 @@ The tables below list all simulation constants used in the paper's evaluation, w
 | `ARB_EXEC` | 0.60 | Arb execution success rate | Qin et al. (2021) |
 | `ARB_EFF` | 0.80 | Price-efficiency capture | Calibrated |
 | **BlockStufferBot** | | | |
-| `STUFF_N_PHTS` | 10 | Dummy PHTs per stuffing attempt | Calibrated |
+| `STUFF_N_PHTS` | 25 | Dummy PHTs per stuffing attempt (25 x 1.2M = 30M declared, a full block) | Calibrated |
 | `STUFF_GAS` | 1.2M gas | Declared gas per dummy PHT | Calibrated |
 | **Gas and network** | | | |
 | `ḡ` | 45.1 gwei | Median base fee (1,005 mainnet blocks) | Blockscout |
 | Priority fee | 1.5 gwei | Median priority fee (post-Merge) | Blockscout |
 | `N_p` | 5 | Proposers in test committee | Design |
 | **Sweep configuration** | | | |
-| \|Φ\| | 21 | φ values, log-spaced 10⁻⁴–1 | |
+| \|Φ\| | 21 | φ values: 0 plus 20 log-spaced 10⁻³–1 | |
 | Reps | 3 | Seeds per (φ, rep) point | |
 | Blocks/pt | 3,000 | Blocks per grid point | |
 
@@ -69,7 +69,9 @@ The tables below list all simulation constants used in the paper's evaluation, w
 The two evaluation axes use distinct artifacts:
 
 - **Network-environment figures** (latency, bandwidth, block-size, and fan-out sweeps): discrete-event simulator (`scripts/simulation/netsim.py`) run over 100 seeds from a fixed master seed; deterministic.
-- **Agent-based MEV and φ-sweep figures**: agent simulator (`scripts/simulation/agents.py`) and sweep driver (`plots/plot_phi_sweep.py`).
+- **Agent-based MEV and φ-sweep figures**: agent simulator (`scripts/simulation/agents.py`) and sweep driver
+  (`scripts/simulation/sweep.py`). Note: the φ-sweep plotting step is currently disabled in `scripts/run_all.py`
+  because `plots/plot_phi_sweep.py` does not exist; no committed figure is generated from this path.
 - **Block-level welfare / MEV-totals figures**: block simulator (`scripts/simulation/simulator.py`), seeded (`random.seed(42)`); deterministic.
 
 The protocol logic itself — the salted-hash commitment, the expool, the two-block orchestration, the set-union agreement (`f+1` threshold; BLS-aggregatable availability proofs are specified in the design but not yet in the prototype, which counts unsigned reports), and the reservation-fee accounting — is implemented as a Go prototype with unit tests; the network simulator drives this logic to obtain the latency and bandwidth measurements.
