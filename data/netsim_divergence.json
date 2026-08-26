@@ -1,0 +1,49 @@
+{
+  "N": 1000,
+  "K": 150,
+  "seeds": 60,
+  "rows": [
+    {
+      "slack": 0.0,
+      "deadline_ms": 216.1686819494358,
+      "straddle_per_reveal": 1.0,
+      "diverge_per_slot": 1.0,
+      "slots_between_divergences": 1.0
+    },
+    {
+      "slack": 0.25,
+      "deadline_ms": 270.21085243679477,
+      "straddle_per_reveal": 0.5,
+      "diverge_per_slot": 1.0,
+      "slots_between_divergences": 1.0
+    },
+    {
+      "slack": 0.4,
+      "deadline_ms": 302.6361547292101,
+      "straddle_per_reveal": 0.0,
+      "diverge_per_slot": 0.0,
+      "slots_between_divergences": Infinity
+    },
+    {
+      "slack": 0.5,
+      "deadline_ms": 324.2530229241537,
+      "straddle_per_reveal": 0.0,
+      "diverge_per_slot": 0.0,
+      "slots_between_divergences": Infinity
+    },
+    {
+      "slack": 1.0,
+      "deadline_ms": 432.3373638988716,
+      "straddle_per_reveal": 0.0,
+      "diverge_per_slot": 0.0,
+      "slots_between_divergences": Infinity
+    },
+    {
+      "slack": 2.0,
+      "deadline_ms": 648.5060458483074,
+      "straddle_per_reveal": 0.0,
+      "diverge_per_slot": 0.0,
+      "slots_between_divergences": Infinity
+    }
+  ]
+}

@@ -181,12 +181,24 @@ def byzantine_experiment(N_list=(50, 100, 250, 500, 1000), K=150, seeds=15):
     return rows
 
 
-AGREEMENTS = {"bls": agreement_bls, "aggregated": agreement_aggregated, "all_to_all": agreement_all_to_all}
+def agreement_none(net, K):
+    """No in-slot agreement. Each validator closes E on what reached it by the
+    reveal deadline and derives S_2 locally; validators that computed a different
+    S_2 decline to attest to the next slot's S_1, and ordinary fork choice settles
+    it one slot later. This is the design P2S actually claims, so it is the
+    default here; divergence_rate() measures what it costs."""
+    return 0.0, 0, 0
 
 
-def p2s_slot(net, K, pht_b=77, mt_b=371, agreement="bls"):
-    """P2S: B1 (proposer) -> multi-source MT reveal -> set-union agreement -> B2
-    (proposer) -- sequential phases."""
+AGREEMENTS = {"none": agreement_none, "bls": agreement_bls,
+              "aggregated": agreement_aggregated, "all_to_all": agreement_all_to_all}
+
+
+def p2s_slot(net, K, pht_b=77, mt_b=371, agreement="none"):
+    """P2S: B1 (proposer) -> multi-source MT reveal -> B2 (proposer), sequential.
+    ``agreement`` charges an optional in-slot round for deciding E; the default
+    "none" is the design of Sec. 3.1, where E is local and fork choice settles
+    any divergence one slot later."""
     r1, m1, b1 = net.gossip(0, K * pht_b)        # B1: proposer gossips PHT order
     t_b1 = net.pct(r1, 0.90)
     t_reveal, m2, b2 = reveal_phase(net, K, mt_b)
@@ -200,6 +212,52 @@ def p2s_slot(net, K, pht_b=77, mt_b=371, agreement="bls"):
     }
 
 
+def divergence_rate(N=1000, K=150, mt_b=371, seeds=60, slack_grid=(0.0, 0.25, 0.5, 1.0, 2.0)):
+    """How often honest validators close E differently, and so derive different S_2.
+
+    P2S decides E locally: each validator includes the reveals that reached it by
+    the deadline. A single reveal that lands before the deadline at one validator
+    and after it at another splits the set, and the two derive different state
+    roots. That divergence is settled one slot later by fork choice, so its rate
+    is the price of having no in-slot agreement round, and it is a reorg rate.
+
+    Each of the K reveals is gossiped from its own sender. For one reveal, the
+    straddle probability at deadline D is the chance that D falls between the
+    first and last honest arrival. A slot survives only if no reveal straddles,
+    so P(diverge) = 1 - (1-p)^K. The deadline is set at the 90th-percentile
+    single-reveal propagation time plus ``slack`` times that same figure.
+    """
+    rows = []
+    for slack in slack_grid:
+        straddles = 0; trials = 0; p90s = []
+        for s_i in range(seeds):
+            net = Net(N, seed=7919 * s_i + N)
+            src = s_i % N
+            recv, _, _ = net.gossip(src, mt_b)
+            arr = sorted(recv.values())
+            p90 = arr[min(len(arr) - 1, int(0.90 * len(arr)))]
+            deadline = p90 * (1.0 + slack)
+            p90s.append(p90)
+            trials += 1
+            if arr[0] <= deadline < arr[-1]:
+                straddles += 1
+        p = straddles / trials
+        rows.append({"slack": slack, "deadline_ms": 1000 * st.mean(p90s) * (1 + slack),
+                     "straddle_per_reveal": p, "diverge_per_slot": 1 - (1 - p) ** K,
+                     "slots_between_divergences": (float("inf") if p == 0
+                                                   else 1.0 / (1 - (1 - p) ** K))})
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                        "data", "netsim_divergence.json")
+    json.dump({"N": N, "K": K, "seeds": seeds, "rows": rows}, open(path, "w"), indent=2)
+    print(f"\n== reveal-set divergence (N={N}, K={K} reveals/slot, {seeds} seeds) ==")
+    print(f"  {'deadline':>10} {'straddle/reveal':>16} {'diverge/slot':>13} {'1 in':>12}")
+    for r in rows:
+        n = r["slots_between_divergences"]
+        print(f"  {r['deadline_ms']:>8.0f}ms {r['straddle_per_reveal']:>16.4f} "
+              f"{r['diverge_per_slot']:>13.4f} {('never' if n == float('inf') else f'{n:,.0f}'):>12}")
+    return rows
+
+
 def run(N_list=(10, 25, 50, 75, 100, 150, 250, 400, 600, 800, 1000), K=150, seeds=100):
     out = {"K": K, "seeds": seeds, "fanout": FANOUT, "bw_mbps": BW_BPS / 1e6, "rows": []}
     print(f"network-env simulation: K={K} txs/block, {seeds} seeds, GossipSub D={FANOUT}, {BW_BPS/1e6:.0f} Mbps")
@@ -211,12 +269,13 @@ def run(N_list=(10, 25, 50, 75, 100, 150, 250, 400, 600, 800, 1000), K=150, seed
         for s in range(seeds):
             net = Net(n, seed=1000 * s + n)
             p = pos_slot(net, K)
-            q = p2s_slot(net, K, agreement="bls")
+            q = p2s_slot(net, K, agreement="none")
+            q_bls = p2s_slot(net, K, agreement="bls")
             _, _, b_agg = agreement_aggregated(net, K)
             _, _, b_naive = agreement_all_to_all(net, K)
             acc["pos_l"].append(p["latency_s"]); acc["pos_mb"].append(p["bytes"] / 1e6)
             acc["p2s_l"].append(q["latency_s"]); acc["p2s_mb"].append(q["bytes"] / 1e6)
-            acc["agr"].append(q["t_agreement"])
+            acc["agr"].append(q_bls["t_agreement"])
             acc["b1"].append(q["t_b1"]); acc["rev"].append(q["t_reveal"]); acc["b2"].append(q["t_b2"])
             acc["agr_bls"].append(q["agr_bytes"] / 1e6)
             acc["agr_agg"].append(b_agg / 1e6); acc["agr_naive"].append(b_naive / 1e6)
