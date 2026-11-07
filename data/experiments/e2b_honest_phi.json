@@ -1,0 +1,122 @@
+{
+ "declared|0.437": {
+  "phi_mean": 43.340516871635465,
+  "phi_p99": 230.64844003427302,
+  "phi_max": 269.9620102140531,
+  "share_blocks_at_floor": 0.048,
+  "tx_share_paying_extra": 0.6942743403688185,
+  "gas_surcharge_pct": 9760.668348221676
+ },
+ "declared|0.5": {
+  "phi_mean": 7294824637278.87,
+  "phi_p99": 190321425784792.3,
+  "phi_max": 220572620381858.06,
+  "share_blocks_at_floor": 0.002,
+  "tx_share_paying_extra": 0.9586059112013171,
+  "gas_surcharge_pct": 1583733397900248.8
+ },
+ "declared|0.55": {
+  "phi_mean": 2.977810451176952e+20,
+  "phi_p99": 9.847510709428652e+21,
+  "phi_max": 1.3532398553505578e+22,
+  "share_blocks_at_floor": 0.002,
+  "tx_share_paying_extra": 0.9737105723917455,
+  "gas_surcharge_pct": 6.4024858295205095e+22
+ },
+ "declared|0.6": {
+  "phi_mean": 4.405748935914941e+26,
+  "phi_p99": 1.5711531276495813e+28,
+  "phi_max": 2.5525263841175834e+28,
+  "share_blocks_at_floor": 0.002,
+  "tx_share_paying_extra": 0.980435369646077,
+  "gas_surcharge_pct": 9.426185048440807e+28
+ },
+ "declared|0.7": {
+  "phi_mean": 1.0260554997685726e+36,
+  "phi_p99": 3.7588973751234575e+37,
+  "phi_max": 7.855646498201078e+37,
+  "share_blocks_at_floor": 0.002,
+  "tx_share_paying_extra": 0.9861671268913492,
+  "gas_surcharge_pct": 2.183901779010653e+38
+ },
+ "learned_p99x1.1|0.437": {
+  "phi_mean": 0.2005623014992938,
+  "phi_p99": 0.21706061305432792,
+  "phi_max": 0.24400610523982397,
+  "share_blocks_at_floor": 0.93,
+  "tx_share_paying_extra": 0.027517661303669894,
+  "gas_surcharge_pct": 4.0590990143221
+ },
+ "learned_p99x1.1|0.5": {
+  "phi_mean": 0.20335496602744438,
+  "phi_p99": 0.24244734715917518,
+  "phi_max": 0.2609439877742047,
+  "share_blocks_at_floor": 0.764,
+  "tx_share_paying_extra": 0.028589099208181257,
+  "gas_surcharge_pct": 4.1622594450409975
+ },
+ "learned_p99x1.1|0.55": {
+  "phi_mean": 0.21774954750529832,
+  "phi_p99": 0.30303724788244746,
+  "phi_max": 0.3489198403087415,
+  "share_blocks_at_floor": 0.438,
+  "tx_share_paying_extra": 0.03262223538532565,
+  "gas_surcharge_pct": 4.6956353424238655
+ },
+ "learned_p99x1.1|0.6": {
+  "phi_mean": 16.98438534589462,
+  "phi_p99": 85.9560787797289,
+  "phi_max": 89.66210233238147,
+  "share_blocks_at_floor": 0.026,
+  "tx_share_paying_extra": 0.6472181813430431,
+  "gas_surcharge_pct": 2761.0957572630896
+ },
+ "learned_p99x1.1|0.7": {
+  "phi_mean": 453946042328921.7,
+  "phi_p99": 1.2362776844046276e+16,
+  "phi_max": 1.6403120332068614e+16,
+  "share_blocks_at_floor": 0.002,
+  "tx_share_paying_extra": 0.9614805007012256,
+  "gas_surcharge_pct": 7.309391632947566e+16
+ },
+ "wallet_1.25x|0.437": {
+  "phi_mean": 0.2,
+  "phi_p99": 0.2,
+  "phi_max": 0.2,
+  "share_blocks_at_floor": 1.0,
+  "tx_share_paying_extra": 0.0,
+  "gas_surcharge_pct": 0.0
+ },
+ "wallet_1.25x|0.5": {
+  "phi_mean": 0.2,
+  "phi_p99": 0.2,
+  "phi_max": 0.2,
+  "share_blocks_at_floor": 1.0,
+  "tx_share_paying_extra": 0.0,
+  "gas_surcharge_pct": 0.0
+ },
+ "wallet_1.25x|0.55": {
+  "phi_mean": 0.2,
+  "phi_p99": 0.2,
+  "phi_max": 0.2,
+  "share_blocks_at_floor": 1.0,
+  "tx_share_paying_extra": 0.0,
+  "gas_surcharge_pct": 0.0
+ },
+ "wallet_1.25x|0.6": {
+  "phi_mean": 0.2,
+  "phi_p99": 0.2,
+  "phi_max": 0.2,
+  "share_blocks_at_floor": 1.0,
+  "tx_share_paying_extra": 0.0,
+  "gas_surcharge_pct": 0.0
+ },
+ "wallet_1.25x|0.7": {
+  "phi_mean": 0.2,
+  "phi_p99": 0.2,
+  "phi_max": 0.2,
+  "share_blocks_at_floor": 1.0,
+  "tx_share_paying_extra": 0.0,
+  "gas_surcharge_pct": 0.0
+ }
+}

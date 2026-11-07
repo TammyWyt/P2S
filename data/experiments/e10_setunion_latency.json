@@ -1,0 +1,31 @@
+{
+ "N": 1000,
+ "f": 333,
+ "K": 150,
+ "runs": 100,
+ "decide_at": 667,
+ "formats": {
+  "full_4950B": {
+   "size_B": 4950,
+   "idle_t90_s": 0.24727290726251538,
+   "idle_ci": 0.0003837446141066446,
+   "contended_t90_s": 1.459608673839786,
+   "contended_ci": 0.002622968600534178,
+   "contended_last_s": 1.751393438106482,
+   "gossip_MB_total": 50289.02999999999,
+   "gossip_MB_per_validator": 50.28902999999999,
+   "unique_MB_per_validator": 4.95
+  },
+  "bitmap_115B": {
+   "size_B": 115,
+   "idle_t90_s": 0.22877882252948223,
+   "idle_ci": 0.00039335007774982735,
+   "contended_t90_s": 0.2380382212337493,
+   "contended_ci": 0.00040377178425338807,
+   "contended_last_s": 0.2684191686123531,
+   "gossip_MB_total": 1168.3310000000001,
+   "gossip_MB_per_validator": 1.1683310000000002,
+   "unique_MB_per_validator": 0.115
+  }
+ }
+}

@@ -73,6 +73,7 @@ The two evaluation axes use distinct artifacts:
   (`scripts/simulation/sweep.py`). Note: the φ-sweep plotting step is currently disabled in `scripts/run_all.py`
   because `plots/plot_phi_sweep.py` does not exist; no committed figure is generated from this path.
 - **Block-level welfare / MEV-totals figures**: block simulator (`scripts/simulation/simulator.py`), seeded (`random.seed(42)`); deterministic.
+- **Follow-up experiments**: `scripts/experiments/` writes results to `data/experiments/`. Run from the repo root. E1 and E7 need raw on-chain inputs, which are not committed; keep them in `data/experiments/_archive/` and unpack with `tar xzf data/experiments/_archive/e1_inputs.tgz -C data/experiments` (same for `e7_inputs.tgz`), or refetch with `e1_fetch_logs.py`, `e7_fetch.py` and `e7b_fetch_history.py`.
 
 The protocol logic itself — the salted-hash commitment, the expool, the two-block orchestration, the set-union agreement (`f+1` threshold; BLS-aggregatable availability proofs are specified in the design but not yet in the prototype, which counts unsigned reports), and the reservation-fee accounting — is implemented as a Go prototype with unit tests; the network simulator drives this logic to obtain the latency and bandwidth measurements.
 

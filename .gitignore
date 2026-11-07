@@ -10,6 +10,9 @@ build/
 # Data outputs (regenerable)
 data/simulation_*.json
 data/revert_receipts_cache.json
+data/experiments/_*/
+data/experiments/swap_logs.json
+data/experiments/*.log
 
 # IDE
 .cursorrules
