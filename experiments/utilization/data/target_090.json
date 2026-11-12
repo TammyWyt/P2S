@@ -1,0 +1,91 @@
+{
+ "blocks": 100,
+ "txs": 23036,
+ "u_star": 0.9,
+ "policies": {
+  "exact_0.90": {
+   "utilization": 0.9056113914979921,
+   "block_u_p10": 0.8746937945818828,
+   "blocks_at_or_above_target": 0.6931818181818182,
+   "newly_failed": 4124,
+   "newly_failed_rate": 0.214078073089701,
+   "failure_kind": {
+    "out of gas": 1505,
+    "reverted": 2619
+   },
+   "fee_end_multiple": 1.0,
+   "fee_peak_multiple": 1.1366680558280553,
+   "blocks_cascade_skipped": 12
+  },
+  "exact_0.95": {
+   "utilization": 0.9335711138810444,
+   "block_u_p10": 0.8983830722342391,
+   "blocks_at_or_above_target": 0.896551724137931,
+   "newly_failed": 5513,
+   "newly_failed_rate": 0.28665765391014975,
+   "failure_kind": {
+    "out of gas": 1930,
+    "reverted": 3583
+   },
+   "fee_end_multiple": 1.0,
+   "fee_peak_multiple": 1.0353972641879932,
+   "blocks_cascade_skipped": 13
+  },
+  "exact_1.00": {
+   "utilization": 0.9434479539936901,
+   "block_u_p10": 0.8928802365780212,
+   "blocks_at_or_above_target": 0.8809523809523809,
+   "newly_failed": 8706,
+   "newly_failed_rate": 0.4723051049747735,
+   "failure_kind": {
+    "reverted": 6340,
+    "out of gas": 2366
+   },
+   "fee_end_multiple": 1.0,
+   "fee_peak_multiple": 1.0473561288107514,
+   "blocks_cascade_skipped": 16
+  },
+  "wallet_1.00": {
+   "utilization": 0.9034477097729475,
+   "block_u_p10": 0.8667792208683968,
+   "blocks_at_or_above_target": 0.5894736842105263,
+   "newly_failed": 916,
+   "newly_failed_rate": 0.04272786640544827,
+   "failure_kind": {
+    "reverted": 750,
+    "out of gas": 166
+   },
+   "fee_end_multiple": 1.0771021395355835,
+   "fee_peak_multiple": 1.1235628001002764,
+   "blocks_cascade_skipped": 5
+  },
+  "wallet_0.95": {
+   "utilization": 0.9215707171364926,
+   "block_u_p10": 0.8692279329998552,
+   "blocks_at_or_above_target": 0.7,
+   "newly_failed": 4216,
+   "newly_failed_rate": 0.6473207431291264,
+   "failure_kind": {
+    "reverted": 2175,
+    "out of gas": 2041
+   },
+   "fee_end_multiple": 1.0,
+   "fee_peak_multiple": 1.0322794794735852,
+   "blocks_cascade_skipped": 70
+  },
+  "wallet_0.90": {
+   "utilization": 0.9161410183445028,
+   "block_u_p10": 0.8536634439455463,
+   "blocks_at_or_above_target": 0.625,
+   "newly_failed": 1954,
+   "newly_failed_rate": 0.6673497267759563,
+   "failure_kind": {
+    "reverted": 1041,
+    "out of gas": 913
+   },
+   "fee_end_multiple": 1.0130494951223494,
+   "fee_peak_multiple": 1.0340604191843128,
+   "blocks_cascade_skipped": 84
+  }
+ }
+}

@@ -1,0 +1,189 @@
+{
+ "n": 45,
+ "gross_total": 0.09254498911700014,
+ "replay_net_total": 0.08830306711700014,
+ "exec_gas_units": 94264.93333333328,
+ "block_basefee_gwei": {
+  "min": 0.02745777,
+  "median": 0.159530576,
+  "max": 0.94263564
+ },
+ "rows": [
+  {
+   "regime": "45.1gwei",
+   "p_name": "best",
+   "p": 0.24444444444444444,
+   "F_res_eth": 0.001804,
+   "worth": 0,
+   "expected_extraction_eth": 0,
+   "expected_net_eth": 0,
+   "m_total_eth": 0.03963966143331285,
+   "share": 0.0
+  },
+  {
+   "regime": "45.1gwei",
+   "p_name": "upper",
+   "p": 0.3867366058479013,
+   "F_res_eth": 0.001804,
+   "worth": 2,
+   "expected_extraction_eth": 0.010280943227640373,
+   "expected_net_eth": 0.0030649432276403715,
+   "m_total_eth": 0.03963966143331285,
+   "share": 0.2593600161024673
+  },
+  {
+   "regime": "45.1gwei",
+   "p_name": "e1_low",
+   "p": 0.163,
+   "F_res_eth": 0.001804,
+   "worth": 0,
+   "expected_extraction_eth": 0,
+   "expected_net_eth": 0,
+   "m_total_eth": 0.03963966143331285,
+   "share": 0.0
+  },
+  {
+   "regime": "45.1gwei",
+   "p_name": "e1_high",
+   "p": 0.194,
+   "F_res_eth": 0.001804,
+   "worth": 0,
+   "expected_extraction_eth": 0,
+   "expected_net_eth": 0,
+   "m_total_eth": 0.03963966143331285,
+   "share": 0.0
+  },
+  {
+   "regime": "0.12gwei_floor2",
+   "p_name": "best",
+   "p": 0.24444444444444444,
+   "F_res_eth": 8e-05,
+   "worth": 19,
+   "expected_extraction_eth": 0.02104275847840975,
+   "expected_net_eth": 0.01800275847840975,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.2274840331830235
+  },
+  {
+   "regime": "0.12gwei_floor2",
+   "p_name": "upper",
+   "p": 0.3867366058479013,
+   "F_res_eth": 8e-05,
+   "worth": 25,
+   "expected_extraction_eth": 0.03459890546372347,
+   "expected_net_eth": 0.03059890546372348,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.37403359291898164
+  },
+  {
+   "regime": "0.12gwei_floor2",
+   "p_name": "e1_low",
+   "p": 0.163,
+   "F_res_eth": 8e-05,
+   "worth": 14,
+   "expected_extraction_eth": 0.013373552794523534,
+   "expected_net_eth": 0.011133552794523532,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.1445756140196986
+  },
+  {
+   "regime": "0.12gwei_floor2",
+   "p_name": "e1_high",
+   "p": 0.194,
+   "F_res_eth": 8e-05,
+   "worth": 16,
+   "expected_extraction_eth": 0.01627145817444149,
+   "expected_net_eth": 0.01371145817444149,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.17590359814701242
+  },
+  {
+   "regime": "0.12gwei_nofloor",
+   "p_name": "best",
+   "p": 0.24444444444444444,
+   "F_res_eth": 4.800000000000001e-06,
+   "worth": 41,
+   "expected_extraction_eth": 0.0225974667558243,
+   "expected_net_eth": 0.02220386675582429,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.24429130252141207
+  },
+  {
+   "regime": "0.12gwei_nofloor",
+   "p_name": "upper",
+   "p": 0.3867366058479013,
+   "F_res_eth": 4.800000000000001e-06,
+   "worth": 42,
+   "expected_extraction_eth": 0.03576615141809528,
+   "expected_net_eth": 0.035362951418095284,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.38665217701238863
+  },
+  {
+   "regime": "0.12gwei_nofloor",
+   "p_name": "e1_low",
+   "p": 0.163,
+   "F_res_eth": 4.800000000000001e-06,
+   "worth": 39,
+   "expected_extraction_eth": 0.015052002505165,
+   "expected_net_eth": 0.014677602505165,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.16272059772339667
+  },
+  {
+   "regime": "0.12gwei_nofloor",
+   "p_name": "e1_high",
+   "p": 0.194,
+   "F_res_eth": 4.800000000000001e-06,
+   "worth": 40,
+   "expected_extraction_eth": 0.017924867061712372,
+   "expected_net_eth": 0.017540867061712373,
+   "m_total_eth": 0.0925021338156058,
+   "share": 0.19377787649141032
+  },
+  {
+   "regime": "block_basefee_floor2",
+   "p_name": "best",
+   "p": 0.24444444444444444,
+   "F_res_eth": null,
+   "worth": 19,
+   "expected_extraction_eth": 0.02098936461700554,
+   "expected_net_eth": 0.01794936461700554,
+   "m_total_eth": 0.092159285104397,
+   "share": 0.2277509487321763
+  },
+  {
+   "regime": "block_basefee_floor2",
+   "p_name": "upper",
+   "p": 0.3867366058479013,
+   "F_res_eth": null,
+   "worth": 25,
+   "expected_extraction_eth": 0.03449703997938803,
+   "expected_net_eth": 0.030497039979388026,
+   "m_total_eth": 0.092159285104397,
+   "share": 0.37431974369495347
+  },
+  {
+   "regime": "block_basefee_floor2",
+   "p_name": "e1_low",
+   "p": 0.163,
+   "F_res_eth": null,
+   "worth": 14,
+   "expected_extraction_eth": 0.013347597418741735,
+   "expected_net_eth": 0.011107597418741736,
+   "m_total_eth": 0.092159285104397,
+   "share": 0.14483182463515995
+  },
+  {
+   "regime": "block_basefee_floor2",
+   "p_name": "e1_high",
+   "p": 0.194,
+   "F_res_eth": null,
+   "worth": 16,
+   "expected_extraction_eth": 0.016235241005262024,
+   "expected_net_eth": 0.013675241005262023,
+   "m_total_eth": 0.092159285104397,
+   "share": 0.17616500591200254
+  }
+ ]
+}

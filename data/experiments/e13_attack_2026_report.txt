@@ -1,0 +1,36 @@
+{
+ "window": "2026",
+ "blocks": 200,
+ "median_base_fee_gwei": 0.2104374445,
+ "pos": {
+  "victims_evaluated": 1821,
+  "victims_profitable": 367,
+  "extractable_eth": 6.206543839933337,
+  "skipped": {
+   "no_victim_swap": 1601,
+   "unconvertible": 639,
+   "error": 1048,
+   "no_key": 1727,
+   "no_balance_slot": 139,
+   "token_reverted": 42
+  },
+  "by_version": {
+   "2": 6.057995263139776,
+   "3": 0.14854789963742387,
+   "4": 6.771561399389982e-07
+  }
+ },
+ "eq5": {
+  "p_bar": 0.7152667298337269,
+  "m_bar_eth": 0.0002464979295177607,
+  "phi_plant": 0.293852946594922
+ }
+}
+slip=0.005|phi=0.0 {'net': 0.0619, 'extracted': 0.0678, 'bets': 272, 'hits': 199, 'opened': 103, 'residual_share': 0.0109, 'removed': 0.9891, 'hit_rate': 0.7316}
+slip=0.005|phi=0.2 {'net': 0.033, 'extracted': 0.0611, 'bets': 234, 'hits': 183, 'opened': 109, 'residual_share': 0.0098, 'removed': 0.9902, 'hit_rate': 0.7821}
+slip=0.01|phi=0.0 {'net': 0.0903, 'extracted': 0.0961, 'bets': 283, 'hits': 206, 'opened': 100, 'residual_share': 0.0155, 'removed': 0.9845, 'hit_rate': 0.7279}
+slip=0.01|phi=0.2 {'net': 0.0648, 'extracted': 0.0962, 'bets': 261, 'hits': 199, 'opened': 105, 'residual_share': 0.0155, 'removed': 0.9845, 'hit_rate': 0.7625}
+slip=0.03|phi=0.0 {'net': 0.267, 'extracted': 0.2729, 'bets': 288, 'hits': 206, 'opened': 103, 'residual_share': 0.044, 'removed': 0.956, 'hit_rate': 0.7153}
+slip=0.03|phi=0.2 {'net': 0.2396, 'extracted': 0.2729, 'bets': 278, 'hits': 203, 'opened': 104, 'residual_share': 0.044, 'removed': 0.956, 'hit_rate': 0.7302}
+slip=0.1|phi=0.0 {'net': 0.8279, 'extracted': 0.8335, 'bets': 302, 'hits': 218, 'opened': 97, 'residual_share': 0.1343, 'removed': 0.8657, 'hit_rate': 0.7219}
+slip=0.1|phi=0.2 {'net': 0.7984, 'extracted': 0.8335, 'bets': 293, 'hits': 216, 'opened': 97, 'residual_share': 0.1343, 'removed': 0.8657, 'hit_rate': 0.7372}
